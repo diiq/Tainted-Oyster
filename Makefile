@@ -1,17 +1,18 @@
-CFLAGS=-Wall
+CFLAGS=-Wall -I/usr/local/include -lgc
 DEBUG_FLAGS=-g3
 PROFILE_FLAGS= -fprofile-arcs -ftest-coverage -pg
 TARGET=oyster
+
 all:
-	gcc $(CFLAGS) -o $(TARGET) $(TARGET).c 
+	gcc $(CFLAGS) $(TARGET).c  -o $(TARGET)  
 
 debug:
 	gcc $(CFLAGS) -o $(TARGET) $(TARGET).c $(DEBUG_FLAGS)
 
 profile:
-	gcc $(CFLAGS) -o $(TARGET) $(TARGET).c $(PROFILE_FLAGS) 
+	gcc $(CFLAGS) $(TARGET).c -o $(TARGET) $(PROFILE_FLAGS) 
 
 test:
-	@gcc $(CFLAGS) -o testes test_all.c $(DEBUG_FLAGS)
+	@gcc $(CFLAGS) test_all.c -o testes $(DEBUG_FLAGS)
 	@ ./testes 
-#	@rm testes
+	@rm testes
