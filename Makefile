@@ -13,6 +13,6 @@ profile:
 	gcc $(CFLAGS) $(TARGET).c -o $(TARGET) $(PROFILE_FLAGS) 
 
 test:
-	@gcc $(CFLAGS) test_all.c -o testes $(DEBUG_FLAGS)
+	@gcc $(CFLAGS) test_all.c -o testes $(DEBUG_FLAGS) -DGC_DEBUG
 	@ ./testes 
 	@rm testes
