@@ -1,5 +1,9 @@
-#include "parsing.h"
+#ifndef PARSING
+#define PARSING
+
 #include "gc.h"
+#include "oyster.h"
+#include "parsing.h"
 #include "string.h"
 #include "stdio.h"
 #include <stdlib.h>
@@ -78,7 +82,7 @@ parsed_token *parse_symbol(FILE *stream){
 
     ret[i] = 0;
     parsed_token *cheese = NEW(parsed_token);
-    cheese->flag = SYMBOL;
+    cheese->flag = PARSED_SYMBOL;
     cheese->count = i;
     cheese->value = ret;
     return cheese;
@@ -99,7 +103,7 @@ parsed_token *parse_open(FILE *stream){
     char c = fgetc(stream);
     if(c == '('){
         parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = OPEN;
+        cheese->flag = PARSED_OPEN;
         cheese->count = 1;
         cheese->value = NULL;
         return cheese;
@@ -112,7 +116,7 @@ parsed_token *parse_close(FILE *stream){
     char c = fgetc(stream);
     if(c == ')'){
         parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = CLOSE;
+        cheese->flag = PARSED_CLOSE;
         cheese->count = 1;
         cheese->value = NULL;
         return cheese;
@@ -131,7 +135,7 @@ parsed_token *parse_newline(FILE *stream){
         } while(c == ' ');
         ungetc(c, stream);
         parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = NEWLINE;
+        cheese->flag = PARSED_NEWLINE;
         cheese->count = i;
         cheese->value = NULL;
         return cheese;
@@ -144,7 +148,7 @@ parsed_token *parse_eof(FILE *stream){
     char c = fgetc(stream);
     if (c == EOF){
         parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = END;
+        cheese->flag = PARSED_END;
         cheese->count = 0;
         cheese->value = NULL;        
         return cheese;
@@ -179,9 +183,9 @@ token_stream *tokens(FILE *stream){
         if(!parse_whitespace(stream)){
             parsed_token *newv = parse_open(stream);
             if(newv){
-                if(v->flag==SYMBOL || v->flag == CLOSE){
-                    if(newv->flag == OPEN){
-                        newv->flag = FUNCTIONAL_OPEN;
+                if(v->flag==PARSED_SYMBOL || v->flag == PARSED_CLOSE){
+                    if(newv->flag == PARSED_OPEN){
+                        newv->flag = PARSED_FUNCTIONAL_OPEN;
                     }
                 }
             
@@ -195,91 +199,13 @@ token_stream *tokens(FILE *stream){
     return ret;
 }
 
-// Manipulating streams
-
-/* token_stream *strip_newlines(token_stream *in){ */
-/*     token_stream *ret = new_token_stream(); */
-/*     parsed_token *window[3]; */
-/*     int i; */
-/*     for(i=0;i<3;i++) */
-/*         window[i] = pull_token(in); */
-
-/*     int current_indent = 0; */
-
-/*     parsed_token *open = NEW(parsed_token); */
-/*     open->flag = OPEN; */
-
-/*     parsed_token *close = NEW(parsed_token); */
-/*     close->flag = CLOSE; */
-
-/*     for(;window[2];){ */
-/*         printf("0: ");print_token(window[0]);         */
-/*         printf("1: ");print_token(window[1]);         */
-/*         printf("2: ");print_token(window[2]); */
-/*         printf("\n"); */
-/*         if (window[0]->flag == NEWLINE){ */
-            
-/*             if(window[1]->flag == NEWLINE){ */
-/*                 window[0] = window[1]; */
-/*                 window[1] = window[2]; */
-/*                 window[2] = pull_token(in); */
-/*                 continue; */
-/*             }  */
-            
-/*             if (window[0]->count <= current_indent){ */
-/*                 int indent = (current_indent-window[0]->count)/4; */
-/*                 for(;indent;indent--) */
-/*                     push_token(close, ret); */
-/*                 current_indent = window[0]->count; */
-/*             } */
-            
-/*             if (window[2]->flag == NEWLINE){ */
-/*                 if (window[2]->count > current_indent){ */
-/*                     push_token(open, ret); */
-/*                 } */
-                
-/*                 push_token(window[1], ret); */
-               
-/*                 window[0] = window[2]; */
-/*                 window[1] = pull_token(in); */
-/*                 window[2] = pull_token(in); */
-/*             } else { */
-/*                 push_token(open, ret); */
-/*                 push_token(window[1], ret); */
-/*                 window[0] = window[2]; */
-/*                 window[1] = pull_token(in); */
-/*                 window[2] = pull_token(in); */
-/*             } */
-           
-/*         } else if(window[1]->flag == NEWLINE){ */
-/*             push_token(window[0], ret); */
-/*             if (window[1]->count <= current_indent){ */
-/*                 int dedent = (current_indent-window[1]->count)/4; */
-/*                 push_token(close, ret); */
-/*                 for(;dedent;dedent--) */
-/*                     push_token(close, ret); */
-/*             } */
-/*             current_indent = window[1]->count; */
-/*             window[0] = window[1]; */
-/*             window[1] = window[2]; */
-/*             window[2] = pull_token(in); */
-/*         } else { */
-/*             push_token(window[0], ret); */
-/*             window[0] = window[1]; */
-/*             window[1] = window[2]; */
-/*             window[2] = pull_token(in); */
-/*         } */
-/*     } */
-    
-/*     return ret; */
-/* } */
-
-
 token_stream *strip_newlines(token_stream *in){
     token_stream *ret = new_token_stream();
     parsed_token *b;
     for(b = pull_token(in); b; b = pull_token(in))
-        if (b->flag != NEWLINE)
+        if (b->flag != PARSED_NEWLINE)
             push_token(b, ret);
     return ret;
 }
+
+#endif

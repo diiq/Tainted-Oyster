@@ -4,12 +4,12 @@
 #include "stdio.h"
  
 _test(new_table){
-    table *tab = new_table();
+    table *tab = make_table();
     assert(tab);
 }_tset;
 
 _test(table_put_get){
-    table *tab = NEW(table);
+    table *tab = make_table();
     int *val = NEW(int);
     *val = 4;
     table_put(2, val, tab);
@@ -23,7 +23,7 @@ _test(table_rev_lookup){
     int eq(void *i, void *j){
         return (*(int *)i == *(int *)j);
     }
-    table *tab = NEW(table);
+    table *tab = make_table();
     int *val = NEW(int);
     *val = 4;
     table_put(2, val, tab);
@@ -35,7 +35,7 @@ _test(table_rev_lookup){
 }_tset;
 
 _test(table_remove){
-    table *tab = NEW(table);
+    table *tab = make_table();
     int *val = NEW(int);
     *val = 4;
     table_put(2, val, tab);
@@ -45,11 +45,20 @@ _test(table_remove){
     assert(i == 0);
 }_tset;
 
+_test(table_empty){
+    table *tab = make_table();
+    assert(table_empty(tab));
+    int j = 5;
+    table_put(2, &j, tab);
+    assert(!table_empty(tab));
+}_tset;
+
 _test(table){
     printf("\nTesting table:\n");
     run_test(new_table);
     run_test(table_put_get);
     run_test(table_rev_lookup);
     run_test(table_remove);
+    run_test(table_empty);
 }_tset;
 

@@ -1,14 +1,15 @@
-#define NEW(x) GC_MALLOC(sizeof(x))
-//#define NEW(x) malloc(sizeof(x))
+#ifndef PARSINGH
+#define PARSINGH
+
 
 enum {
-    SYMBOL,
-    NUMBER,
-    OPEN,
-    CLOSE,
-    NEWLINE,
-    END,
-    FUNCTIONAL_OPEN
+    PARSED_SYMBOL,
+    PARSED_NUMBER,
+    PARSED_OPEN,
+    PARSED_CLOSE,
+    PARSED_NEWLINE,
+    PARSED_END,
+    PARSED_FUNCTIONAL_OPEN
 };
 
 typedef struct{
@@ -23,4 +24,4 @@ typedef struct {
     parsed_token** s;
 } token_stream;
 
- 
+#endif

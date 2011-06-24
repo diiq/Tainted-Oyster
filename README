@@ -3,7 +3,7 @@ collector. It can be obtained here:
 http://www.hpl.hp.com/personal/Hans_Boehm/gc/ , and should be
 installed before any attempt to build a tainted oyster. The Makefile is intended to be used on a system with GNU make, gcc, and an inhuman quality of love. 
 
-If your system meets these qualifications, run the commanbd "make" to assemble your oyster. 
+If your system meets these qualifications, run the command "make" to assemble your oyster. 
 
 If you would like to contribute, question, or converse, please call
 405-283-6446 and leave a message with your email address.
