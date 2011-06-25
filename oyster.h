@@ -8,10 +8,10 @@
 #include "table.c"
 
 typedef struct oyster oyster;
-typedef struct cons cons;
+typedef struct cons_cell cons_cell;
 typedef struct inner inner;
 
-struct cons {
+struct cons_cell {
     oyster *car;
     oyster *cdr;
 };
@@ -21,7 +21,7 @@ struct inner {
     int   type;
     union {
         int symbol_id;
-        cons *cons;
+        cons_cell *cons;
     };
 };
 
@@ -36,6 +36,10 @@ enum {
     SYMBOL,
     CONS,
     NIL,
+    LEAKED,
+    ATPEND,
+    ELIPSIS,
+    ASTERIX
 };
 
 void init_oyster();

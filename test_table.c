@@ -14,9 +14,18 @@ _test(table_put_get){
     *val = 4;
     table_put(2, val, tab);
     int i = 0;
-    int *j = (int *)table_get(2, tab, &i);
+    int *j = table_get(2, tab, &i);
     assert(i);
     assert(*j == 4);
+
+    int *val2 = NEW(int);
+    *val2 = 3;
+    table_put(2, val2, tab);
+    i = 0;
+    j = table_get(2, tab, &i);
+    assert(i);
+    assert(*j == 3);
+
 }_tset;
     
 _test(table_rev_lookup){
@@ -53,6 +62,21 @@ _test(table_empty){
     assert(!table_empty(tab));
 }_tset;
 
+_test(table_loop){
+    table *tab = make_table();
+    int j = 5;
+    int k = 4;
+    table_put(1, &j, tab);
+    table_put(4, &k, tab);
+    int i = 0;
+    int *f; 
+    table_loop(k, f, tab){
+        assert((*f == 5 && k == 1) || (*f == 4 && k == 4));
+        i++;
+    } table_end_loop;
+    assert(i == 2);
+}_tset;
+    
 _test(table){
     printf("\nTesting table:\n");
     run_test(new_table);
@@ -60,5 +84,6 @@ _test(table){
     run_test(table_rev_lookup);
     run_test(table_remove);
     run_test(table_empty);
+    run_test(table_loop);
 }_tset;
 

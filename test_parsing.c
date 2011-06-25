@@ -4,7 +4,7 @@
 #include "stdio.h"
 
 extern int tests_run;
- 
+
 _test(open){
     char *str = "(betty (I love you";
     FILE *stream = fmemopen(str, strlen(str), "r");

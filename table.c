@@ -37,11 +37,15 @@ void *table_get(int key, table *tab, int *err)
 
 void table_put(int key, void *entry, table *tab)
 {
-    int flag = 0;
-    table_unit *ent = table_get(key, tab, &flag);
-    if(flag){
-        ent->value = entry;
-    } else {
+    table_unit *ent;
+    int i = 0;
+    for(ent = tab->root; ent; ent = ent->next){
+        if(ent->key == key){
+            ent->value = entry;
+            i = 1;
+        }
+    }
+    if (!i){
         ent = NEW(table_unit);
         ent->next = tab->root;
         ent->key = key;
@@ -83,5 +87,14 @@ void table_remove(int key, table *tab)
 int table_empty(table *tab){
     return tab->root == NULL;
 }
+
+#define table_loop(k, v, tab) {                                         \
+    table_unit *table_ent;                                              \
+    for(table_ent = tab->root; table_ent; table_ent = table_ent->next){ \
+    k = table_ent->key;                                                 \
+    v = table_ent->value;                                                       
+
+
+#define table_end_loop }} do{}while(0)
 
 #endif

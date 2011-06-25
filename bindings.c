@@ -1,0 +1,119 @@
+#ifndef BINDINGS
+#define BINDINGS
+
+#include "gc.h"
+#include "oyster.h"
+#include "table.c"
+#include "machine.h"
+
+oyster *leak(){
+    return make_symbol(LEAKED);
+}
+
+int leaked_p(oyster *x)
+{
+    return (x &&
+            x->in->type == SYMBOL &&
+            x->in->symbol_id == LEAKED);
+}
+
+table *binding_combine(table *a, table *b, 
+                        table *newa, table *newb)
+{
+    table *ret = make_table();
+    int key;
+    oyster *avalue;
+    oyster *bvalue;
+    table_loop(key, avalue, a){
+        int in_b = 0;
+        bvalue = table_get(key, b, &in_b);
+        if (in_b){
+            if (bvalue == avalue){ // Do I mean equal()?
+                table_put(key, avalue, ret);
+            } else {
+                table_put(key, avalue, newa);
+                table_put(key, bvalue, newb);
+            }
+        } else {
+            table_put(key, avalue, ret);
+        }
+    } table_end_loop;
+
+    table_loop(key, bvalue, b){
+        int in_a = 0;
+        avalue = table_get(key, a, &in_a);
+        if (!in_a){
+            table_put(key, bvalue, ret);
+        }
+    } table_end_loop;
+    return ret;
+}
+
+table *binding_union(table *a, table *b){
+    table *ret = make_table();
+    oyster *value;
+    int key;
+    table_loop(key, value, a){
+        table_put(key, value, ret);
+    } table_end_loop;
+    table_loop(key, value, b){
+        if(!leaked_p(value)){
+            table_put(key, value, ret);
+        }
+    } table_end_loop;
+    return ret;
+}
+
+
+//--------------------- Scope lookups -------------------------//
+
+// I have in the past used cons-pairs or even lists to make this
+// slightly neater (you can't destructively modify the scopey tables
+// without refinding the scope from which it came.
+oyster *look_up(int sym, machine *m){
+    oyster *ret;
+    frame *cur = m->current_frame;
+ 
+    int i = 0;
+    do {
+        ret = table_get(sym, cur->scope, &i);
+	    cur = cur->below;
+    } while(i && leaked_p(ret));
+    
+	if (!i){ // and in the base frame.
+	    ret = table_get(sym, m->base_frame->scope, &i);
+	}
+
+	if (!i){
+	    ret = NULL; // hmmmm.
+	}
+    
+	return ret;
+}
+
+// Not consing the entries in the scopes leaves me having to duplicate
+// the whole procedure.
+
+void set(int sym, oyster *val, machine *m)
+{
+    oyster *ret;
+    frame *cur;
+    frame *pre;
+    int i = 1; 
+    
+    for(cur = m->current_frame; i && cur->below; pre = cur, cur = cur->below){
+        ret = table_get(sym, cur->scope, &i);
+        if (i && leaked_p(ret)) i=0;
+    }
+    cur = pre;
+
+	if (!i){ // and in the base frame.
+        cur = m->base_frame;
+	}
+
+    table_put(sym, val, cur->scope);
+}
+
+
+
+#endif
