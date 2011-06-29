@@ -1,23 +1,16 @@
 #ifndef OYSTER
 #define OYSTER
 
-#include "gc.h"
 #include "stdarg.h"
 
 #include "oyster.h"
-#include "table.c"
-#include "bindings.c"
+#include "parsing.h"
 
-
-
-#ifndef _TEST
-int main() {
-    return UNTO_DUST;
-}
-#endif
+#include "stdio.h"
 
 oyster *symbol_symbol;
 oyster *nil;
+extern struct symbol_table *symbol_table;
 
 void init_oyster()
 {
@@ -27,6 +20,22 @@ void init_oyster()
     table_put(TYPE, symbol_symbol, symbol_symbol->in->info);
 
     nil = make_oyster(NIL);
+
+    if(!symbol_table){
+    init_symbol_table();
+
+    add_symbol(TYPE, "type");
+    add_symbol(SYMBOL, "symbol");
+    add_symbol(CONS, "cons");
+    add_symbol(NIL, "nil");
+    add_symbol(LEAKED, "leaked");
+    add_symbol(ATPEND, "@");
+    add_symbol(ELIPSIS, "...");
+    add_symbol(ASTERIX, "*");
+    add_symbol(COMMA, ",");
+    add_symbol(CLEAR, "clear");
+    add_symbol(BUILT_IN_FUNCTION, "built-in-function");
+    }
 }
 
 oyster *make_untyped_oyster()
@@ -73,7 +82,13 @@ oyster *make_cons(oyster *car, oyster *cdr)
     return ret;
 }
 
-int nilp(oyster *x){
+int oyster_type(oyster *x)
+{
+    return x->in->type;
+}
+
+int nilp(oyster *x)
+{
     return x->in->type == NIL;
 }
 
@@ -88,7 +103,7 @@ oyster *cheap_car(oyster *cons)
 oyster *cheap_cdr(oyster *cons)
 {
     if (nilp(cons)) return cons;
-    return cons->in->cons->car;
+    return cons->in->cons->cdr;
 }
 
 oyster *cons(oyster *car, oyster *cdr)
@@ -118,7 +133,8 @@ oyster *cons(oyster *car, oyster *cdr)
     return ret;
 }
 
-oyster *car(oyster *cons){
+oyster *car(oyster *cons)
+{
     if (nilp(cons))
         return nil;
 
@@ -133,7 +149,8 @@ oyster *car(oyster *cons){
 }
 
 
-oyster *cdr(oyster *cons){
+oyster *cdr(oyster *cons)
+{
     if (nilp(cons))
         return nil;
 
@@ -149,9 +166,12 @@ oyster *cdr(oyster *cons){
 
 //------------------------- Convenience Functions --------------------------//
 
-oyster *cheap_list(int count, ...){
+// I don't know if I've tested these?
+
+oyster *cheap_list(int count, ...)
+{
     int i;
-    oyster **els = GC_MALLOC(sizeof(oyster*)*count);
+    oyster **els = malloc(sizeof(oyster*)*count);
     va_list xs;
     va_start(xs, count);
     for(i=0; i<count; i++)
@@ -160,12 +180,14 @@ oyster *cheap_list(int count, ...){
     oyster *ret = nil;
     for(i=count-1; i>=0; i--)
         ret = make_cons(els[i], ret);
+    free(els);
     return ret;
 }
 
-oyster *list(int count, ...){
+oyster *list(int count, ...)
+{
     int i;
-    oyster **els = GC_MALLOC(sizeof(oyster*)*count);
+    oyster **els = malloc(sizeof(oyster*)*count);
     va_list xs;
     va_start(xs, count);
     for(i=0; i<count; i++)
@@ -174,21 +196,65 @@ oyster *list(int count, ...){
     oyster *ret = nil;
     for(i=count-1; i>=0; i--)
         ret = cons(els[i], ret);
+    free(els);
     return ret;
 }
 
-oyster *cheap_append(oyster *a, oyster *b){
-    // stack heavy for now.
+oyster *cheap_append(oyster *a, oyster *b)
+{
+    // stack heavy for now. Reduce to loop later.
     if(!nilp(a))
         return make_cons(cheap_car(a), cheap_append(cheap_cdr(a), b));
     return b;
 }
 
-oyster *append(oyster *a, oyster *b){
-    // stack heavy for now.
+oyster *append(oyster *a, oyster *b)
+{
+    // Reduce this to a loop.
     if(!nilp(a))
         return cons(car(a), append(cdr(a), b));
     return b; // Do I want to copy b? Relevant?
+}
+
+oyster *reverse(oyster *xs)
+{
+    oyster *ret = nil;
+    while (!nilp(xs)){
+        ret = cons(car(xs), ret);
+        xs = cdr(xs);
+    }
+    return ret;
+}
+
+//------------------------------ printing ---------------------------//
+
+void list_print(oyster *o){
+    oyster_print(cheap_car(o));
+    if (cheap_cdr(o)->in->type == CONS){
+        printf(" ");
+        list_print(cheap_cdr(o));
+    } else if (cheap_cdr(o)->in->type == NIL){
+        printf(")");
+    } else {
+        printf(" . ");
+        oyster_print(cheap_cdr(o));
+        printf(")");
+    }
+}
+void oyster_print(oyster *o){
+    int type = o->in->type;
+    switch(type) {
+    case CONS:
+        printf("(");
+        list_print(o);
+        break;
+    case SYMBOL:
+        printf("%s", string_from_sym_id(o->in->symbol_id));
+        break;
+    case NIL:
+        printf("()");
+        break;
+    }
 }
 
 

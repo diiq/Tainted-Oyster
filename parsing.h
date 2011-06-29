@@ -1,27 +1,14 @@
 #ifndef PARSINGH
 #define PARSINGH
 
-
-enum {
-    PARSED_SYMBOL,
-    PARSED_NUMBER,
-    PARSED_OPEN,
-    PARSED_CLOSE,
-    PARSED_NEWLINE,
-    PARSED_END,
-    PARSED_FUNCTIONAL_OPEN
-};
-
-typedef struct{
-    int flag;
-    char *value;
-    int count;
-} parsed_token;
-
-typedef struct {
-    int push_to;
-    int pull_from;
-    parsed_token** s;
-} token_stream;
+#include "stdio.h"
+ 
+oyster *next_oyster(GScanner *in);
+int sym_id_from_string(char *sym);
+char* string_from_sym_id(int sym);
+void init_symbol_table();
+void add_symbol(int id, char *sym);
+GScanner *string_scanner(char *text);
+GScanner *file_scanner(char *file);
 
 #endif

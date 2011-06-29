@@ -1,4 +1,3 @@
-#include "gc.h"
 #include "oyster.c"
 #include "testing.h"
 #include "stdio.h"
@@ -18,12 +17,12 @@ _test(make_untyped_oyster){
 
 _test(make_oyster){
     oyster *f = make_oyster(SYMBOL);
-    assert(f->in->type == SYMBOL);
+    assert(f->in->type == SYMBOL, "wrong type");
     int i = 0;
     oyster *re = table_get(TYPE, f->in->info, &i);
-    assert(i);
-    assert(re->in->type == SYMBOL);
-    assert(re->in->symbol_id == SYMBOL);
+    assert(i, "not there");
+    assert(re->in->type == SYMBOL, "wrong type");
+    assert(re->in->symbol_id == SYMBOL, "wrong id");
 }_tset;
 
 _test(make_symbol){
@@ -46,6 +45,15 @@ _test(make_cons){
     assert(c->in->cons->cdr->in->symbol_id == 2);
 }_tset;
 
+_test(cons_car_cdr){
+    oyster *f = make_symbol(5);
+    oyster *g = make_symbol(2);
+    oyster *c = cons(f, cons(g, nil));
+    assert(car(c)->in->type == SYMBOL);
+    assert(car(c)->in->symbol_id == 5);
+    assert(car(cdr(c))->in->symbol_id == 2);
+}_tset;
+
 _test(oyster){
     printf("\nTesting: oyster\n");
     run_test(init_oyster);
@@ -53,6 +61,7 @@ _test(oyster){
     run_test(make_oyster);
     run_test(make_symbol);
     run_test(make_cons);
+    run_test(cons_car_cdr);
 }_tset;
 
 

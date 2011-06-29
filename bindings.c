@@ -1,12 +1,10 @@
 #ifndef BINDINGS
 #define BINDINGS
 
-#include "gc.h"
 #include "oyster.h"
-#include "table.c"
-#include "machine.h"
 
-oyster *leak(){
+oyster *leak()
+{
     return make_symbol(LEAKED);
 }
 
@@ -49,7 +47,8 @@ table *binding_combine(table *a, table *b,
     return ret;
 }
 
-table *binding_union(table *a, table *b){
+table *binding_union(table *a, table *b)
+{
     table *ret = make_table();
     oyster *value;
     int key;
@@ -70,7 +69,8 @@ table *binding_union(table *a, table *b){
 // I have in the past used cons-pairs or even lists to make this
 // slightly neater (you can't destructively modify the scopey tables
 // without refinding the scope from which it came.
-oyster *look_up(int sym, machine *m){
+oyster *look_up(int sym, machine *m)
+{
     oyster *ret;
     frame *cur = m->current_frame;
  
@@ -94,21 +94,23 @@ oyster *look_up(int sym, machine *m){
 // Not consing the entries in the scopes leaves me having to duplicate
 // the whole procedure.
 
-void set(int sym, oyster *val, machine *m)
+void set(int sym, oyster *val, machine *m, frame *f)
 {
     oyster *ret;
     frame *cur;
-    frame *pre;
-    int i = 1; 
+    int i = 0; 
     
-    for(cur = m->current_frame; i && cur->below; pre = cur, cur = cur->below){
+    for(cur = f; cur; cur = cur->below){
         ret = table_get(sym, cur->scope, &i);
-        if (i && leaked_p(ret)) i=0;
+        if (i && leaked_p(ret))
+            continue;
+        if (i)
+            break;
     }
-    cur = pre;
 
-	if (!i){ // and in the base frame.
-        cur = m->base_frame;
+
+	if (!cur){ 
+        cur = f;
 	}
 
     table_put(sym, val, cur->scope);

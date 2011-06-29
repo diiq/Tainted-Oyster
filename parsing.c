@@ -1,211 +1,132 @@
 #ifndef PARSING
 #define PARSING
 
-#include "gc.h"
 #include "oyster.h"
 #include "parsing.h"
 #include "string.h"
 #include "stdio.h"
 #include <stdlib.h>
+#include <glib.h>
 
 
-// Tokens and token streams
+// -------------------------------------------------------------------- //
 
-void push_token(parsed_token *t, token_stream *s){
-    s->push_to++;
-    s->s = GC_REALLOC(s->s, sizeof(parsed_token*)*(s->push_to+1));
-    s->s[s->push_to] = t;
-    if (s->pull_from == -1)
-        s->pull_from = 0;
-}
+extern oyster *nil;
+//table *symbol_table;
+int current_max_symbol;
 
-parsed_token *pull_token(token_stream *s){
-    if (s->pull_from == -1 || s->pull_from > s->push_to)
-        return NULL;
-    s->pull_from++;
-    return s->s[s->pull_from-1];
-}
+struct symbol_table {
+    GHashTable *str;
+    GHashTable *sym;
+} *symbol_table;
 
-token_stream *new_token_stream(){
-    token_stream *ret = NEW(token_stream);
-    ret->push_to = -1;
-    ret->pull_from = -1;
-    ret->s = NULL;
-    return ret;
-}
-
-void print_token(parsed_token *t){
-    switch (t->flag) {
-    case 0: printf("%s ", t->value); break;
-    case 2: printf("( "); break;
-    case 3: printf(") "); break;
-    case 4: printf(" NEWLINE(%d) ", t->count); break;
-    case 6: printf(">( "); break;
+void init_symbol_table(){
+    if(!symbol_table){
+        symbol_table = malloc(sizeof(struct symbol_table));
+        symbol_table->sym = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, NULL);
+        symbol_table->str = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+        current_max_symbol = MAX_PREDEF_SYMBOL+50;
     }
+};
+
+void free_symbol_table(){
+    g_hash_table_destroy(symbol_table->sym);
+    g_hash_table_destroy(symbol_table->str);
+    free(symbol_table);
 }
 
-void print_token_stream(token_stream *s){
-    parsed_token *t = pull_token(s);
-    for(; t; t = pull_token(s))
-        print_token(t);
-}
-
-// Parsing tokens
-
-int symbol_character(char c)
+void add_symbol(int id, char *sym)
 {
-    char *notcs = " ()\n";
-    int j;
-    for(j=0; j<strlen(notcs); j++)
-        if (notcs[j] == c)
-            return 0;
-    return 1;
+    char *val = malloc(sizeof(char)*(strlen(sym)+1)); //<--- LEAKS
+    memcpy(val, sym, (strlen(sym)+1)*sizeof(char));
+    int *key = NEW(int); // <--- leaks
+    *key = id;
+    g_hash_table_insert(symbol_table->sym, key, val);
+    g_hash_table_insert(symbol_table->str, val, key);
 }
 
-parsed_token *parse_symbol(FILE *stream){
-    int i = 0;
-    char c;
-    char *ret = NEW(char);
-    for(;;){
-        c = fgetc(stream);
+int string_equal(void *a, void *b){
+    if(strcmp((char *)a, (char *)b) == 0)
+        return 1;
+    return 0;
+}
 
-        if(c == EOF || !symbol_character(c)) break;
-
-        i++;
-        ret = GC_REALLOC(ret, sizeof(char)*(i+1));
-        ret[i-1] = c;
+int sym_id_from_string(char *sym){
+    int *j = g_hash_table_lookup(symbol_table->str, sym);
+    if (j) {
+        return *j;
     }
-    ungetc(c, stream);
+    current_max_symbol++;
+    add_symbol(current_max_symbol, sym);
+    return current_max_symbol;
+}
 
-    if(i == 0)
+char* string_from_sym_id(int sym){
+    char *ret = g_hash_table_lookup(symbol_table->sym, &sym);
+    if (ret)
+        return ret;
+    return "????";
+}
+
+GScanner *string_scanner(char *text)
+{
+    GScanner *scan = g_scanner_new(NULL);
+    scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
+                                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                           "-!@#$%^&*<>?,./=_+`~");
+    scan->config->cset_identifier_nth = ("abcdefghijklmnopqrstuvwxyz"
+                                         "1234567890"
+                                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                         "-!@#$%^&*<>?,./=_+`~");
+    //    scan->config->char_2_token = FALSE;
+    scan->config->scan_string_sq = FALSE;
+    scan->config->scan_identifier_1char = TRUE;
+
+    g_scanner_input_text(scan, text, strlen(text));
+    return scan;
+}
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+GScanner *file_scanner(char *file)
+{
+    GScanner *scan = g_scanner_new(NULL);
+    scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
+                                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                           "-!@#$%^&*<>?,./=_+`~");
+    scan->config->cset_identifier_nth = ("abcdefghijklmnopqrstuvwxyz"
+                                         "1234567890"
+                                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                         "-!@#$%^&*<>?,./=_+`~");
+    //    scan->config->char_2_token = FALSE;
+    scan->config->scan_string_sq = FALSE;
+    scan->config->scan_identifier_1char = TRUE;
+
+    g_scanner_input_file(scan, open(file, 'r'));
+    return scan;
+}
+
+
+oyster *next_oyster(GScanner *in){
+    g_scanner_get_next_token(in);
+    if (in->token == G_TOKEN_EOF) return NULL;
+    if (in->token == G_TOKEN_IDENTIFIER)
+        return make_symbol(sym_id_from_string(in->value.v_string));
+    if (in->token == G_TOKEN_LEFT_PAREN) {
+        oyster *ret = nil;
+        oyster *cur = next_oyster(in);
+        while(cur) {
+            ret = cons(cur, ret);
+            cur = next_oyster(in);
+        } 
+        return reverse(ret);
+    }
+    if (in->token == G_TOKEN_RIGHT_PAREN)
         return NULL;
-
-    ret[i] = 0;
-    parsed_token *cheese = NEW(parsed_token);
-    cheese->flag = PARSED_SYMBOL;
-    cheese->count = i;
-    cheese->value = ret;
-    return cheese;
-}
-
-int parse_whitespace(FILE *stream){
-    int ret = 0;
-    char c = fgetc(stream);
-    while(c == ' ') {
-        c = fgetc(stream);
-        ret = 1;
-    }
-    ungetc(c, stream);
-    return ret;
-}
-
-parsed_token *parse_open(FILE *stream){
-    char c = fgetc(stream);
-    if(c == '('){
-        parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = PARSED_OPEN;
-        cheese->count = 1;
-        cheese->value = NULL;
-        return cheese;
-    } 
-    ungetc(c, stream);
+    printf("OH MY GOD NO\n");
     return NULL;
-}
- 
-parsed_token *parse_close(FILE *stream){
-    char c = fgetc(stream);
-    if(c == ')'){
-        parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = PARSED_CLOSE;
-        cheese->count = 1;
-        cheese->value = NULL;
-        return cheese;
-    } 
-    ungetc(c, stream);
-    return NULL;
-} 
-
-parsed_token *parse_newline(FILE *stream){
-    char c = fgetc(stream);
-    if(c == '\n'){
-        int i = -1;
-        do{
-            i++;
-            c = fgetc(stream);
-        } while(c == ' ');
-        ungetc(c, stream);
-        parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = PARSED_NEWLINE;
-        cheese->count = i;
-        cheese->value = NULL;
-        return cheese;
-    } 
-    ungetc(c, stream);
-    return NULL;
-} 
-
-parsed_token *parse_eof(FILE *stream){
-    char c = fgetc(stream);
-    if (c == EOF){
-        parsed_token *cheese = NEW(parsed_token);
-        cheese->flag = PARSED_END;
-        cheese->count = 0;
-        cheese->value = NULL;        
-        return cheese;
-    } 
-    ungetc(c, stream);
-    return NULL;
-}
-
-
-token_stream *tokens(FILE *stream){
-
-    token_stream *ret = new_token_stream();
-    parsed_token *v = NULL; 
-    do{
-        //        if(v)printf("%d\n", v->flag);
-
-        v = parse_eof(stream);
-        if(v) break;
-
-        v = parse_newline(stream);
-        if(!v) v = parse_open(stream);
-        
-        if(!v) v = parse_close(stream);
-        if(!v) v = parse_symbol(stream);                      
-        if(!v) {
-            printf("Not found? %c\n", fgetc(stream));
-            return ret;
-        }
-
-        push_token(v, ret);
-
-        if(!parse_whitespace(stream)){
-            parsed_token *newv = parse_open(stream);
-            if(newv){
-                if(v->flag==PARSED_SYMBOL || v->flag == PARSED_CLOSE){
-                    if(newv->flag == PARSED_OPEN){
-                        newv->flag = PARSED_FUNCTIONAL_OPEN;
-                    }
-                }
-            
-                v = newv;
-                push_token(v, ret);
-            }
-        }
-
-    } while(v);
-    
-    return ret;
-}
-
-token_stream *strip_newlines(token_stream *in){
-    token_stream *ret = new_token_stream();
-    parsed_token *b;
-    for(b = pull_token(in); b; b = pull_token(in))
-        if (b->flag != PARSED_NEWLINE)
-            push_token(b, ret);
-    return ret;
 }
 
 #endif

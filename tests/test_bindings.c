@@ -1,4 +1,3 @@
-#include "gc.h"
 #include "oyster.c"
 #include "bindings.c"
 #include "testing.h"
@@ -119,7 +118,7 @@ _test(set){
     m->current_frame->scope = make_table();
     m->base_frame->scope = make_table();
     
-    set(2, make_symbol(2), m);
+    set(2, make_symbol(2), m, m->current_frame);
     oyster *ret = look_up(2, m);
     assert(ret, "Not present");
     assert(ret->in->symbol_id == 2, "Not 2.");
@@ -129,7 +128,7 @@ _test(set){
     assert(ret, "Not present 1a.");
     assert(ret->in->symbol_id == 1, "Not 1. %d", ret->in->symbol_id);
 
-    set(2, make_symbol(3), m);
+    set(2, make_symbol(3), m, m->current_frame);
     ret = look_up(2, m);
     assert(ret, "Not present 2.");
     assert(ret->in->symbol_id == 3, "Not 3. %d", ret->in->symbol_id);
