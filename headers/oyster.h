@@ -21,25 +21,20 @@ typedef struct instruction instruction;
 // objects, in scopes, and during parsing.
 //
 // Tables are gonna change in implementation, for the sake of speed,
-// but this is the intervace to use. It's gon' be a challenge to cope
+// but this is the interface to use. It's gon' be a challenge to cope
 // with union and combine in an efficient way.
 
-struct table_unit_struct {
-    table_unit *next;
-    int key;
-    void *value;
-};
-
 typedef struct {
+    int ref;
     //    table_unit *root;
     GHashTable *it;
 } table;
 
 table *make_table();
 void *table_get(int key, table *tab, int *err);
-void table_put(int key, void *entry, table *tab);
-//int table_rev_lookup(void *value, int (equal)(void *a, void *b), table *tab, int *err);
-//void table_remove(int key, table *tab);
+void table_put(int key, oyster *entry, table *tab);
+void table_ref(table *x);
+void table_unref(table *x);
 int table_empty(table *tab);
 
 #define table_loop(k, v, tab) {                                         \
@@ -74,11 +69,13 @@ void set(int sym, oyster *val, machine *m, frame *f);
 // in different circumstances -- the clothes fit the occasion.
 
 struct cons_cell {
+    int ref;
     oyster *car;
     oyster *cdr;
 };
 
 struct inner {
+    int ref;
     table *info;
     int   type;
     union {
@@ -90,6 +87,7 @@ struct inner {
 };
 
 struct oyster {
+    int ref;
     table *bindings;
     inner *in;
 };
@@ -111,12 +109,21 @@ enum {
 };
 
 void init_oyster();
+void clean_up_oyster();
+
+oyster *nil();
 oyster *make_untyped_oyster();
+void inner_ref(inner *x);
+void inner_unref(inner *x);
 oyster *make_oyster(int type);
-oyster *oyster_copy(oyster *x);
+void oyster_ref(oyster *x);
+void oyster_unref(oyster *x);
+oyster *oyster_copy(oyster *x, table *bindings);
 
 oyster *make_symbol(int symbol_id);
 oyster *make_cons(oyster *car, oyster *cdr);
+void cons_ref(cons_cell *x);
+void cons_unref(cons_cell *x);
 
 int oyster_type(oyster *x);
 int nilp(oyster *x);
@@ -161,6 +168,7 @@ void oyster_print(oyster *x);
 // and so on.
 
 struct frame {
+    int ref;
     frame *below;
     table *scope;
     table *scope_to_be;
@@ -168,12 +176,14 @@ struct frame {
 };
 
 struct instruction {
+    int ref;
     instruction *next;
     oyster *instruction;
     int flag;
 };
 
 struct machine {
+    int ref;
     frame *current_frame;
     frame *base_frame;
     oyster *accumulator;
@@ -192,8 +202,20 @@ enum instruction_flags {
 };
 
 frame *make_frame(table *scope, frame *below);
+void frame_ref(frame *x);
+void frame_unref(frame *x);
+void frame_free(frame *x);
+
 machine *make_machine();
+void machine_ref(machine *x);
+void machine_free(machine *x);
+void machine_unref(machine *x);
+void set_current_frame(machine *m, frame *f);
+
 instruction *make_instruction(oyster *ins, int flag, instruction *next);
+void instruction_ref(instruction *x);
+void instruction_unref(instruction *x);
+
 oyster *instruction_object(instruction *i);
 
 int asterix_p(oyster *x);

@@ -1,25 +1,25 @@
-#include "oyster.c"
+#include "oyster.h"
 #include "bindings.c"
 #include "testing.h"
 #include "stdio.h"
 
 _test(binding_combine){
-    int vals[] = {1, 2, 3, 4, 5};
     table *a = make_table();
     table *b = make_table();
-    table_put(2, &vals[0], a);
-    table_put(2, &vals[0], b); // shared
-    table_put(3, &vals[1], a);
-    table_put(3, &vals[2], b); // conflicting
-    table_put(4, &vals[3], a); 
-    table_put(5, &vals[4], b); // individual
+    oyster *match = make_symbol(1);
+    table_put(2, match, a);
+    table_put(2, match, b); // shared
+    table_put(3, make_symbol(2), a);
+    table_put(3, make_symbol(3), b); // conflicting
+    table_put(4, make_symbol(4), a);
+    table_put(5, make_symbol(5), b); // individual
 
     table *newa = make_table();
     table *newb = make_table();
     table *comb = binding_combine(a, b, newa, newb);
 
     int i = 0;
-    int *ret;
+    oyster *ret;
     
     // shared:
     table_get(2, newa, &i);
@@ -30,16 +30,16 @@ _test(binding_combine){
 
     ret = table_get(2, comb, &i);
     assert(i);
-    assert(*ret == 1);
+    assert(ret->in->symbol_id == 1);
 
     // conflicing:
     ret = table_get(3, newa, &i);
     assert(i);
-    assert(*ret == 2);
+    assert(ret->in->symbol_id == 2);
 
     ret = table_get(3, newb, &i);
     assert(i);
-    assert(*ret == 3);
+    assert(ret->in->symbol_id == 3);
 
     table_get(3, comb, &i);
     assert(!i);
@@ -53,21 +53,25 @@ _test(binding_combine){
 
     ret = table_get(4, comb, &i);
     assert(i, "not there");
-    assert(*ret == 4, "not 4");
+    assert(ret->in->symbol_id == 4, "not 4");
 
     ret = table_get(5, comb, &i);
     assert(i, "5 not there");
-    assert(*ret == 5, "not 5");
+    assert(ret->in->symbol_id == 5, "not 5");
     
+    table_unref(newa);
+    table_unref(newb);
+    table_unref(comb);
+
 }_tset
 
 _test(binding_union){
     table *a = make_table();
     table *b = make_table();
-    table_put(3, make_oyster(2), a);
-    table_put(3, make_oyster(3), b); // conflicting
-    table_put(4, make_oyster(1), a); 
-    table_put(5, make_oyster(2), b); // individual
+    table_put(3, make_symbol(2), a);
+    table_put(3, make_symbol(3), b); // conflicting
+    table_put(4, make_symbol(1), a);
+    table_put(5, make_symbol(2), b); // individual
     table *u = binding_union(a, b);
     
     int i = 0;
@@ -75,27 +79,25 @@ _test(binding_union){
 
     ret = table_get(3, u, &i);
     assert(i);
-    assert(ret->in->type == 3, "a");
+    assert(ret->in->symbol_id == 3, "a");
     
     ret = table_get(4, u, &i);
     assert(i, "b1");
-    assert(ret->in->type == 1, "b");
+    assert(ret->in->symbol_id == 1, "b");
 
     ret = table_get(5, u, &i);
     assert(i, "c1");
-    assert(ret->in->type == 2, "c");
+    assert(ret->in->symbol_id == 2, "c");
+
+    table_unref(u);
     
 }_tset;
 
 _test(look_up){
-    machine *m = NEW(machine);
-    m->base_frame = NEW(frame);
-    m->current_frame = NEW(frame);
-    m->current_frame->below = m->base_frame;
-    
-    m->current_frame->scope = make_table();
-    m->base_frame->scope = make_table();
-    
+    machine *m = make_machine();
+
+    set_current_frame(m, make_frame(make_table(), m->current_frame));
+        
     table_put(2, make_symbol(2), m->base_frame->scope);
     oyster *ret = look_up(2, m);
     assert(ret);
@@ -105,19 +107,15 @@ _test(look_up){
     ret = look_up(2, m);
     assert(ret);
     assert(ret->in->symbol_id == 3);
+
+    machine_unref(m);
 }_tset;
 
 
 _test(set){
-    machine *m = NEW(machine);
-    m->base_frame = NEW(frame);
-    m->current_frame = NEW(frame);
-    m->current_frame->below = m->base_frame;
-    m->base_frame->below = NULL;
+    machine *m = make_machine();
+    set_current_frame(m, make_frame(make_table(), m->current_frame));
 
-    m->current_frame->scope = make_table();
-    m->base_frame->scope = make_table();
-    
     set(2, make_symbol(2), m, m->current_frame);
     oyster *ret = look_up(2, m);
     assert(ret, "Not present");
@@ -132,6 +130,8 @@ _test(set){
     ret = look_up(2, m);
     assert(ret, "Not present 2.");
     assert(ret->in->symbol_id == 3, "Not 3. %d", ret->in->symbol_id);
+
+    machine_unref(m);
 }_tset;
 
 

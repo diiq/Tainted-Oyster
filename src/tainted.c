@@ -15,7 +15,13 @@ int main(int argc, char *argv[])
 
     char *filename = argv[1];
 
-    evaluate_scan(file_scanner(filename));
+    oyster *ret = evaluate_scan(file_scanner(filename));
+
+    oyster_print(ret);
+
+    oyster_unref(ret);
+
+    clean_up_oyster();
 
     return 0;
 

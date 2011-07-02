@@ -11,8 +11,6 @@
 
 // -------------------------------------------------------------------- //
 
-extern oyster *nil;
-//table *symbol_table;
 int current_max_symbol;
 
 struct symbol_table {
@@ -68,8 +66,7 @@ char* string_from_sym_id(int sym){
     return "????";
 }
 
-GScanner *string_scanner(char *text)
-{
+GScanner *make_scanner(){
     GScanner *scan = g_scanner_new(NULL);
     scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
                                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -81,7 +78,13 @@ GScanner *string_scanner(char *text)
     //    scan->config->char_2_token = FALSE;
     scan->config->scan_string_sq = FALSE;
     scan->config->scan_identifier_1char = TRUE;
+    return scan;
+}
 
+
+GScanner *string_scanner(char *text)
+{
+    GScanner *scan = make_scanner();
     g_scanner_input_text(scan, text, strlen(text));
     return scan;
 }
@@ -90,20 +93,10 @@ GScanner *string_scanner(char *text)
 #include <sys/stat.h>
 #include <fcntl.h>
 
+
 GScanner *file_scanner(char *file)
 {
-    GScanner *scan = g_scanner_new(NULL);
-    scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
-                                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                           "-!@#$%^&*<>?,./=_+`~");
-    scan->config->cset_identifier_nth = ("abcdefghijklmnopqrstuvwxyz"
-                                         "1234567890"
-                                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                         "-!@#$%^&*<>?,./=_+`~");
-    //    scan->config->char_2_token = FALSE;
-    scan->config->scan_string_sq = FALSE;
-    scan->config->scan_identifier_1char = TRUE;
-
+    GScanner *scan = make_scanner();
     g_scanner_input_file(scan, open(file, 'r'));
     return scan;
 }
@@ -115,13 +108,15 @@ oyster *next_oyster(GScanner *in){
     if (in->token == G_TOKEN_IDENTIFIER)
         return make_symbol(sym_id_from_string(in->value.v_string));
     if (in->token == G_TOKEN_LEFT_PAREN) {
-        oyster *ret = nil;
+        oyster *ret = nil();
         oyster *cur = next_oyster(in);
         while(cur) {
             ret = cons(cur, ret);
             cur = next_oyster(in);
         } 
-        return reverse(ret);
+        oyster *rev = reverse(ret);
+        oyster_unref(ret);
+        return rev;
     }
     if (in->token == G_TOKEN_RIGHT_PAREN)
         return NULL;

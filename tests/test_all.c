@@ -11,12 +11,13 @@ int tests_run = 0;
 
 
 int main(){
-    run_test(oyster);
-    run_test(parsing);
+    init_oyster();
     run_test(table);
     run_test(bindings);
+    run_test(oyster);
+    run_test(parsing);
     run_test(machine);
+    clean_up_oyster();
     printf("\nPASSED!\n");
-    free_symbol_table();
     return 0;
 }

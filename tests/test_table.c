@@ -5,52 +5,49 @@
 _test(new_table){
     table *tab = make_table();
     assert(tab);
+    table_unref(tab);
 }_tset;
 
 _test(table_put_get){
     table *tab = make_table();
-    int *val = NEW(int);
-    *val = 4;
-    table_put(2, val, tab);
+    table_put(2, make_symbol(4), tab);
     int i = 0;
-    int *j = table_get(2, tab, &i);
+    oyster *j = table_get(2, tab, &i);
     assert(i);
-    assert(*j == 4);
+    assert(j->in->symbol_id == 4);
 
-    int *val2 = NEW(int);
-    *val2 = 3;
-    table_put(2, val2, tab);
+    table_put(2, make_symbol(3), tab);
     i = 0;
     j = table_get(2, tab, &i);
     assert(i);
-    assert(*j == 3);
+    assert(j->in->symbol_id == 3);
 
-    free(val);
-    free(val2);
+    table_unref(tab);
 }_tset;
 
 _test(table_empty){
     table *tab = make_table();
     assert(table_empty(tab));
-    int j = 5;
-    table_put(2, &j, tab);
+    table_put(2, make_symbol(1), tab);
     assert(!table_empty(tab));
+    table_unref(tab);
 }_tset;
 
 _test(table_loop){
     table *tab = make_table();
-    int j = 5;
-    int k = 4;
-    table_put(1, &j, tab);
-    table_put(4, &k, tab);
+    table_put(1, make_symbol(5), tab);
+    table_put(4, make_symbol(4), tab);
     int i = 0;
-    int *f;
-    int q;
-    table_loop(q, f, tab){
-        assert((*f == 5 && q == 1) || (*f == 4 && q == 4), "Hmmm. %d, %d", *f, q);
+    oyster *value;
+    int key;
+    table_loop(key, value, tab){
+        assert((value->in->symbol_id == 5 && key == 1) || 
+               (value->in->symbol_id == 4 && key == 4));
         i++;
     } table_end_loop;
     assert(i == 2);
+
+    table_unref(tab);
 }_tset;
     
 _test(table){

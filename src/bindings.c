@@ -18,6 +18,9 @@ int leaked_p(oyster *x)
 table *binding_combine(table *a, table *b, 
                         table *newa, table *newb)
 {
+    table_ref(a);
+    table_ref(b);
+
     table *ret = make_table();
     int key;
     oyster *avalue;
@@ -44,11 +47,18 @@ table *binding_combine(table *a, table *b,
             table_put(key, bvalue, ret);
         }
     } table_end_loop;
+
+    table_unref(a);
+    table_unref(b);
+
     return ret;
 }
 
 table *binding_union(table *a, table *b)
 {
+    table_ref(a);
+    table_ref(b);
+
     table *ret = make_table();
     oyster *value;
     int key;
@@ -60,6 +70,9 @@ table *binding_union(table *a, table *b)
             table_put(key, value, ret);
         }
     } table_end_loop;
+
+    table_unref(a);
+    table_unref(b);
     return ret;
 }
 
@@ -72,18 +85,17 @@ table *binding_union(table *a, table *b)
 oyster *look_up(int sym, machine *m)
 {
     oyster *ret;
-    frame *cur = m->current_frame;
- 
-    int i = 0;
-    do {
-        ret = table_get(sym, cur->scope, &i);
-	    cur = cur->below;
-    } while(i && leaked_p(ret));
+    frame *cur;
+    int i = 0; 
     
-	if (!i){ // and in the base frame.
-	    ret = table_get(sym, m->base_frame->scope, &i);
-	}
-
+    for(cur = m->current_frame; cur; cur = cur->below){
+        ret = table_get(sym, cur->scope, &i);
+        if (i && leaked_p(ret))
+            continue;
+        if (i)
+            break;
+    }
+    
 	if (!i){
 	    ret = NULL; // hmmmm.
 	}
