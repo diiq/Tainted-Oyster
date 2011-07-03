@@ -17,7 +17,7 @@ profile:
 
 test:
 	@gcc $(CFLAGS) tests/test_all.c -o testes $(DEBUG_FLAGS)
-	@ ./testes 
+	@G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind -q ./testes 
 #	@rm testes
 
 valgrind-heap:

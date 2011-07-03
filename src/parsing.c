@@ -1,6 +1,8 @@
 #ifndef PARSING
 #define PARSING
 
+// This file handles parsing.
+
 #include "oyster.h"
 #include "parsing.h"
 #include "string.h"
@@ -35,9 +37,9 @@ void free_symbol_table(){
 
 void add_symbol(int id, char *sym)
 {
-    char *val = malloc(sizeof(char)*(strlen(sym)+1)); //<--- LEAKS
+    char *val = malloc(sizeof(char)*(strlen(sym)+1)); 
     memcpy(val, sym, (strlen(sym)+1)*sizeof(char));
-    int *key = NEW(int); // <--- leaks
+    int *key = NEW(int);
     *key = id;
     g_hash_table_insert(symbol_table->sym, key, val);
     g_hash_table_insert(symbol_table->str, val, key);
@@ -63,7 +65,7 @@ char* string_from_sym_id(int sym){
     char *ret = g_hash_table_lookup(symbol_table->sym, &sym);
     if (ret)
         return ret;
-    return "????";
+    return "wow-I-have-no-idea-what-this-symbol-is-where-did-you-find-it?";
 }
 
 GScanner *make_scanner(){
@@ -93,7 +95,6 @@ GScanner *string_scanner(char *text)
 #include <sys/stat.h>
 #include <fcntl.h>
 
-
 GScanner *file_scanner(char *file)
 {
     GScanner *scan = make_scanner();
@@ -115,12 +116,13 @@ oyster *next_oyster(GScanner *in){
             cur = next_oyster(in);
         } 
         oyster *rev = reverse(ret);
-        oyster_unref(ret);
+        decref(ret);
         return rev;
     }
     if (in->token == G_TOKEN_RIGHT_PAREN)
         return NULL;
-    printf("OH MY GOD NO\n");
+
+    // control had better not reach here.
     return NULL;
 }
 

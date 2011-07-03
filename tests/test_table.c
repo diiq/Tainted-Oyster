@@ -5,7 +5,7 @@
 _test(new_table){
     table *tab = make_table();
     assert(tab);
-    table_unref(tab);
+    decref(tab);
 }_tset;
 
 _test(table_put_get){
@@ -22,7 +22,7 @@ _test(table_put_get){
     assert(i);
     assert(j->in->symbol_id == 3);
 
-    table_unref(tab);
+    decref(tab);
 }_tset;
 
 _test(table_empty){
@@ -30,7 +30,7 @@ _test(table_empty){
     assert(table_empty(tab));
     table_put(2, make_symbol(1), tab);
     assert(!table_empty(tab));
-    table_unref(tab);
+    decref(tab);
 }_tset;
 
 _test(table_loop){
@@ -47,7 +47,7 @@ _test(table_loop){
     } table_end_loop;
     assert(i == 2);
 
-    table_unref(tab);
+    decref(tab);
 }_tset;
     
 _test(table){

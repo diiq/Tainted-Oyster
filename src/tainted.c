@@ -5,6 +5,8 @@
 #include "parsing.c"
 #include "bindings.c"
 #include "table.c"
+#include "memory.c"
+#include "builtins.c"
 
 #include "stdio.h"
 
@@ -19,7 +21,7 @@ int main(int argc, char *argv[])
 
     oyster_print(ret);
 
-    oyster_unref(ret);
+    decref(ret);
 
     clean_up_oyster();
 

@@ -1,16 +1,22 @@
 #ifndef OYSTER
 #define OYSTER
 
+// This file contains functions that create and manipulate the simplest units:
+// oysters.
+
+// An oyster is a scope wrapped around an object, like a blanket around a
+// cold, wet, child.
+
 #include "stdarg.h"
+#include "stdio.h"
 
 #include "oyster.h"
 #include "parsing.h"
 
-#include "stdio.h"
 
 oyster *symbol_symbol;
 
-void init_oyster()
+void init_oyster() // Where does this belong? Quo vadis, init?
 {
     if(!symbol_symbol){
         symbol_symbol = make_untyped_oyster();
@@ -34,7 +40,7 @@ void init_oyster()
     }
 }
 
-void clean_up_oyster()
+void clean_up_oyster() // And can clean_up come with you?
 {
     free_symbol_table();
 }
@@ -44,21 +50,26 @@ oyster *nil(){
 }
 
 
+
 oyster *make_untyped_oyster()
 {
     oyster *ret = NEW(oyster);
-    ret->in = NEW(inner);
-    ret->in->ref = 1;
+    ret->in = NEW(inner);         ///
+    ret->in->ref = 1; 
+    ret->in->incref = &inner_ref;
+    ret->in->decref = &inner_unref;
 
-    ret->in->type = -1;
+    ret->in->type = -1;           ///
 
-    ret->in->info = make_table();
-    table_ref(ret->in->info);
+    ret->in->info = make_table(); ///
+    incref(ret->in->info);
     
-    ret->bindings = make_table();
-    table_ref(ret->bindings);
+    ret->bindings = make_table(); ///
+    incref(ret->bindings);
 
     ret->ref = 0;
+    ret->incref = &oyster_ref;
+    ret->decref = &oyster_unref;
     return ret;
 }
 
@@ -66,21 +77,21 @@ void inner_ref(inner *x){
     x->ref++;
 }
 
-void inner_free(inner *x){
-    if(x->type == CONS){
-        cons_unref(x->cons);
+void inner_unref(inner *x){
+    x->ref--;
+    if(x->ref <= 0){
+        if(x->type != SYMBOL && 
+           x->type != NIL &&
+           x->type != BUILT_IN_FUNCTION &&
+           x->type != -1){
+            decref(x->value);
+        }
+        decref(x->info);
+        free(x);
     }
-    table_unref(x->info);
-    free(x);
 }
 
-void inner_unref(inner *x){
-    if(x){
-        x->ref--;
-        if(x->ref <= 0)
-            inner_free(x);
-    }
-}
+
 
 oyster *make_oyster(int type)
 {
@@ -90,61 +101,69 @@ oyster *make_oyster(int type)
     return ret;
 }
 
-void oyster_ref(oyster *x){
-    if(x) x->ref++;
+void oyster_ref(oyster *x)
+{
+    x->ref++;
 }
 
-void oyster_free(oyster *x){
-     table_unref(x->bindings);
-    inner_unref(x->in);
-    free(x);
-}
-
-void oyster_unref(oyster *x){
-    if(x){
-        x->ref--;
-        if (x->ref <= 0){
-            oyster_free(x);
-        }
+void oyster_unref(oyster *x)
+{
+    x->ref--;
+    if (x->ref <= 0){
+        decref(x->bindings);
+        decref(x->in);
+        free(x);
     }
 }
 
-oyster *oyster_copy(oyster *x, table *new_bindings)
+int oyster_type(oyster *x)
 {
-    oyster_ref(x);
-    oyster *ret = NEW(oyster);
-    ret->ref = 0;
-    
-    inner_ref(x->in);
-    ret->in = x->in;
-
-    ret->bindings = new_bindings;
-    table_ref(ret->bindings);
-
-    oyster_unref(x);
-    return ret;
+    return x->in->type;
 }
 
 oyster *make_symbol(int symbol_id)
 {
     oyster *ret = make_untyped_oyster();
     ret->in->type = SYMBOL;
-    oyster_ref(symbol_symbol);
+    incref(symbol_symbol);
     table_put(TYPE, symbol_symbol, ret->in->info);
     ret->in->symbol_id = symbol_id;
     return ret;    
 }
+
+oyster *oyster_copy(oyster *x, table *new_bindings)
+{
+    incref(x);
+    oyster *ret = NEW(oyster);
+    ret->ref = 0;
+    ret->incref = &oyster_ref;
+    ret->decref = &oyster_unref;
+    
+    incref(x->in);
+    ret->in = x->in;
+
+    ret->bindings = new_bindings;
+    incref(ret->bindings);
+
+    decref(x);
+    return ret;
+}
+
+
+
 
 oyster *make_cons(oyster *car, oyster *cdr)
 {
     oyster *ret = make_oyster(CONS);
     ret->in->cons = NEW(cons_cell);
     ret->in->cons->ref = 1;
+    ret->in->cons->incref = &cons_ref;
+    ret->in->cons->decref = &cons_unref;
 
-    oyster_ref(car);
+    incref(car);
     ret->in->cons->car = car;
 
-    oyster_ref(cdr);
+    incref(cdr);
     ret->in->cons->cdr = cdr;
 
     return ret;
@@ -157,67 +176,63 @@ void cons_ref(cons_cell *x){
 void cons_unref(cons_cell *x){
     x->ref--;
     if (x->ref == 0){
-        oyster_unref(x->car);
-        oyster_unref(x->cdr);
+        decref(x->car);
+        decref(x->cdr);
         free(x);
     }
-}
-
-int oyster_type(oyster *x)
-{
-    return x->in->type;
-}
-
-int nilp(oyster *x)
-{
-    return x->in->type == NIL;
 }
 
 
 
 //-------------------------- Cons, car, and cdr --------------------------//
 
+int nilp(oyster *x)
+{
+    return x->in->type == NIL;
+}
+
 oyster *cheap_car(oyster *cons)
 {    
-    oyster_ref(cons);
+    incref(cons);
     if (nilp(cons)) return cons;
     oyster *ret = cons->in->cons->car;
-    oyster_unref(cons);
+    decref(cons);
     return ret;
 }
 
 oyster *cheap_cdr(oyster *cons)
 {    
-    oyster_ref(cons);
+    incref(cons);
     if (nilp(cons)) return cons;
     oyster *ret = cons->in->cons->cdr;
-    oyster_unref(cons);
+    decref(cons);
     return ret;
 }
 
 oyster *cons(oyster *car, oyster *cdr)
 {
-    oyster_ref(car);
-    oyster_ref(cdr);
+    // There are many optimizations to be made here; but clarity, clarity.
+    incref(car);
+    incref(cdr);
 
     oyster *new_car = oyster_copy(car, make_table());
     oyster *new_cdr = oyster_copy(cdr, make_table());
 
     oyster *ret = make_cons(new_car, new_cdr);
 
-    table_unref(ret->bindings);
+    decref(ret->bindings);
     ret->bindings = binding_combine(car->bindings, cdr->bindings,
                                           new_car->bindings, new_cdr->bindings);
-    table_ref(ret->bindings);
+    incref(ret->bindings);
 
-    oyster_unref(car);
-    oyster_unref(cdr);
+    decref(car);
+    decref(cdr);
     return ret;
 }
 
 oyster *car(oyster *cons)
 {
-    oyster_ref(cons);
+    incref(cons);
     oyster *ret;
 
     if (nilp(cons)){
@@ -227,13 +242,13 @@ oyster *car(oyster *cons)
                           binding_union(cons->bindings, 
                                         cheap_car(cons)->bindings));
     }
-    oyster_unref(cons);
+    decref(cons);
     return ret;
 }
 
 oyster *cdr(oyster *cons)
 {
-    oyster_ref(cons);
+    incref(cons);
     oyster *ret;
 
     if (nilp(cons)){
@@ -243,34 +258,11 @@ oyster *cdr(oyster *cons)
                           binding_union(cons->bindings, 
                                         cheap_cdr(cons)->bindings));
     }
-    oyster_unref(cons);
+    decref(cons);
     return ret;
 }
 
 //------------------------- Convenience Functions --------------------------//
-
-// I don't know if I've tested these?
-
-oyster *cheap_list(int count, ...)
-{
-    int i;
-    oyster **els = malloc(sizeof(oyster*)*count);
-    va_list xs;
-    va_start(xs, count);
-
-    for(i=0; i<count; i++)
-        els[i] = va_arg(xs, oyster*);
-    va_end(xs);
-
-    oyster *ret = nil();
-
-    for(i=count-1; i>=0; i--){
-        ret = make_cons(els[i], ret);
-    }
-
-    free(els);
-    return ret;
-}
 
 oyster *list(int count, ...)
 {
@@ -294,41 +286,40 @@ oyster *list(int count, ...)
 oyster *append(oyster *a, oyster *b)
 {
     // Reduce this to a loop.
-    oyster_ref(a);
-    oyster_ref(b);
+    incref(a);
+    incref(b);
     oyster *ret;
 
     if(!nilp(a)){
         ret = cons(car(a), append(cdr(a), b));
     } else {
-        ret = b; // Do I want to copy b? Relevant?
+        ret = b; 
     }
 
-    oyster_unref(a);
-    oyster_unref(b);
+    decref(a);
+    decref(b);
 
     return ret;
 }
 
 oyster *reverse(oyster *xs)
 {
-    oyster_ref(xs);
+    incref(xs);
     oyster *ret = nil();
-    while (!nilp(xs)){
-        oyster_ref(xs);
-        ret = cons(car(xs), ret);
-        oyster *xys = cdr(xs);
-        oyster_unref(xs);
-        xs = xys;
+    oyster *cur, *a;
+    for(cur = xs, incref(cur); 
+        !nilp(cur); 
+        a = cur, cur = cdr(cur), incref(cur), decref(a)){ // ew. gross.
+        ret = cons(car(cur), ret);
     }
-    oyster_unref(xs);
+    decref(cur);
     return ret;
 }
 
 //------------------------------ printing ---------------------------//
 
 void list_print(oyster *o){
-    oyster_ref(o);
+    incref(o);
     oyster_print(cheap_car(o));
     oyster *d = cheap_cdr(o);
     if (d->in->type == CONS){
@@ -339,14 +330,13 @@ void list_print(oyster *o){
     } else {
         printf(" . ");
         oyster_print(d);
-        oyster_unref(d);
         printf(")");
     }
-    oyster_unref(o);
+    decref(o);
 }
 
 void oyster_print(oyster *o){
-    oyster_ref(o);
+    incref(o);
     int type = o->in->type;
     switch(type) {
     case CONS:
@@ -359,8 +349,11 @@ void oyster_print(oyster *o){
     case NIL:
         printf("()");
         break;
+    case BUILT_IN_FUNCTION:
+        printf("[builtin]");
+        break;
     }
-    oyster_unref(o);
+    decref(o);
 }
 
 

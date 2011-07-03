@@ -6,7 +6,7 @@
 
 #include <glib.h>
 
-typedef struct table_unit_struct table_unit;
+typedef struct table table;
 
 typedef struct oyster oyster;
 typedef struct cons_cell cons_cell;
@@ -16,6 +16,19 @@ typedef struct frame frame;
 typedef struct machine machine;
 typedef struct instruction instruction;
 
+
+//--------------------------------- Memory -----------------------------------//
+// This does clever stuff to make reference counting less painful; but
+//it's pretty painful anyway.
+
+struct memorable{
+    void (*inc)(void *);
+    void (*dec)(void *);
+};
+
+void incref(void *x);
+void decref(void *x);
+
 //--------------------------------- Tables -----------------------------------//
 // Tables are used to keep track of symbol-bindings --- in individual
 // objects, in scopes, and during parsing.
@@ -24,11 +37,13 @@ typedef struct instruction instruction;
 // but this is the interface to use. It's gon' be a challenge to cope
 // with union and combine in an efficient way.
 
-typedef struct {
+struct table{
+    void (*incref)(table *x);
+    void (*decref)(table *x);
     int ref;
     //    table_unit *root;
     GHashTable *it;
-} table;
+};
 
 table *make_table();
 void *table_get(int key, table *tab, int *err);
@@ -69,25 +84,34 @@ void set(int sym, oyster *val, machine *m, frame *f);
 // in different circumstances -- the clothes fit the occasion.
 
 struct cons_cell {
+    void (*incref)(cons_cell *x);
+    void (*decref)(cons_cell *x);
     int ref;
+
     oyster *car;
     oyster *cdr;
 };
 
 struct inner {
+    void (*incref)(inner *x);
+    void (*decref)(inner *x);
     int ref;
+
     table *info;
     int   type;
     union {
         int symbol_id;
         cons_cell *cons;
-        void (*built_in)(machine *m); 
+        oyster *(*built_in)(machine *m); 
         void *value;
     };
 };
 
 struct oyster {
+    void (*incref)(oyster *x);
+    void (*decref)(oyster *x);
     int ref;
+
     table *bindings;
     inner *in;
 };
@@ -168,7 +192,10 @@ void oyster_print(oyster *x);
 // and so on.
 
 struct frame {
+    void (*incref)(frame *x);
+    void (*decref)(frame *x);
     int ref;
+
     frame *below;
     table *scope;
     table *scope_to_be;
@@ -176,14 +203,20 @@ struct frame {
 };
 
 struct instruction {
+    void (*incref)(instruction *x);
+    void (*decref)(instruction *x);
     int ref;
+
     instruction *next;
     oyster *instruction;
     int flag;
 };
 
 struct machine {
+    void (*incref)(machine *x);
+    void (*decref)(machine *x);
     int ref;
+
     frame *current_frame;
     frame *base_frame;
     oyster *accumulator;
@@ -229,11 +262,15 @@ oyster *unevaluate_list(oyster *xs);
 
 instruction *machine_current_instruction(machine *m);
 void machine_pop_stack(machine *m);
-void run_built_in_function(oyster *o, machine *m);
+oyster *run_built_in_function(oyster *o, machine *m);
 void step_machine(machine *m);
 
 void machine_print(machine *m);
 void frame_print(frame *f);
 void instruction_print(instruction *i);
+
+//------------------------------ Builtins -------------------------------//
+void add_builtins(machine *m);
+
 #endif
 

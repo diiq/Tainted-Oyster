@@ -59,9 +59,9 @@ _test(binding_combine){
     assert(i, "5 not there");
     assert(ret->in->symbol_id == 5, "not 5");
     
-    table_unref(newa);
-    table_unref(newb);
-    table_unref(comb);
+    decref(newa);
+    decref(newb);
+    decref(comb);
 
 }_tset
 
@@ -89,7 +89,7 @@ _test(binding_union){
     assert(i, "c1");
     assert(ret->in->symbol_id == 2, "c");
 
-    table_unref(u);
+    decref(u);
     
 }_tset;
 
@@ -108,7 +108,7 @@ _test(look_up){
     assert(ret);
     assert(ret->in->symbol_id == 3);
 
-    machine_unref(m);
+    decref(m);
 }_tset;
 
 
@@ -131,7 +131,7 @@ _test(set){
     assert(ret, "Not present 2.");
     assert(ret->in->symbol_id == 3, "Not 3. %d", ret->in->symbol_id);
 
-    machine_unref(m);
+    decref(m);
 }_tset;
 
 

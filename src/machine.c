@@ -1,72 +1,28 @@
 #ifndef MAHCINE
 #define MACHINE
 
+// This file concerns itself with the process of the interpreter itself.
+
 #include "oyster.h"
 
 
-frame *make_frame(table *scope, frame* below)
-{
-    frame *ret = NEW(frame);
-
-    ret->scope = scope;
-    table_ref(ret->scope);
-
-    ret->scope_to_be = make_table();
-    table_ref(ret->scope_to_be);
-
-    ret->current_instruction = NULL;
-
-    ret->below = below;
-    frame_ref(ret->below);
-
-    ret->ref = 0;
-    return ret;
-}
-
-void frame_ref(frame *x){
-    if(x) x->ref++;
-}
-void frame_free(frame *x)
-{
-    table_unref(x->scope);
-    table_unref(x->scope_to_be);
-    instruction_unref(x->current_instruction);
-    frame_unref(x->below);
-    free(x);
-}
-void frame_unref(frame *x){
-    if(x){
-        x->ref--;
-        if(x->ref <= 0)
-            frame_free(x);
-    }
-}
-
-void frame_set_scope(frame *x, table *scope){
-    table_unref(x->scope);
-    x->scope = scope;
-    table_ref(x->scope);
-}
-
-void frame_set_instruction(frame *x,instruction *i){
-    instruction_unref(x->current_instruction);
-    x->current_instruction = i;
-    instruction_ref(x->current_instruction);
-}
 
 machine *make_machine()
 {
     machine *ret = NEW(machine);
     ret->base_frame = make_frame(make_table(), NULL);
-    frame_ref(ret->base_frame);
+    incref(ret->base_frame);
 
     ret->current_frame = make_frame(make_table(), ret->base_frame);
-    frame_ref(ret->current_frame);
+    incref(ret->current_frame);
 
     ret->accumulator = NULL;
     ret->paused = 0;
 
     ret->ref = 0;
+    ret->incref = &machine_ref;
+    ret->decref = &machine_unref;
+
 
     return ret;
 }
@@ -76,40 +32,94 @@ void machine_ref(machine *x)
     x->ref++;
 }
 
-void machine_free(machine *x){
-    frame_unref(x->current_frame);
-    frame_unref(x->base_frame);
-    oyster_unref(x->accumulator);
-    free(x);
-}
-
 void machine_unref(machine *x)
 {
     x->ref--;
-    if(x->ref <= 0)
-        machine_free(x);
+    if(x->ref <= 0){
+        decref(x->current_frame);
+        decref(x->base_frame);
+        decref(x->accumulator);
+        free(x);
+    }
+}
+
+
+
+frame *make_frame(table *scope, frame* below)
+{
+    frame *ret = NEW(frame);
+
+    ret->scope = scope;
+    incref(ret->scope);
+
+    ret->scope_to_be = make_table();
+    incref(ret->scope_to_be);
+
+    ret->current_instruction = NULL;
+
+    ret->below = below;
+    incref(ret->below);
+
+    ret->ref = 0;
+    ret->incref = &frame_ref;
+    ret->decref = &frame_unref;
+
+    return ret;
+}
+
+void frame_ref(frame *x){
+    x->ref++;
+}
+
+void frame_unref(frame *x){
+    x->ref--;
+    if(x->ref <= 0) {
+        decref(x->scope);
+        decref(x->scope_to_be);
+        decref(x->current_instruction);
+        decref(x->below);
+        free(x);
+    }
+}
+
+void frame_set_scope(frame *x, table *scope){
+    decref(x->scope);
+    x->scope = scope;
+    incref(x->scope);
+}
+
+void frame_set_instruction(frame *x,instruction *i){
+    instruction *t = x->current_instruction;
+    x->current_instruction = i;
+    incref(x->current_instruction);
+    decref(t);
 }
 
 void set_current_frame(machine *m, frame *f)
 {
-    frame_unref(m->current_frame);
+    // Add TCO here!
+    decref(m->current_frame);
     m->current_frame = f;
-    frame_ref(m->current_frame);
+    incref(m->current_frame);
 }
+
+
 
 instruction *make_instruction(oyster *ins, int flag, instruction *next)
 {
     instruction *ret = NEW(instruction);
 
     ret->instruction = ins;
-    oyster_ref(ret->instruction);
+    incref(ret->instruction);
 
     ret->flag = flag;
 
     ret->next = next;
-    instruction_ref(ret->next);
+    incref(ret->next);
 
     ret->ref = 0;
+    ret->incref = &instruction_ref;
+    ret->decref = &instruction_unref;
     return ret;
 }
 
@@ -118,13 +128,11 @@ void instruction_ref(instruction *x){
 }
 
 void instruction_unref(instruction *x){
-    if(x != NULL){
-        x->ref--;
-        if(x->ref <= 0){
-            oyster_unref(x->instruction);
-            instruction_unref(x->next);
-            free(x);
-        }
+    x->ref--;
+    if(x->ref <= 0){
+        decref(x->instruction);
+        decref(x->next);
+        free(x);
     }
 }
 
@@ -133,7 +141,8 @@ void instruction_unref(instruction *x){
 
 int car_is_sym(oyster *x, int sym)
 {
-    oyster_ref(x);
+    // Sometimes reference counting makes a simple thing so complicated.
+    incref(x);
     int ret;
     if (x->in->type != CONS) {
         ret = 0;
@@ -142,7 +151,7 @@ int car_is_sym(oyster *x, int sym)
         ret = (c->in->type == SYMBOL &&
                    c->in->symbol_id  == sym);
     }
-    oyster_unref(x);
+    decref(x);
     return ret;
 }
 
@@ -154,21 +163,29 @@ int elipsis_p(oyster *x)
 
 
 // This one is overdue for a cleanup. Too long, too abstruse.
+// Each time argument_chain_link is called, it returns a chain of instructions
+// that will evaluate and bind a single argument. The process is then repeated.
+// This is unusual, but allows for several tricksy tricks: 
+// a lambda-list-element wrapped in a function: (car x), the argument will
+// be bound to x only after being passed through car. 
+// an argument prefaced by , will NOT be passed through the associated function,
+// and * and @ allow lists to be inserted into the argument chain without recourse
+// to (apply).
 instruction *argument_chain_link(oyster *lambda_list, 
                             oyster *arg_list, 
                             instruction *chain)
 {
-    oyster_ref(lambda_list);
-    oyster_ref(arg_list);
+    incref(lambda_list);
+    incref(arg_list);
 
     if (nilp(lambda_list)) {
-        oyster_unref(lambda_list);
-        oyster_unref(arg_list);
+        decref(lambda_list);
+        decref(arg_list);
         return chain;
     }
     
     oyster *arg = car(arg_list);
-    oyster_ref(arg);
+    incref(arg);
 
     if (car_is_sym(arg, ASTERIX)){
         chain = make_instruction(list(2, lambda_list, cdr(arg_list)),
@@ -188,27 +205,27 @@ instruction *argument_chain_link(oyster *lambda_list,
 
     } else {
         oyster *lambda = car(lambda_list);
-        oyster_ref(lambda);
+        incref(lambda);
         
         oyster *name, *func;
         int flag = ARGUMENT;
         
         if (elipsis_p(lambda)) {
             if (nilp(arg_list)) {
-                oyster_unref(arg);
-                oyster_unref(arg_list);
-                oyster_unref(lambda_list);
-                oyster_unref(lambda);
+                decref(arg);
+                decref(arg_list);
+                decref(lambda_list);
+                decref(lambda);
                 return chain; 
             }
-            oyster_unref(lambda);
+            decref(lambda);
             lambda = car(cdr(lambda_list));
-            oyster_ref(lambda);
+            incref(lambda);
 
             oyster *lambda2 = cons(nil(), lambda_list);
-            oyster_unref(lambda_list);
+            decref(lambda_list);
             lambda_list = lambda2;
-            oyster_ref(lambda_list);
+            incref(lambda_list);
 
             flag = ELIPSIS_ARGUMENT;
         }
@@ -230,18 +247,21 @@ instruction *argument_chain_link(oyster *lambda_list,
         chain = make_instruction(func,
                                  EVALUATE,
                                  make_instruction(name, flag, chain));
-        oyster_unref(lambda);
+        decref(lambda);
     }
-    oyster_unref(arg);
-    oyster_unref(arg_list);
-    oyster_unref(lambda_list);
+    decref(arg);
+    decref(arg_list);
+    decref(lambda_list);
     return chain;
 }
 
 oyster *unevaluate_list(oyster *xs)
 {
+    // CLEAR leaves an argument unevaluated. This is sort of a cheat,
+    // to make @pending work. A part of me wonders: would quote do as well,
+    // or even better? Write some sample cases.
     // Stack dependant --- convert to loop, please.
-    oyster_ref(xs);
+    incref(xs);
     oyster *ret;
 
     if (nilp(xs)){
@@ -250,7 +270,7 @@ oyster *unevaluate_list(oyster *xs)
         ret = cons(list(2, make_symbol(CLEAR), car(xs)), unevaluate_list(cdr(xs)));
     }
     
-    oyster_unref(xs);
+    decref(xs);
     return ret;
 }
 
@@ -261,7 +281,7 @@ instruction *machine_pop_current_instruction(machine *m)
     instruction *i = m->current_frame->current_instruction;
     if (i) {
         m->current_frame->current_instruction = i->next;
-        instruction_ref(i->next);
+        incref(i->next);
     }
     return i;
 }
@@ -269,25 +289,19 @@ instruction *machine_pop_current_instruction(machine *m)
 void machine_pop_stack(machine *m)
 { 
     if (m->current_frame->below){
-        frame_ref(m->current_frame->below);
+        incref(m->current_frame->below);
         set_current_frame(m, m->current_frame->below);
-        frame_unref(m->current_frame);
+        decref(m->current_frame);
     } else {
         m->paused = 1;
     }
 }
 
-void run_built_in_function(oyster *o, machine *m)
-{
-    o->in->built_in(m);
-}
-
 void push_bindings_to_scope(machine *m, oyster *o)
 {
-    // I do believe that this is WRONG?!
-    // Doesn't this need a new frame? Devise a failure.
-    frame_set_scope(m->current_frame, binding_union(m->current_frame->scope, 
-                                                    o->bindings));
+    set_current_frame(m, make_frame(binding_union(m->current_frame->scope, 
+                                                  o->bindings), 
+                                    m->current_frame)); 
     oyster *next = oyster_copy(o, make_table());
     frame_set_instruction(m->current_frame,
                           make_instruction(next, EVALUATE, 
@@ -305,9 +319,9 @@ oyster *look_up_symbol(oyster *sym, machine *m)
 }
 
 void set_accumulator(machine *m, oyster *value){
-    oyster_unref(m->accumulator);
+    decref(m->accumulator);
     m->accumulator = value;
-    oyster_ref(m->accumulator);
+    incref(m->accumulator);
 }
 
 void step_machine(machine *m)
@@ -322,33 +336,31 @@ void step_machine(machine *m)
 	if (instruct->flag == EVALUATE){
 
         oyster *object = instruct->instruction;
-        oyster_ref(object);
+        incref(object);
 
         int object_type = oyster_type(object);
 
         if(object_type == BUILT_IN_FUNCTION){
             
-            run_built_in_function(object, m);
+            set_accumulator(m, object->in->built_in(m));
 
         } else if (!table_empty(object->bindings)){
             
-            set_current_frame(m,  make_frame(m->current_frame->scope, m->current_frame)); 
             push_bindings_to_scope(m, object);
 
         } else if (object_type == SYMBOL) {
-            //printf("Lookup symbol. %d\n", object->in->symbol_id);
+
             set_accumulator(m, look_up_symbol(object, m));
 
         } else if (object_type == CONS) {
-            //printf("Cons, ");
+            
             if (car_is_sym(object, CLEAR)) {
-                //printf("Clear.\n");
+                
                 set_accumulator(m, car(cdr(object)));
 
-            } else {     // object is a function call!
-                //printf("Function call.\n");
-                set_current_frame(m, make_frame(m->current_frame->scope, m->current_frame)); 
-                // TCO here
+            } else { 
+
+                set_current_frame(m, make_frame(m->current_frame->scope, m->current_frame));
                 frame_set_instruction(m->current_frame,
                                       make_instruction(cdr(object), 
                                                        PREPARE_ARGUMENTS, 
@@ -365,12 +377,12 @@ void step_machine(machine *m)
 
         }
 
-        oyster_unref(object);
+        decref(object);
 
 
     } else if (instruct->flag == PREPARE_ARGUMENTS){
-        // This step is unnecessary and should be removed. -s
-        //printf("Preparing arguments.\n");
+        // We now know what the function is, we can begin to evaluate args.
+
         frame_set_instruction(m->current_frame, 
                                 make_instruction(cdr(m->accumulator),
                                                  APPLY_FUNCTION,
@@ -382,7 +394,8 @@ void step_machine(machine *m)
                                                   m->current_frame->current_instruction));
 
     } else if (instruct->flag == CONTINUE){
-        //printf("Continuing arguments.\n");
+
+        // Each time we hit here, that's an argument prepped.
         frame_set_instruction(m->current_frame,
                               argument_chain_link(car(instruct->instruction),
                                                   car(cdr(instruct->instruction)),
@@ -405,7 +418,8 @@ void step_machine(machine *m)
                                                   m->current_frame->current_instruction));
 
     } else if (instruct->flag == ARGUMENT){
-        //printf("Argument.\n");
+
+        // Each time ya' get here, that's an argument evaluated and bound.
 		table_put(instruct->instruction->in->symbol_id,
                   m->accumulator,
                   m->current_frame->scope_to_be);
@@ -430,44 +444,44 @@ void step_machine(machine *m)
 
 
     } else if (instruct->flag == APPLY_FUNCTION) {
-        //printf("applying function.\n");
+
         // This is super ridiculous and must be trimmed. MUST.
         frame_set_scope(m->current_frame,  m->current_frame->scope_to_be);
 
-        table_unref(m->current_frame->scope_to_be);
+        decref(m->current_frame->scope_to_be);
         m->current_frame->scope_to_be = make_table();
-        table_ref(m->current_frame->scope_to_be);
+        incref(m->current_frame->scope_to_be);
 
         instruction *handle = m->current_frame->current_instruction;
         if (!handle) 
             handle = make_instruction(NULL, EVALUATE, NULL);
         instruction *chain = handle;
-        instruction_ref(handle);
+        incref(handle);
         oyster *procs = instruct->instruction;
         while(!nilp(procs)){
-            oyster_ref(procs);
-            instruction_unref(chain->next);
+            incref(procs);
+            decref(chain->next);
             chain->next = make_instruction(car(procs), EVALUATE, NULL);
-            instruction_ref(chain->next);
+            incref(chain->next);
             chain = chain->next;
             oyster *procs2 = cdr(procs); 
-            oyster_unref(procs);
+            decref(procs);
             procs = procs2;
         }
-        oyster_unref(procs);
+        decref(procs);
         if(handle->instruction == NULL &&
            handle->flag == EVALUATE){
             instruction *thandle = handle->next;
-            instruction_ref(thandle);
-            instruction_unref(handle);
+            incref(thandle);
+            decref(handle);
             handle = thandle;
         }
         frame_set_instruction(m->current_frame,  handle);
-        instruction_unref(handle);
+        decref(handle);
 
     }
 
-    instruction_unref(instruct);
+    decref(instruct);
 }
 
 
@@ -520,6 +534,7 @@ void instruction_print(instruction *i)
 oyster *evaluate_scan(GScanner *in){
     oyster *func = next_oyster(in);
     machine *m = make_machine();
+    add_builtins(m);
     while(func){
         m->current_frame->current_instruction = 
             make_instruction(func, EVALUATE, NULL);
@@ -532,9 +547,9 @@ oyster *evaluate_scan(GScanner *in){
     }
     g_scanner_destroy(in);
     oyster *ret = m->accumulator;
-    oyster_ref(ret);
+    incref(ret);
 
-    machine_unref(m);
+    decref(m);
     return ret;
 }
 

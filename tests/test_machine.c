@@ -10,7 +10,7 @@ _test(make_machine){
     machine *m = NULL;
     m = make_machine();
     assert(m);
-    machine_unref(m);
+    decref(m);
 }_tset;
 
 _test(arg_list_tests){
@@ -33,7 +33,7 @@ _test(argument_chain_link_boring){
 
     assert(i->next->next->flag == CONTINUE);
 
-    instruction_unref(i);
+    decref(i);
 }_tset;
 
 
@@ -51,7 +51,7 @@ _test(argument_chain_link_atpend){
     assert(i->next->flag == ATPEND_CONTINUE);
     assert(i->next->instruction->in->type == CONS);
 
-    instruction_unref(i);
+    decref(i);
 }_tset;
 
 _test(argument_chain_link_asterpend){
@@ -68,7 +68,7 @@ _test(argument_chain_link_asterpend){
     assert(i->next->flag == ASTERPEND_CONTINUE);
     assert(i->next->instruction->in->type == CONS);
 
-    instruction_unref(i);
+    decref(i);
 }_tset;
 
 _test(argument_chain_link_elipsis){
@@ -88,7 +88,7 @@ _test(argument_chain_link_elipsis){
     assert(i->next->next->flag == CONTINUE);
     assert(i->next->next->instruction->in->type == CONS);
 
-    instruction_unref(i);
+    decref(i);
 }_tset;
 
 
@@ -103,7 +103,7 @@ _test(basic_step){
                        list(2, // argument
                             make_symbol(CLEAR),
                             make_symbol(157)));
-    instruction_unref(m->current_frame->current_instruction);
+    decref(m->current_frame->current_instruction);
     m->current_frame->current_instruction = 
         make_instruction(fun, EVALUATE, NULL);
 
@@ -115,40 +115,47 @@ _test(basic_step){
     assert(m->accumulator->in->symbol_id == 157, "Wrong answer, %d",
            m->accumulator->in->symbol_id);
 
-    machine_unref(m);
+    decref(m);
 
 }_tset;
 
 _test(elipsis){
     oyster *ret = evaluate_string("((clear ((... foo) foo)) (clear foo) (clear (sipp)) (clear bar) (clear bash))");
     assert(ret->in->type == CONS);
-    oyster_unref(ret);
+    decref(ret);
 }_tset;
 
 _test(atpend){
     oyster *ret = evaluate_string("((clear ((... foo) foo)) (@ (clear (bar bash))))");
     assert(ret->in->type == CONS);
-    oyster_unref(ret);
+    decref(ret);
 }_tset;
 
 _test(asterpend){
     oyster *ret = evaluate_string("((clear ((... foo) foo)) (* (clear ((clear bar) (clear bash)))))");
     assert(ret->in->type == CONS);
-    oyster_unref(ret);
+    decref(ret);
 }_tset;
 
 _test(frame_stack){
     oyster *ret = evaluate_string("(((clear ((foo) (clear ((quiz) quiz)))) (clear bar)) (clear baz))");
     assert(ret->in->type == SYMBOL && 
            ret->in->symbol_id == sym_id_from_string("baz"));
-    oyster_unref(ret);
+    decref(ret);
 }_tset;
 
 _test(fun_arg){
     oyster *ret = evaluate_string("((clear (((clear foo)) foo)) bar)");
     assert(ret->in->type == SYMBOL && 
            ret->in->symbol_id == sym_id_from_string("bar"));
-    oyster_unref(ret);
+    decref(ret);
+}_tset;
+
+_test(no_arg){
+    oyster *ret = evaluate_string("((clear (() (clear foo))))");
+    assert(ret->in->type == SYMBOL && 
+           ret->in->symbol_id == sym_id_from_string("foo"));
+    decref(ret);
 }_tset;
 
 _test(machine){
@@ -165,4 +172,5 @@ _test(machine){
     run_test(asterpend);
     run_test(frame_stack);
     run_test(fun_arg);
+    run_test(no_arg);
 }_tset;

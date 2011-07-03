@@ -1,8 +1,16 @@
 #ifndef BINDINGS
 #define BINDINGS
 
+// This file contains function dealing with scopes; 
+// combining s., looking up in s., and leaking through s.
+
 #include "oyster.h"
 
+
+// Leaks poke holes in the oyster shells; when a variable is bound to
+// LEAKED in the current scope, the value from the scope *below* is used
+// instead.
+ 
 oyster *leak()
 {
     return make_symbol(LEAKED);
@@ -15,49 +23,61 @@ int leaked_p(oyster *x)
             x->in->symbol_id == LEAKED);
 }
 
+// The ability to sensibly combine two scopes is what makes oyster's
+// scoping magic possible. It's worth understanding what's going on here.
+
 table *binding_combine(table *a, table *b, 
                         table *newa, table *newb)
 {
-    table_ref(a);
-    table_ref(b);
+    incref(a);
+    incref(b);
 
-    table *ret = make_table();
+    // newa and newb are the new bindings of the component parts.
+    table *ret = make_table(); // this is the binding for the combination;
+
     int key;
     oyster *avalue;
     oyster *bvalue;
     table_loop(key, avalue, a){
         int in_b = 0;
+        // We must examine every symbol-value pair (slowslowslow)
         bvalue = table_get(key, b, &in_b);
         if (in_b){
-            if (bvalue == avalue){ // Do I mean equal()?
+            if (bvalue == avalue){ 
+                // If the values are the same, move the pair to the larger scope.
+                // This ensures that x <=> (cons (car x) (cdr x))  
                 table_put(key, avalue, ret);
             } else {
+                // A symbol that's bound differently must remain in the sub-bindings
                 table_put(key, avalue, newa);
                 table_put(key, bvalue, newb);
             }
-        } else {
+        } else { // A pair only in one scope moves to the combined binding.
             table_put(key, avalue, ret);
         }
     } table_end_loop;
 
+
     table_loop(key, bvalue, b){
         int in_a = 0;
         avalue = table_get(key, a, &in_a);
-        if (!in_a){
+        if (!in_a){ // A pair only in one scope moves to the combined binding.
             table_put(key, bvalue, ret);
         }
     } table_end_loop;
 
-    table_unref(a);
-    table_unref(b);
+    decref(a);
+    decref(b);
 
     return ret;
 }
 
+// The other binary operation, unioning, is much more obvious. 
+// All conflicts are resolved in b's favor.
 table *binding_union(table *a, table *b)
 {
-    table_ref(a);
-    table_ref(b);
+    incref(a);
+    incref(b);
 
     table *ret = make_table();
     oyster *value;
@@ -71,17 +91,14 @@ table *binding_union(table *a, table *b)
         }
     } table_end_loop;
 
-    table_unref(a);
-    table_unref(b);
+    decref(a);
+    decref(b);
     return ret;
 }
 
 
 //--------------------- Scope lookups -------------------------//
 
-// I have in the past used cons-pairs or even lists to make this
-// slightly neater (you can't destructively modify the scopey tables
-// without refinding the scope from which it came.
 oyster *look_up(int sym, machine *m)
 {
     oyster *ret;
@@ -104,7 +121,7 @@ oyster *look_up(int sym, machine *m)
 }
 
 // Not consing the entries in the scopes leaves me having to duplicate
-// the whole procedure.
+// the whole procedure in order to set. 
 
 void set(int sym, oyster *val, machine *m, frame *f)
 {

@@ -9,7 +9,7 @@ extern oyster *symbol_symbol;
 _test(make_untyped_oyster){
     oyster *f = make_untyped_oyster();
     assert(f);
-    oyster_unref(f);
+    decref(f);
 }_tset;
 
 _test(make_oyster){
@@ -21,7 +21,7 @@ _test(make_oyster){
     assert(re->in->type == SYMBOL, "wrong type");
     assert(re->in->symbol_id == SYMBOL, "wrong id");
 
-    oyster_unref(f);
+    decref(f);
 
 }_tset;
 
@@ -35,7 +35,7 @@ _test(make_symbol){
     assert(re->in->type == SYMBOL);
     assert(re->in->symbol_id == SYMBOL);
 
-    oyster_unref(f);
+    decref(f);
 
 }_tset;
 
@@ -44,12 +44,12 @@ _test(make_cons){
     assert(c->in->type == CONS);
     assert(c->in->cons->car->in->symbol_id == 5);
     assert(c->in->cons->cdr->in->symbol_id == 2);
-    oyster_unref(c);
+    decref(c);
 }_tset;
 
 _test(cons_car_cdr){
     oyster *c = cons(make_symbol(55), cons(make_symbol(22), nil()));
-    oyster_ref(c);
+    incref(c);
     
     oyster *x = car(cdr(c));
 
@@ -59,9 +59,9 @@ _test(cons_car_cdr){
     assert(y->in->symbol_id == 55);
     assert(x->in->symbol_id == 22);
 
-    oyster_unref(c);
-    oyster_unref(x);
-    oyster_unref(y);
+    decref(c);
+    decref(x);
+    decref(y);
 }_tset;
 
 _test(oyster){

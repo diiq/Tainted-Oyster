@@ -15,12 +15,12 @@ _test(next_oyster){
     assert(ret->in->symbol_id == sym_id_from_string("and"), 
            "wrong string %d %d", sym_id_from_string("and"), ret->in->symbol_id);
 
-    oyster_unref(ret);
+    decref(ret);
     ret = next_oyster(a);
 
     assert(ret->in->type == CONS, "wrong type");
 
-    oyster_unref(ret);
+    decref(ret);
     g_scanner_destroy(a);
 }_tset;
 
