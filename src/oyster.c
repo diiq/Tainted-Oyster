@@ -29,8 +29,8 @@ void init_oyster() // Where does this belong? Quo vadis, init?
         add_symbol(TYPE, "type");
         add_symbol(SYMBOL, "symbol");
         add_symbol(CONS, "cons");
-        add_symbol(NIL, "nil");
-        add_symbol(LEAKED, "leaked");
+        add_symbol(NIL, "()");
+        add_symbol(LEAKED, "LEAKED");
         add_symbol(ATPEND, "@");
         add_symbol(ELIPSIS, "...");
         add_symbol(ASTERIX, "*");
@@ -351,6 +351,9 @@ void oyster_print(oyster *o){
         break;
     case BUILT_IN_FUNCTION:
         printf("[builtin]");
+        break;
+    default:
+        printf("?(%d)", o->in->type);
         break;
     }
     decref(o);

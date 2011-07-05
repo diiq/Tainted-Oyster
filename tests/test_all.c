@@ -10,6 +10,7 @@
 #include "test_bindings.c"
 #include "test_machine.c"
 #include "test_builtins.c"
+#include "test_continuation.c"
 
 int tests_run = 0;
 
@@ -22,6 +23,7 @@ int main(){
     run_test(parsing);
     run_test(machine);
     run_test(builtins);
+    run_test(continuations);
     clean_up_oyster();
     printf("\nPASSED!\n");
     return 0;

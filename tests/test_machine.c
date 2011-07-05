@@ -4,6 +4,7 @@
 #include "oyster.h"
 
 #include "machine.c"
+#include "interpreter.c"
 
 
 _test(make_machine){
@@ -103,6 +104,7 @@ _test(basic_step){
                        list(2, // argument
                             make_symbol(CLEAR),
                             make_symbol(157)));
+
     decref(m->current_frame->current_instruction);
     m->current_frame->current_instruction = 
         make_instruction(fun, EVALUATE, NULL);
@@ -120,25 +122,30 @@ _test(basic_step){
 }_tset;
 
 _test(elipsis){
-    oyster *ret = evaluate_string("((clear ((... foo) foo)) (clear foo) (clear (sipp)) (clear bar) (clear bash))");
+    oyster *ret = evaluate_string("((clear ((... foo) foo))"
+                                  "    (clear foo) (clear (sipp))"
+                                  "    (clear bar) (clear bash))");
     assert(ret->in->type == CONS);
     decref(ret);
 }_tset;
 
 _test(atpend){
-    oyster *ret = evaluate_string("((clear ((... foo) foo)) (@ (clear (bar bash))))");
+    oyster *ret = evaluate_string("((clear ((... foo) foo))"
+                                  "    (@ (clear (bar bash))))");
     assert(ret->in->type == CONS);
     decref(ret);
 }_tset;
 
 _test(asterpend){
-    oyster *ret = evaluate_string("((clear ((... foo) foo)) (* (clear ((clear bar) (clear bash)))))");
+    oyster *ret = evaluate_string("((clear ((... foo) foo))"
+                                  "    (* (clear ((clear bar) (clear bash)))))");
     assert(ret->in->type == CONS);
     decref(ret);
 }_tset;
 
 _test(frame_stack){
-    oyster *ret = evaluate_string("(((clear ((foo) (clear ((quiz) quiz)))) (clear bar)) (clear baz))");
+    oyster *ret = evaluate_string("(((clear ((foo) (clear ((quiz) quiz))))" 
+                                  "    (clear bar)) (clear baz))");
     assert(ret->in->type == SYMBOL && 
            ret->in->symbol_id == sym_id_from_string("baz"));
     decref(ret);
@@ -161,6 +168,7 @@ _test(no_arg){
 _test(machine){
     printf("\nTesting machine:\n");
     run_test(make_machine);
+
     run_test(arg_list_tests);
     run_test(argument_chain_link_boring);
     run_test(argument_chain_link_atpend);

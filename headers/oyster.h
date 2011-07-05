@@ -17,6 +17,7 @@ typedef struct machine machine;
 typedef struct instruction instruction;
 
 
+
 //--------------------------------- Memory -----------------------------------//
 // This does clever stuff to make reference counting less painful; but
 //it's pretty painful anyway.
@@ -28,6 +29,8 @@ struct memorable{
 
 void incref(void *x);
 void decref(void *x);
+
+
 
 //--------------------------------- Tables -----------------------------------//
 // Tables are used to keep track of symbol-bindings --- in individual
@@ -63,6 +66,8 @@ int table_empty(table *tab);
 
 #define table_end_loop }} do{}while(0)
 
+
+
 //--------------------------------- Bindings --------------------------------//
 // Bindings are just tables with symbol_ids as keys and oysters as values.
 
@@ -72,9 +77,14 @@ table *binding_combine(table *a, table *b,
                        table *newa, table *newb);
 
 table *binding_union(table *a, table *b);
+table *binding_copy(table *x);
 
 oyster *look_up(int sym, machine *m);
 void set(int sym, oyster *val, machine *m, frame *f);
+oyster *look_up_symbol(oyster *sym, machine *m);
+
+
+
 //--------------------------------- Oysters ---------------------------------//
 // An oyster is a little shell that pearls hide inside when they are scared.
 // The shell of these oysters keeps track of the bindings of this object ---
@@ -166,6 +176,8 @@ oyster *reverse(oyster *xs);
 
 void oyster_print(oyster *x);
 
+
+
 //-------------------------------- The Machine ------------------------------//
 // I want you to be totally honest with me about how the machine makes you feel.
 // Frames come in stacks:
@@ -200,6 +212,7 @@ struct frame {
     table *scope;
     table *scope_to_be;
     instruction *current_instruction;
+    oyster *signal_handler;
 };
 
 struct instruction {
@@ -243,7 +256,7 @@ machine *make_machine();
 void machine_ref(machine *x);
 void machine_free(machine *x);
 void machine_unref(machine *x);
-void set_current_frame(machine *m, frame *f);
+void push_current_frame(machine *m, table *scope);
 
 instruction *make_instruction(oyster *ins, int flag, instruction *next);
 void instruction_ref(instruction *x);
@@ -269,8 +282,38 @@ void machine_print(machine *m);
 void frame_print(frame *f);
 void instruction_print(instruction *i);
 
+
+
 //------------------------------ Builtins -------------------------------//
+
+#define ARG(a) oyster *a = look_up(sym_id_from_string(#a), m)
+#define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), m)
+
+oyster *make_builtin(oyster *(*func)(machine *m));
+oyster *arg(char *name);
+oyster *unev(char *name);
+oyster *quot(char *name);
 void add_builtins(machine *m);
 
+
+
+//------------------------------- Numbers ------------------------------//
+
+typedef struct {
+    void (*inc)(void *);
+    void (*dec)(void *);
+    int ref;
+    int num;
+} number;
+
+oyster *make_number(int num);
+
 #endif
+
+//------------------------------ Continuations --------------------------//
+
+oyster *make_continuation(machine *m);
+
+//--------------------------------- Signals -----------------------------//
+
 

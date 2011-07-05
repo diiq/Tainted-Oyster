@@ -9,13 +9,8 @@
 
 // Leaks poke holes in the oyster shells; when a variable is bound to
 // LEAKED in the current scope, the value from the scope *below* is used
-// instead.
+// instead. The sea water seeps in, see? Don't seal the hole.
  
-oyster *leak()
-{
-    return make_symbol(LEAKED);
-}
-
 int leaked_p(oyster *x)
 {
     return (x &&
@@ -96,6 +91,21 @@ table *binding_union(table *a, table *b)
     return ret;
 }
 
+table *binding_copy(table *x)
+{
+    incref(x);
+
+    table *ret = make_table();
+    oyster *value;
+    int key;
+    table_loop(key, value, x){
+        table_put(key, value, ret);
+    } table_end_loop;
+
+    decref(x);
+    return ret;
+}
+
 
 //--------------------- Scope lookups -------------------------//
 
@@ -145,6 +155,16 @@ void set(int sym, oyster *val, machine *m, frame *f)
     table_put(sym, val, cur->scope);
 }
 
+
+oyster *look_up_symbol(oyster *sym, machine *m)
+{
+    oyster *ret = look_up(sym->in->symbol_id, m);
+    if (!ret) {
+        printf("Error: apologies, dear sir, but I have no recollection of such a variable as %s\n", string_from_sym_id(sym->in->symbol_id));
+        return NULL;
+    }
+    return ret;
+}
 
 
 #endif

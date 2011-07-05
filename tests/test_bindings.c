@@ -96,7 +96,7 @@ _test(binding_union){
 _test(look_up){
     machine *m = make_machine();
 
-    set_current_frame(m, make_frame(make_table(), m->current_frame));
+    push_current_frame(m, make_table());
         
     table_put(2, make_symbol(2), m->base_frame->scope);
     oyster *ret = look_up(2, m);
@@ -114,7 +114,7 @@ _test(look_up){
 
 _test(set){
     machine *m = make_machine();
-    set_current_frame(m, make_frame(make_table(), m->current_frame));
+    push_current_frame(m, make_table());
 
     set(2, make_symbol(2), m, m->current_frame);
     oyster *ret = look_up(2, m);

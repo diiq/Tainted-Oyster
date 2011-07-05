@@ -1,0 +1,7 @@
+(print (clear t))
+(print (car (cons (clear t) (clear ())))) 
+(print ((clear ((a) a)) (clear t)))
+(print (((' ((a) (' ((b) a)))) (' t)) (' b)))
+(set! a (clear q))
+(print (((leak a (' ((a) (' ((b) a))))) (' t)) (' b)))
+(print (is (' a) (' a)))

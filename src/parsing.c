@@ -72,11 +72,11 @@ GScanner *make_scanner(){
     GScanner *scan = g_scanner_new(NULL);
     scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
                                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                           "-!@#$%^&*<>?,./=_+`~");
+                                           "'-!@#$%^&*<>?,./=_+`~");
     scan->config->cset_identifier_nth = ("abcdefghijklmnopqrstuvwxyz"
                                          "1234567890"
                                          "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                         "-!@#$%^&*<>?,./=_+`~");
+                                         "'-!@#$%^&*<>?,./=_+`~");
     //    scan->config->char_2_token = FALSE;
     scan->config->scan_string_sq = FALSE;
     scan->config->scan_identifier_1char = TRUE;
@@ -98,18 +98,24 @@ GScanner *string_scanner(char *text)
 GScanner *file_scanner(char *file)
 {
     GScanner *scan = make_scanner();
-    g_scanner_input_file(scan, open(file, 'r'));
+    if (file)
+        g_scanner_input_file(scan, open(file, 'r'));
+    else
+        g_scanner_input_file(scan, 0);
     return scan;
 }
 
 
 oyster *next_oyster(GScanner *in){
     g_scanner_get_next_token(in);
-    if (in->token == G_TOKEN_EOF) return NULL;
-    if (in->token == G_TOKEN_IDENTIFIER)
-        return make_symbol(sym_id_from_string(in->value.v_string));
-    if (in->token == G_TOKEN_LEFT_PAREN) {
-        oyster *ret = nil();
+    //int line_number = g_scanner_cur_line(in);
+    oyster *ret;
+    if (in->token == G_TOKEN_EOF) 
+        ret = NULL;
+    else if (in->token == G_TOKEN_IDENTIFIER)
+        ret = make_symbol(sym_id_from_string(in->value.v_string));
+    else if (in->token == G_TOKEN_LEFT_PAREN) {
+        ret = nil();
         oyster *cur = next_oyster(in);
         while(cur) {
             ret = cons(cur, ret);
@@ -117,13 +123,14 @@ oyster *next_oyster(GScanner *in){
         } 
         oyster *rev = reverse(ret);
         decref(ret);
-        return rev;
+        ret = rev;
     }
-    if (in->token == G_TOKEN_RIGHT_PAREN)
-        return NULL;
-
-    // control had better not reach here.
-    return NULL;
+    else if (in->token == G_TOKEN_RIGHT_PAREN)
+        ret = NULL;
+    //    table_set(sym_id_from_string("line-number"), 
+    //          make_number(line_number), 
+    //          ret->in->info);
+    return ret;
 }
 
 #endif

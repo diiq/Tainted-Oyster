@@ -32,6 +32,11 @@ _test(builtin_cdr){
     decref(ret);
 }_tset;
 
+_test(builtin_set){
+    oyster *ret = evaluate_string("(set! a (clear b)) a");
+    assert(ret->in->symbol_id == sym_id_from_string("b"));
+    decref(ret);
+}_tset;
 
 _test(builtin_current_scope){
     oyster *ret = evaluate_string("(current-scope)");
@@ -39,7 +44,14 @@ _test(builtin_current_scope){
     int i;
     table_get(CONS, ret->in->value, &i);
     assert(i);
-    printf("%d, ", ((table *)(ret->in->value))->ref);
+    decref(ret);
+}_tset;
+
+_test(builtin_table_get){
+    oyster *ret = evaluate_string("(table-get (current-scope) cons)");
+    oyster *m = car(car(car(ret)));
+    assert(m->in->symbol_id == sym_id_from_string("car"));
+    decref(m);
     decref(ret);
 }_tset;
 
@@ -48,5 +60,7 @@ _test(builtins){
     run_test(builtin_cons);
     run_test(builtin_car);
     run_test(builtin_cdr);
+    run_test(builtin_set);
     run_test(builtin_current_scope);
+    run_test(builtin_table_get);
 }_tset;
