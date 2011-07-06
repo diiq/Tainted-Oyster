@@ -3,16 +3,17 @@
 #include "testing.h"
 #include "stdio.h"
 
-_test(binding_combine){
+_test(binding_combine)
+{
     table *a = make_table();
     table *b = make_table();
     oyster *match = make_symbol(1);
     table_put(2, match, a);
-    table_put(2, match, b); // shared
+    table_put(2, match, b);     // shared
     table_put(3, make_symbol(2), a);
-    table_put(3, make_symbol(3), b); // conflicting
+    table_put(3, make_symbol(3), b);    // conflicting
     table_put(4, make_symbol(4), a);
-    table_put(5, make_symbol(5), b); // individual
+    table_put(5, make_symbol(5), b);    // individual
 
     table *newa = make_table();
     table *newb = make_table();
@@ -20,7 +21,7 @@ _test(binding_combine){
 
     int i = 0;
     oyster *ret;
-    
+
     // shared:
     table_get(2, newa, &i);
     assert(!i, "2 present in newa");
@@ -58,29 +59,28 @@ _test(binding_combine){
     ret = table_get(5, comb, &i);
     assert(i, "5 not there");
     assert(ret->in->symbol_id == 5, "not 5");
-    
+
     decref(newa);
     decref(newb);
     decref(comb);
 
-}_tset
-
-_test(binding_union){
+} _tset _test(binding_union)
+{
     table *a = make_table();
     table *b = make_table();
     table_put(3, make_symbol(2), a);
-    table_put(3, make_symbol(3), b); // conflicting
+    table_put(3, make_symbol(3), b);    // conflicting
     table_put(4, make_symbol(1), a);
-    table_put(5, make_symbol(2), b); // individual
+    table_put(5, make_symbol(2), b);    // individual
     table *u = binding_union(a, b);
-    
+
     int i = 0;
     oyster *ret;
 
     ret = table_get(3, u, &i);
     assert(i);
     assert(ret->in->symbol_id == 3, "a");
-    
+
     ret = table_get(4, u, &i);
     assert(i, "b1");
     assert(ret->in->symbol_id == 1, "b");
@@ -90,14 +90,15 @@ _test(binding_union){
     assert(ret->in->symbol_id == 2, "c");
 
     decref(u);
-    
-}_tset;
 
-_test(look_up){
+} _tset;
+
+_test(look_up)
+{
     machine *m = make_machine();
 
     push_current_frame(m, make_table());
-        
+
     table_put(2, make_symbol(2), m->base_frame->scope);
     oyster *ret = look_up(2, m);
     assert(ret);
@@ -109,10 +110,11 @@ _test(look_up){
     assert(ret->in->symbol_id == 3);
 
     decref(m);
-}_tset;
+} _tset;
 
 
-_test(set){
+_test(set)
+{
     machine *m = make_machine();
     push_current_frame(m, make_table());
 
@@ -132,13 +134,14 @@ _test(set){
     assert(ret->in->symbol_id == 3, "Not 3. %d", ret->in->symbol_id);
 
     decref(m);
-}_tset;
+} _tset;
 
 
-_test(bindings){
+_test(bindings)
+{
     printf("\nTesting bindings:\n");
     run_test(binding_combine);
     run_test(binding_union);
     run_test(look_up);
     run_test(set);
-}_tset
+} _tset

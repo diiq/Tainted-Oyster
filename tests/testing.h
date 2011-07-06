@@ -8,8 +8,8 @@
         if (fail) return fail; printf("pass: "#test"\n"); } while (0)
 
 #define _test(name) int test_##name() {     \
-    char *testname = #name;                    
-    
+    char *testname = #name;
+
 #define _tset if(testname)return 0;return 0;}
 
 #define _TEST

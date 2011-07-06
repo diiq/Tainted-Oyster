@@ -11,11 +11,13 @@
 #include "test_machine.c"
 #include "test_builtins.c"
 #include "test_continuation.c"
+#include "test_signals.c"
 
 int tests_run = 0;
 
 
-int main(){
+int main()
+{
     init_oyster();
     run_test(table);
     run_test(bindings);

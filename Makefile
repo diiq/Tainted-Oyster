@@ -10,7 +10,7 @@ all:
 	gcc $(CFLAGS) src/$(TARGET).c  -o $(TARGET)  
 
 debug:
-	gcc $(CFLAGS) -o src/$(TARGET) $(TARGET).c $(DEBUG_FLAGS)
+	gcc $(CFLAGS) -o $(TARGET) src/$(TARGET).c $(DEBUG_FLAGS)
 
 profile:
 	gcc $(CFLAGS) src/$(TARGET).c -o $(TARGET) $(PROFILE_FLAGS) 

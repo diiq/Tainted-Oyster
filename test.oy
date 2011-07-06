@@ -5,3 +5,6 @@
 (set! a (clear q))
 (print (((leak a (' ((a) (' ((b) a))))) (' t)) (' b)))
 (print (is (' a) (' a)))
+(signal (' a))
+(set-signal-handler (leak a (' (((clear a)) (print a)))))
+(signal (' a))

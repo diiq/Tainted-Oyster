@@ -9,6 +9,9 @@
 #include "table.c"
 #include "memory.c"
 #include "builtins.c"
+#include "continuations.c"
+#include "signals.c"
+
 
 #include "stdio.h"
 
@@ -17,8 +20,9 @@ int main(int argc, char *argv[])
 {
     init_oyster();
 
-    char *filename; int print;
-    if (argc == 1){
+    char *filename;
+    int print;
+    if (argc == 1) {
         filename = NULL;
         print = 1;
     } else {

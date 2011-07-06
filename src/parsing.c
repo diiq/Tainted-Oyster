@@ -20,16 +20,20 @@ struct symbol_table {
     GHashTable *sym;
 } *symbol_table;
 
-void init_symbol_table(){
-    if(!symbol_table){
+void init_symbol_table()
+{
+    if (!symbol_table) {
         symbol_table = malloc(sizeof(struct symbol_table));
-        symbol_table->sym = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, NULL);
-        symbol_table->str = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-        current_max_symbol = MAX_PREDEF_SYMBOL+50;
+        symbol_table->sym =
+            g_hash_table_new_full(g_int_hash, g_int_equal, NULL, NULL);
+        symbol_table->str =
+            g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+        current_max_symbol = MAX_PREDEF_SYMBOL + 50;
     }
 };
 
-void free_symbol_table(){
+void free_symbol_table()
+{
     g_hash_table_destroy(symbol_table->sym);
     g_hash_table_destroy(symbol_table->str);
     free(symbol_table);
@@ -37,21 +41,23 @@ void free_symbol_table(){
 
 void add_symbol(int id, char *sym)
 {
-    char *val = malloc(sizeof(char)*(strlen(sym)+1)); 
-    memcpy(val, sym, (strlen(sym)+1)*sizeof(char));
+    char *val = malloc(sizeof(char) * (strlen(sym) + 1));
+    memcpy(val, sym, (strlen(sym) + 1) * sizeof(char));
     int *key = NEW(int);
     *key = id;
     g_hash_table_insert(symbol_table->sym, key, val);
     g_hash_table_insert(symbol_table->str, val, key);
 }
 
-int string_equal(void *a, void *b){
-    if(strcmp((char *)a, (char *)b) == 0)
+int string_equal(void *a, void *b)
+{
+    if (strcmp((char *) a, (char *) b) == 0)
         return 1;
     return 0;
 }
 
-int sym_id_from_string(char *sym){
+int sym_id_from_string(char *sym)
+{
     int *j = g_hash_table_lookup(symbol_table->str, sym);
     if (j) {
         return *j;
@@ -61,14 +67,16 @@ int sym_id_from_string(char *sym){
     return current_max_symbol;
 }
 
-char* string_from_sym_id(int sym){
+char *string_from_sym_id(int sym)
+{
     char *ret = g_hash_table_lookup(symbol_table->sym, &sym);
     if (ret)
         return ret;
     return "wow-I-have-no-idea-what-this-symbol-is-where-did-you-find-it?";
 }
 
-GScanner *make_scanner(){
+GScanner *make_scanner()
+{
     GScanner *scan = g_scanner_new(NULL);
     scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
                                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -106,26 +114,26 @@ GScanner *file_scanner(char *file)
 }
 
 
-oyster *next_oyster(GScanner *in){
+oyster *next_oyster(GScanner * in)
+{
     g_scanner_get_next_token(in);
     //int line_number = g_scanner_cur_line(in);
     oyster *ret;
-    if (in->token == G_TOKEN_EOF) 
+    if (in->token == G_TOKEN_EOF)
         ret = NULL;
     else if (in->token == G_TOKEN_IDENTIFIER)
         ret = make_symbol(sym_id_from_string(in->value.v_string));
     else if (in->token == G_TOKEN_LEFT_PAREN) {
         ret = nil();
         oyster *cur = next_oyster(in);
-        while(cur) {
+        while (cur) {
             ret = cons(cur, ret);
             cur = next_oyster(in);
-        } 
+        }
         oyster *rev = reverse(ret);
         decref(ret);
         ret = rev;
-    }
-    else if (in->token == G_TOKEN_RIGHT_PAREN)
+    } else if (in->token == G_TOKEN_RIGHT_PAREN)
         ret = NULL;
     //    table_set(sym_id_from_string("line-number"), 
     //          make_number(line_number), 

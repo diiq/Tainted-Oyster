@@ -25,15 +25,15 @@ machine *make_machine()
     return ret;
 }
 
-void machine_ref(machine *x)
+void machine_ref(machine * x)
 {
     x->ref++;
 }
 
-void machine_unref(machine *x)
+void machine_unref(machine * x)
 {
     x->ref--;
-    if(x->ref <= 0){
+    if (x->ref <= 0) {
         decref(x->current_frame);
         decref(x->base_frame);
         decref(x->accumulator);
@@ -41,7 +41,7 @@ void machine_unref(machine *x)
     }
 }
 
-instruction *machine_pop_current_instruction(machine *m)
+instruction *machine_pop_current_instruction(machine * m)
 {
     instruction *i = m->current_frame->current_instruction;
     if (i) {
@@ -51,9 +51,9 @@ instruction *machine_pop_current_instruction(machine *m)
     return i;
 }
 
-void machine_pop_stack(machine *m)
-{ 
-    if (m->current_frame->below){
+void machine_pop_stack(machine * m)
+{
+    if (m->current_frame->below) {
         frame *t = m->current_frame;
         m->current_frame = m->current_frame->below;
         incref(m->current_frame);
@@ -63,7 +63,8 @@ void machine_pop_stack(machine *m)
     }
 }
 
-void set_accumulator(machine *m, oyster *value){
+void set_accumulator(machine * m, oyster * value)
+{
     oyster *t = m->accumulator;
     m->accumulator = value;
     incref(m->accumulator);
@@ -71,7 +72,7 @@ void set_accumulator(machine *m, oyster *value){
 }
 
 
-frame *make_frame(table *scope, frame* below)
+frame *make_frame(table * scope, frame * below)
 {
     frame *ret = NEW(frame);
 
@@ -94,13 +95,15 @@ frame *make_frame(table *scope, frame* below)
     return ret;
 }
 
-void frame_ref(frame *x){
+void frame_ref(frame * x)
+{
     x->ref++;
 }
 
-void frame_unref(frame *x){
+void frame_unref(frame * x)
+{
     x->ref--;
-    if(x->ref <= 0) {
+    if (x->ref <= 0) {
         decref(x->scope);
         decref(x->scope_to_be);
         decref(x->current_instruction);
@@ -109,39 +112,45 @@ void frame_unref(frame *x){
     }
 }
 
-void frame_set_scope(frame *x, table *scope){
+void frame_set_scope(frame * x, table * scope)
+{
     decref(x->scope);
     x->scope = scope;
     incref(x->scope);
 }
 
-void frame_set_instruction(frame *x,instruction *i){
+void frame_set_instruction(frame * x, instruction * i)
+{
     instruction *t = x->current_instruction;
     x->current_instruction = i;
     incref(x->current_instruction);
     decref(t);
 }
 
-void push_current_frame(machine *m, table *scope)
+void push_current_frame(machine * m, table * scope)
 {
-    if(0 &&
-       m->current_frame->current_instruction == NULL &&
-       m->current_frame->below &&
-       m->current_frame->below != m->base_frame){
+    incref(scope);
+    if (0 &&                    // Sheee-it. TCO is tricky with 'leak. 
+        m->current_frame->current_instruction == NULL &&
+        m->current_frame->below &&
+        m->current_frame->below != m->base_frame) {
         frame *t = m->current_frame;
-        m->current_frame = t->below;
+        m->current_frame = m->current_frame->below;
+        incref(m->current_frame);
         decref(t);
         push_current_frame(m, scope);
     } else {
-        m->current_frame = make_frame(scope, m->current_frame);
-        incref(m->current_frame);
-        decref(m->current_frame->below);
+        frame *f = make_frame(scope, m->current_frame);
+        incref(f);
+        decref(m->current_frame);
+        m->current_frame = f;
     }
+    decref(scope);
 }
 
 
 
-instruction *make_instruction(oyster *ins, int flag, instruction *next)
+instruction *make_instruction(oyster * ins, int flag, instruction * next)
 {
     instruction *ret = NEW(instruction);
 
@@ -159,13 +168,16 @@ instruction *make_instruction(oyster *ins, int flag, instruction *next)
     return ret;
 }
 
-void instruction_ref(instruction *x){
-    if(x) x->ref++;
+void instruction_ref(instruction * x)
+{
+    if (x)
+        x->ref++;
 }
 
-void instruction_unref(instruction *x){
+void instruction_unref(instruction * x)
+{
     x->ref--;
-    if(x->ref <= 0){
+    if (x->ref <= 0) {
         decref(x->instruction);
         decref(x->next);
         free(x);

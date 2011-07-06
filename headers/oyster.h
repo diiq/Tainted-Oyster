@@ -22,9 +22,9 @@ typedef struct instruction instruction;
 // This does clever stuff to make reference counting less painful; but
 //it's pretty painful anyway.
 
-struct memorable{
-    void (*inc)(void *);
-    void (*dec)(void *);
+struct memorable {
+    void (*inc) (void *);
+    void (*dec) (void *);
 };
 
 void incref(void *x);
@@ -40,20 +40,20 @@ void decref(void *x);
 // but this is the interface to use. It's gon' be a challenge to cope
 // with union and combine in an efficient way.
 
-struct table{
-    void (*incref)(table *x);
-    void (*decref)(table *x);
+struct table {
+    void (*incref) (table * x);
+    void (*decref) (table * x);
     int ref;
     //    table_unit *root;
     GHashTable *it;
 };
 
 table *make_table();
-void *table_get(int key, table *tab, int *err);
-void table_put(int key, oyster *entry, table *tab);
-void table_ref(table *x);
-void table_unref(table *x);
-int table_empty(table *tab);
+void *table_get(int key, table * tab, int *err);
+void table_put(int key, oyster * entry, table * tab);
+void table_ref(table * x);
+void table_unref(table * x);
+int table_empty(table * tab);
 
 #define table_loop(k, v, tab) {                                         \
     GHashTableIter iter;                                                \
@@ -72,16 +72,15 @@ int table_empty(table *tab);
 // Bindings are just tables with symbol_ids as keys and oysters as values.
 
 oyster *leak();
-int leaked_p(oyster *x);
-table *binding_combine(table *a, table *b, 
-                       table *newa, table *newb);
+int leaked_p(oyster * x);
+table *binding_combine(table * a, table * b, table * newa, table * newb);
 
-table *binding_union(table *a, table *b);
-table *binding_copy(table *x);
+table *binding_union(table * a, table * b);
+table *binding_copy(table * x);
 
-oyster *look_up(int sym, machine *m);
-void set(int sym, oyster *val, machine *m, frame *f);
-oyster *look_up_symbol(oyster *sym, machine *m);
+oyster *look_up(int sym, machine * m);
+void set(int sym, oyster * val, machine * m, frame * f);
+oyster *look_up_symbol(oyster * sym, machine * m);
 
 
 
@@ -94,8 +93,8 @@ oyster *look_up_symbol(oyster *sym, machine *m);
 // in different circumstances -- the clothes fit the occasion.
 
 struct cons_cell {
-    void (*incref)(cons_cell *x);
-    void (*decref)(cons_cell *x);
+    void (*incref) (cons_cell * x);
+    void (*decref) (cons_cell * x);
     int ref;
 
     oyster *car;
@@ -103,29 +102,29 @@ struct cons_cell {
 };
 
 struct inner {
-    void (*incref)(inner *x);
-    void (*decref)(inner *x);
+    void (*incref) (inner * x);
+    void (*decref) (inner * x);
     int ref;
 
     table *info;
-    int   type;
+    int type;
     union {
         int symbol_id;
         cons_cell *cons;
-        oyster *(*built_in)(machine *m); 
+        oyster *(*built_in) (machine * m);
         void *value;
     };
 };
 
 struct oyster {
-    void (*incref)(oyster *x);
-    void (*decref)(oyster *x);
+    void (*incref) (oyster * x);
+    void (*decref) (oyster * x);
     int ref;
 
     table *bindings;
     inner *in;
 };
-    
+
 // type/symbols:
 enum {
     TYPE,
@@ -147,34 +146,34 @@ void clean_up_oyster();
 
 oyster *nil();
 oyster *make_untyped_oyster();
-void inner_ref(inner *x);
-void inner_unref(inner *x);
+void inner_ref(inner * x);
+void inner_unref(inner * x);
 oyster *make_oyster(int type);
-void oyster_ref(oyster *x);
-void oyster_unref(oyster *x);
-oyster *oyster_copy(oyster *x, table *bindings);
+void oyster_ref(oyster * x);
+void oyster_unref(oyster * x);
+oyster *oyster_copy(oyster * x, table * bindings);
 
 oyster *make_symbol(int symbol_id);
-oyster *make_cons(oyster *car, oyster *cdr);
-void cons_ref(cons_cell *x);
-void cons_unref(cons_cell *x);
+oyster *make_cons(oyster * car, oyster * cdr);
+void cons_ref(cons_cell * x);
+void cons_unref(cons_cell * x);
 
-int oyster_type(oyster *x);
-int nilp(oyster *x);
+int oyster_type(oyster * x);
+int nilp(oyster * x);
 
-oyster *cheap_car(oyster *cons);
-oyster *cheap_cdr(oyster *cons);
-oyster *cons(oyster *car, oyster *cdr);
-oyster *car(oyster *cons);
-oyster *cdr(oyster *cons);
+oyster *cheap_car(oyster * cons);
+oyster *cheap_cdr(oyster * cons);
+oyster *cons(oyster * car, oyster * cdr);
+oyster *car(oyster * cons);
+oyster *cdr(oyster * cons);
 
 oyster *cheap_list(int count, ...);
 oyster *list(int count, ...);
-oyster *cheap_append(oyster *a, oyster *b);
-oyster *append(oyster *a, oyster *b);
-oyster *reverse(oyster *xs);
+oyster *cheap_append(oyster * a, oyster * b);
+oyster *append(oyster * a, oyster * b);
+oyster *reverse(oyster * xs);
 
-void oyster_print(oyster *x);
+void oyster_print(oyster * x);
 
 
 
@@ -204,8 +203,8 @@ void oyster_print(oyster *x);
 // and so on.
 
 struct frame {
-    void (*incref)(frame *x);
-    void (*decref)(frame *x);
+    void (*incref) (frame * x);
+    void (*decref) (frame * x);
     int ref;
 
     frame *below;
@@ -216,8 +215,8 @@ struct frame {
 };
 
 struct instruction {
-    void (*incref)(instruction *x);
-    void (*decref)(instruction *x);
+    void (*incref) (instruction * x);
+    void (*decref) (instruction * x);
     int ref;
 
     instruction *next;
@@ -226,8 +225,8 @@ struct instruction {
 };
 
 struct machine {
-    void (*incref)(machine *x);
-    void (*decref)(machine *x);
+    void (*incref) (machine * x);
+    void (*decref) (machine * x);
     int ref;
 
     frame *current_frame;
@@ -247,40 +246,39 @@ enum instruction_flags {
     PREPARE_ARGUMENTS
 };
 
-frame *make_frame(table *scope, frame *below);
-void frame_ref(frame *x);
-void frame_unref(frame *x);
-void frame_free(frame *x);
+frame *make_frame(table * scope, frame * below);
+void frame_ref(frame * x);
+void frame_unref(frame * x);
+void frame_free(frame * x);
 
 machine *make_machine();
-void machine_ref(machine *x);
-void machine_free(machine *x);
-void machine_unref(machine *x);
-void push_current_frame(machine *m, table *scope);
+void machine_ref(machine * x);
+void machine_free(machine * x);
+void machine_unref(machine * x);
+void push_current_frame(machine * m, table * scope);
 
-instruction *make_instruction(oyster *ins, int flag, instruction *next);
-void instruction_ref(instruction *x);
-void instruction_unref(instruction *x);
+instruction *make_instruction(oyster * ins, int flag, instruction * next);
+void instruction_ref(instruction * x);
+void instruction_unref(instruction * x);
 
-oyster *instruction_object(instruction *i);
+oyster *instruction_object(instruction * i);
 
-int asterix_p(oyster *x);
-int atpend_p(oyster *x);
-int comma_p(oyster *x);
-int elipsis_p(oyster *x);
-instruction *argument_chain_link(oyster *lambda_list, 
-                                 oyster *arg_list, 
-                                 instruction *chain);
-oyster *unevaluate_list(oyster *xs);
+int asterix_p(oyster * x);
+int atpend_p(oyster * x);
+int comma_p(oyster * x);
+int elipsis_p(oyster * x);
+instruction *argument_chain_link(oyster * lambda_list,
+                                 oyster * arg_list, instruction * chain);
+oyster *unevaluate_list(oyster * xs);
 
-instruction *machine_current_instruction(machine *m);
-void machine_pop_stack(machine *m);
-oyster *run_built_in_function(oyster *o, machine *m);
-void step_machine(machine *m);
+instruction *machine_current_instruction(machine * m);
+void machine_pop_stack(machine * m);
+oyster *run_built_in_function(oyster * o, machine * m);
+void step_machine(machine * m);
 
-void machine_print(machine *m);
-void frame_print(frame *f);
-void instruction_print(instruction *i);
+void machine_print(machine * m);
+void frame_print(frame * f);
+void instruction_print(instruction * i);
 
 
 
@@ -289,19 +287,19 @@ void instruction_print(instruction *i);
 #define ARG(a) oyster *a = look_up(sym_id_from_string(#a), m)
 #define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), m)
 
-oyster *make_builtin(oyster *(*func)(machine *m));
+oyster *make_builtin(oyster * (*func) (machine * m));
 oyster *arg(char *name);
 oyster *unev(char *name);
 oyster *quot(char *name);
-void add_builtins(machine *m);
+void add_builtins(machine * m);
 
 
 
 //------------------------------- Numbers ------------------------------//
 
 typedef struct {
-    void (*inc)(void *);
-    void (*dec)(void *);
+    void (*inc) (void *);
+    void (*dec) (void *);
     int ref;
     int num;
 } number;
@@ -312,8 +310,9 @@ oyster *make_number(int num);
 
 //------------------------------ Continuations --------------------------//
 
-oyster *make_continuation(machine *m);
+oyster *make_continuation(machine * m);
 
 //--------------------------------- Signals -----------------------------//
 
-
+oyster *make_signal(oyster * message, machine * m);
+void toss_signal(oyster * signal, machine * m);
