@@ -67,7 +67,7 @@ oyster *builtin_set(machine * m)
 {
     ARG(symbol);
     ARG(value);
-    set(symbol->in->symbol_id, value, m, m->current_frame->below);
+    set(symbol->in->symbol_id, value, m, m->now->scope_below);
     return value;
 }
 
@@ -83,7 +83,7 @@ oyster *builtin_leak(machine * m)
 oyster *builtin_quote(machine * m)
 {
     ARG(x);
-    return oyster_copy(x, binding_copy(m->current_frame->below->scope));
+    return oyster_copy(x, binding_copy(m->now->scope_below->scope));
     // OK, I need to resolve leaks here. That'll be a mess, given how it's done right now.
 }
 
@@ -111,17 +111,9 @@ oyster *builtin_oif(machine * m)
     ARG(then);
     sARG(el, "else");
     if (!nilp(test)) {
-        frame_set_instruction(m->current_frame->below,
-                              make_instruction(then,
-                                               EVALUATE,
-                                               m->current_frame->
-                                               below->current_instruction));
+        push_new_instruction(m, then, EVALUATE);
     } else {
-        frame_set_instruction(m->current_frame->below,
-                              make_instruction(el,
-                                               EVALUATE,
-                                               m->current_frame->
-                                               below->current_instruction));
+        push_new_instruction(m, el, EVALUATE);
     }
     return NULL;
 }
@@ -152,10 +144,13 @@ oyster *builtin_signal(machine * m)
     return NULL;
 }
 
-oyster *builtin_set_signal_handler(machine * m)
-{
+oyster *builtin_with_signal_handler(machine * m)
+{    
     ARG(handler);
-    m->current_frame->below->signal_handler = handler;
+    ARG(code);
+    oyster_print(code);
+    m->now->scope_below->signal_handler = handler;
+    push_new_instruction(m, list(1, append(list(1, nil()), code)), EVALUATE);
     incref(handler);
     return handler;
 }
@@ -163,7 +158,7 @@ oyster *builtin_set_signal_handler(machine * m)
 oyster *builtin_current_scope(machine * m)
 {
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    ret->in->value = m->current_frame->below->scope;
+    ret->in->value = m->now->scope_below->scope;
     incref(ret->in->value);
     return ret;
 }
@@ -202,8 +197,11 @@ void add_builtins(machine * m)
     add_builtin("print", list(2, arg("..."), arg("xs")), builtin_print, m);
 
     add_builtin("signal", list(1, arg("message")), builtin_signal, m);
-    add_builtin("set-signal-handler", list(1, unev("handler")),
-                builtin_set_signal_handler, m);
+    add_builtin("with-signal-handler", 
+                list(3, quot("handler"),
+                        arg("..."),
+                        quot("code")),
+                builtin_with_signal_handler, m);
 
     add_builtin("current-scope", nil(), builtin_current_scope, m);
     add_builtin("table-get", list(2, arg("table"), unev("symbol")),

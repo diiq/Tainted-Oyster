@@ -14,7 +14,6 @@ typedef struct inner inner;
 
 typedef struct frame frame;
 typedef struct machine machine;
-typedef struct instruction instruction;
 
 
 
@@ -40,20 +39,22 @@ void decref(void *x);
 // but this is the interface to use. It's gon' be a challenge to cope
 // with union and combine in an efficient way.
 
+
 struct table {
     void (*incref) (table * x);
     void (*decref) (table * x);
     int ref;
-    //    table_unit *root;
     GHashTable *it;
+    GHashTable *leaked;
 };
 
 table *make_table();
-void *table_get(int key, table * tab, int *err);
-void table_put(int key, oyster * entry, table * tab);
+oyster *table_get(int key, table * tab, int *err);
+void table_put(int key, oyster * ent, table * tab);
 void table_ref(table * x);
 void table_unref(table * x);
 int table_empty(table * tab);
+void table_print(table * x);
 
 #define table_loop(k, v, tab) {                                         \
     GHashTableIter iter;                                                \
@@ -71,16 +72,15 @@ int table_empty(table * tab);
 //--------------------------------- Bindings --------------------------------//
 // Bindings are just tables with symbol_ids as keys and oysters as values.
 
-oyster *leak();
 int leaked_p(oyster * x);
 table *binding_combine(table * a, table * b, table * newa, table * newb);
 
 table *binding_union(table * a, table * b);
 table *binding_copy(table * x);
 
-oyster *look_up(int sym, machine * m);
+oyster *look_up(int sym, frame *cur);
 void set(int sym, oyster * val, machine * m, frame * f);
-oyster *look_up_symbol(oyster * sym, machine * m);
+oyster *look_up_symbol(oyster * sym, frame * f);
 
 
 
@@ -208,18 +208,13 @@ struct frame {
     int ref;
 
     frame *below;
+
     table *scope;
     table *scope_to_be;
-    instruction *current_instruction;
+    frame *scope_below;
+
     oyster *signal_handler;
-};
 
-struct instruction {
-    void (*incref) (instruction * x);
-    void (*decref) (instruction * x);
-    int ref;
-
-    instruction *next;
     oyster *instruction;
     int flag;
 };
@@ -229,6 +224,7 @@ struct machine {
     void (*decref) (machine * x);
     int ref;
 
+    frame *now;
     frame *current_frame;
     frame *base_frame;
     oyster *accumulator;
@@ -243,10 +239,16 @@ enum instruction_flags {
     EVALUATE,
     CONTINUE,
     APPLY_FUNCTION,
-    PREPARE_ARGUMENTS
+    PREPARE_ARGUMENTS,
+    PAUSE
 };
 
-frame *make_frame(table * scope, frame * below);
+frame *make_frame(frame * below, 
+                  table * scope, 
+                  table * scope_to_be, 
+                  frame * scope_below, 
+                  oyster *instruction,
+                  int flag);
 void frame_ref(frame * x);
 void frame_unref(frame * x);
 void frame_free(frame * x);
@@ -255,37 +257,34 @@ machine *make_machine();
 void machine_ref(machine * x);
 void machine_free(machine * x);
 void machine_unref(machine * x);
-void push_current_frame(machine * m, table * scope);
 
-instruction *make_instruction(oyster * ins, int flag, instruction * next);
-void instruction_ref(instruction * x);
-void instruction_unref(instruction * x);
 
-oyster *instruction_object(instruction * i);
+frame *machine_pop_stack(machine * m);
+frame *netw_instruction(frame *below, oyster *instruction, int flag);
+void push_new_instruction(machine *m, oyster *instruction, int flag);
 
 int asterix_p(oyster * x);
 int atpend_p(oyster * x);
 int comma_p(oyster * x);
 int elipsis_p(oyster * x);
-instruction *argument_chain_link(oyster * lambda_list,
-                                 oyster * arg_list, instruction * chain);
+void argument_chain_link(oyster * lambda_list,
+                          oyster * arg_list, 
+                          machine * m);
+
 oyster *unevaluate_list(oyster * xs);
 
-instruction *machine_current_instruction(machine * m);
-void machine_pop_stack(machine * m);
 oyster *run_built_in_function(oyster * o, machine * m);
 void step_machine(machine * m);
 
 void machine_print(machine * m);
 void frame_print(frame * f);
-void instruction_print(instruction * i);
 
 
 
 //------------------------------ Builtins -------------------------------//
 
-#define ARG(a) oyster *a = look_up(sym_id_from_string(#a), m)
-#define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), m)
+#define ARG(a) oyster *a = look_up(sym_id_from_string(#a), m->now)
+#define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), m->now)
 
 oyster *make_builtin(oyster * (*func) (machine * m));
 oyster *arg(char *name);

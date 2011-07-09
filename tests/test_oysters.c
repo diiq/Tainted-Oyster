@@ -17,12 +17,6 @@ _test(make_oyster)
 {
     oyster *f = make_oyster(SYMBOL);
     assert(f->in->type == SYMBOL, "wrong type");
-    int i = 0;
-    oyster *re = table_get(TYPE, f->in->info, &i);
-    assert(i, "not there");
-    assert(re->in->type == SYMBOL, "wrong type");
-    assert(re->in->symbol_id == SYMBOL, "wrong id");
-
     decref(f);
 
 } _tset;
@@ -32,11 +26,6 @@ _test(make_symbol)
     oyster *f = make_symbol(5);
     assert(f->in->type == SYMBOL);
     assert(f->in->symbol_id == 5);
-    int i = 0;
-    oyster *re = table_get(TYPE, f->in->info, &i);
-    assert(i);
-    assert(re->in->type == SYMBOL);
-    assert(re->in->symbol_id == SYMBOL);
 
     decref(f);
 

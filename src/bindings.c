@@ -6,14 +6,8 @@
 
 #include "oyster.h"
 
-
-// Leaks poke holes in the oyster shells; when a variable is bound to
-// LEAKED in the current scope, the value from the scope *below* is used
-// instead. The sea water seeps in, see? Don't seal the hole.
-
-int leaked_p(oyster * x)
-{
-    return (x && x->in->type == SYMBOL && x->in->symbol_id == LEAKED);
+int leaked_p(oyster *x){
+    return 0;
 }
 
 // The ability to sensibly combine two scopes is what makes oyster's
@@ -109,18 +103,16 @@ table *binding_copy(table * x)
 
 //--------------------- Scope lookups -------------------------//
 
-oyster *look_up(int sym, machine * m)
+oyster *look_up(int sym, frame *cur)
 {
     oyster *ret;
-    frame *cur;
     int i = 0;
 
-    for (cur = m->current_frame; cur; cur = cur->below) {
+    for (; cur; cur = cur->scope_below) {
         ret = table_get(sym, cur->scope, &i);
         if (i && leaked_p(ret))
             continue;
-        if (i)
-            break;
+        break;
     }
 
     if (!i) {
@@ -139,7 +131,7 @@ void set(int sym, oyster * val, machine * m, frame * f)
     frame *cur;
     int i = 0;
 
-    for (cur = f; cur; cur = cur->below) {
+    for (cur = f; cur; cur = cur->scope_below) {
         ret = table_get(sym, cur->scope, &i);
         if (i && leaked_p(ret))
             continue;
@@ -156,12 +148,13 @@ void set(int sym, oyster * val, machine * m, frame * f)
 }
 
 
-oyster *look_up_symbol(oyster * sym, machine * m)
+oyster *look_up_symbol(oyster * sym, frame * f)
 {
-    oyster *ret = look_up(sym->in->symbol_id, m);
+    oyster *ret = look_up(sym->in->symbol_id, f);
     if (!ret) {
-        printf
-            ("Error: apologies, dear sir, but I have no recollection of such a variable as %s\n",
+        printf("Error: apologies, dear sir, "
+               "but I have no recollection of such a variable "
+               "as %s\n",
              string_from_sym_id(sym->in->symbol_id));
         return NULL;
     }

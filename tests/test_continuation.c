@@ -9,10 +9,19 @@ _test(machine_copy)
     machine *ma = make_machine();
     add_builtins(ma);
     machine *m = machine_copy(ma);
+    incref(m);
     while (func) {
+        frame *t = m->current_frame;
+        m->current_frame = make_frame(t, 
+                                      binding_copy(t->scope),
+                                      make_table(), 
+                                      t,
+                                      func, 
+                                      EVALUATE);
+        incref(m->current_frame);
+        decref(t);
+
         incref(func);
-        m->current_frame->current_instruction =
-            make_instruction(func, EVALUATE, NULL);
         while (!m->paused) {
             step_machine(m);
         }

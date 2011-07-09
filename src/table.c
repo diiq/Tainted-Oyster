@@ -11,22 +11,33 @@
 table *make_table()
 {
     table *ret = NEW(table);
-    ret->it =
-        g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
-                              (GDestroyNotify) oyster_unref);
     ret->ref = 0;
     ret->incref = &table_ref;
     ret->decref = &table_unref;
-    return ret;
+
+    ret->it =
+        g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
+                              (GDestroyNotify) oyster_unref); 
+ 
+   ret->leaked =
+        g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, NULL); 
+ 
+   return ret;
 }
 
-void *table_get(int key, table * tab, int *err)
+oyster *table_get(int key, table * tab, int *flag)
 {
-    void *ret = g_hash_table_lookup(tab->it, GINT_TO_POINTER(key));
-    *err = 1;
-    if (ret == NULL) {
-        *err = 0;
+    int leaked = GPOINTER_TO_INT(g_hash_table_lookup(tab->leaked, GINT_TO_POINTER(key)));
+    if(leaked){
+        *flag = 2;
+        return NULL;
     }
+    oyster *ret = g_hash_table_lookup(tab->it, GINT_TO_POINTER(key));
+    if (ret == NULL) {
+        *flag = 0;
+        return NULL;
+    }
+    *flag = 1;
     return ret;
 }
 
@@ -35,6 +46,15 @@ void table_put(int key, oyster * entry, table * tab)
     int *poo = GINT_TO_POINTER(key);
     incref(entry);
     g_hash_table_insert(tab->it, poo, entry);
+}
+
+// Leaks poke holes in the oyster shells; when a variable is bound to
+// LEAKED in the current scope, the value from the scope *below* is used
+// instead. The sea water seeps in, see? Don't seal the hole.
+
+void leak(int sym, table *tab)
+{
+    g_hash_table_insert(tab->leaked, GINT_TO_POINTER(sym), GINT_TO_POINTER(1)); 
 }
 
 int table_empty(table * tab)
@@ -56,4 +76,15 @@ void table_unref(table * x)
     }
 }
 
+void table_print(table * x)
+{
+    int key;
+    oyster *value;
+    table_loop(key, value, x){
+        printf("    %s : ", string_from_sym_id(key));
+        oyster_print(value);
+        printf("\n");
+    } table_end_loop;
+    printf("\n");
+}
 #endif

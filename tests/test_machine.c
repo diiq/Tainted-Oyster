@@ -33,17 +33,18 @@ _test(argument_chain_link_boring)
     oyster *arg_list =
         list(3, make_symbol(30), make_symbol(40), make_symbol(50));
 
-    instruction *i = argument_chain_link(lambda_list, arg_list, NULL);
+    machine *m = make_machine();
+    argument_chain_link(lambda_list, arg_list, m);
 
-    assert(i->flag == EVALUATE);
-    assert(i->instruction->in->symbol_id == 30);
+    assert(m->current_frame->flag == EVALUATE);
+    assert(m->current_frame->instruction->in->symbol_id == 30);
 
-    assert(i->next->flag == ARGUMENT);
-    assert(i->next->instruction->in->symbol_id == 10);
+    assert(m->current_frame->below->flag == ARGUMENT);
+    assert(m->current_frame->below->instruction->in->symbol_id == 10);
 
-    assert(i->next->next->flag == CONTINUE);
+    assert(m->current_frame->below->below->flag == CONTINUE);
 
-    decref(i);
+    decref(m);
 }
 
 _tset;
@@ -58,15 +59,16 @@ _test(argument_chain_link_atpend)
         list(3, list(2, make_symbol(ATPEND), make_symbol(60)),
              make_symbol(40), make_symbol(50));
 
-    instruction *i = argument_chain_link(lambda_list, arg_list, NULL);
+    machine *m = make_machine();
+    argument_chain_link(lambda_list, arg_list, m);
 
-    assert(i->flag == EVALUATE);
-    assert(i->instruction->in->symbol_id == 60);
+    assert(m->current_frame->flag == EVALUATE);
+    assert(m->current_frame->instruction->in->symbol_id == 60);
 
-    assert(i->next->flag == ATPEND_CONTINUE);
-    assert(i->next->instruction->in->type == CONS);
+    assert(m->current_frame->below->flag == ATPEND_CONTINUE);
+    assert(m->current_frame->below->instruction->in->type == CONS);
 
-    decref(i);
+    decref(m);
 }
 
 _tset;
@@ -80,15 +82,16 @@ _test(argument_chain_link_asterpend)
         list(3, list(2, make_symbol(ASTERIX), make_symbol(30)),
              make_symbol(40), make_symbol(50));
 
-    instruction *i = argument_chain_link(lambda_list, arg_list, NULL);
+    machine *m = make_machine();
+    argument_chain_link(lambda_list, arg_list, m);
 
-    assert(i->flag == EVALUATE);
-    assert(i->instruction->in->symbol_id == 30);
+    assert(m->current_frame->flag == EVALUATE);
+    assert(m->current_frame->instruction->in->symbol_id == 30);
 
-    assert(i->next->flag == ASTERPEND_CONTINUE);
-    assert(i->next->instruction->in->type == CONS);
+    assert(m->current_frame->below->flag == ASTERPEND_CONTINUE);
+    assert(m->current_frame->below->instruction->in->type == CONS);
 
-    decref(i);
+    decref(m);
 }
 
 _tset;
@@ -100,18 +103,19 @@ _test(argument_chain_link_elipsis)
     oyster *arg_list = list(4, make_symbol(60), make_symbol(30),
                             make_symbol(40), make_symbol(50));
 
-    instruction *i = argument_chain_link(lambda_list, arg_list, NULL);
+    machine *m = make_machine();
+    argument_chain_link(lambda_list, arg_list, m);
 
-    assert(i->flag == EVALUATE, "flag");
-    assert(i->instruction->in->symbol_id == 60, "symbol id");
+    assert(m->current_frame->flag == EVALUATE, "flag");
+    assert(m->current_frame->instruction->in->symbol_id == 60, "symbol id");
 
-    assert(i->next->flag == ELIPSIS_ARGUMENT, "flag2");
-    assert(i->next->instruction->in->symbol_id == 10);
+    assert(m->current_frame->below->flag == ELIPSIS_ARGUMENT, "flag2");
+    assert(m->current_frame->below->instruction->in->symbol_id == 10);
 
-    assert(i->next->next->flag == CONTINUE);
-    assert(i->next->next->instruction->in->type == CONS);
+    assert(m->current_frame->below->below->flag == CONTINUE);
+    assert(m->current_frame->below->below->instruction->in->type == CONS);
 
-    decref(i);
+    decref(m);
 }
 
 _tset;
@@ -124,22 +128,20 @@ _test(basic_step)
                        list(2,
                             make_symbol(CLEAR),
                             list(2,     // function
-                                 list(1, make_symbol(55)),      //lambda list
-                                 make_symbol(55))),     // expression
+                                 list(1, make_symbol(TYPE)),      //lambda list
+                                 make_symbol(TYPE))),     // expression
                        list(2,  // argument
                             make_symbol(CLEAR),
-                            make_symbol(157)));
+                            make_symbol(BUILT_IN_FUNCTION)));
 
-    decref(m->current_frame->current_instruction);
-    m->current_frame->current_instruction =
-        make_instruction(fun, EVALUATE, NULL);
+    push_new_instruction(m, fun, EVALUATE);
 
     while (!m->paused) {
         step_machine(m);
     }
     assert(m->accumulator, "no answer");
     assert(m->accumulator->in->type == SYMBOL, "Wrong answer type");
-    assert(m->accumulator->in->symbol_id == 157, "Wrong answer, %d",
+    assert(m->accumulator->in->symbol_id == BUILT_IN_FUNCTION, "Wrong answer, %d",
            m->accumulator->in->symbol_id);
 
     decref(m);
@@ -210,6 +212,14 @@ _test(no_arg)
 
 _tset;
 
+_test(cons_from_cont)
+{
+    oyster *ret = evaluate_string("(cons (' a) (' b))");
+    decref(ret);
+}
+
+_tset;
+
 _test(machine)
 {
     printf("\nTesting machine:\n");
@@ -227,6 +237,7 @@ _test(machine)
     run_test(frame_stack);
     run_test(fun_arg);
     run_test(no_arg);
+    run_test(cons_from_cont);
 }
 
 _tset;

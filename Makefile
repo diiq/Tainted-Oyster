@@ -18,8 +18,8 @@ profile:
 test:
 	@gcc $(CFLAGS) tests/test_all.c -o testes $(DEBUG_FLAGS)
 	@G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind -q ./testes 
-	@gcc $(CFLAGS) src/$(TARGET).c  -o $(TARGET)  
-	@./tainted test.oy
+#	@gcc $(CFLAGS) src/$(TARGET).c  -o $(TARGET)  
+#	@./tainted test.oy
 #	@rm testes
 
 valgrind-heap:

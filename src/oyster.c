@@ -14,15 +14,11 @@
 #include "parsing.h"
 
 
-oyster *symbol_symbol;
 
 void init_oyster()              // Where does this belong? Quo vadis, init?
 {
-    if (!symbol_symbol) {
-        symbol_symbol = make_untyped_oyster();
-        symbol_symbol->in->type = SYMBOL;
-        symbol_symbol->in->symbol_id = SYMBOL;
-        table_put(TYPE, symbol_symbol, symbol_symbol->in->info);
+    static int a = 0;
+    if (!a) {
 
         init_symbol_table();
 
@@ -37,6 +33,8 @@ void init_oyster()              // Where does this belong? Quo vadis, init?
         add_symbol(COMMA, ",");
         add_symbol(CLEAR, "clear");
         add_symbol(BUILT_IN_FUNCTION, "built-in-function");
+
+        a = 1;
     }
 }
 
@@ -55,19 +53,19 @@ oyster *nil()
 oyster *make_untyped_oyster()
 {
     oyster *ret = NEW(oyster);
-    ret->in = NEW(inner);       ///
+    ret->in = NEW(inner);
     ret->in->ref = 1;
     ret->in->incref = &inner_ref;
     ret->in->decref = &inner_unref;
 
-    ret->in->type = -1;         ///
+    ret->in->type = -1;        
 
-    ret->in->info = make_table();       ///
-    incref(ret->in->info);
+    //    ret->in->info = make_table(); 
+    //    incref(ret->in->info);
 
     ret->in->value = NULL;
 
-    ret->bindings = make_table();       ///
+    ret->bindings = make_table();
     incref(ret->bindings);
 
     ret->ref = 0;
@@ -90,7 +88,7 @@ void inner_unref(inner * x)
             x->type != BUILT_IN_FUNCTION && x->type != -1) {
             decref(x->value);
         }
-        decref(x->info);
+        //        decref(x->info);
         free(x);
     }
 }
@@ -101,7 +99,6 @@ oyster *make_oyster(int type)
 {
     oyster *ret = make_untyped_oyster();
     ret->in->type = type;
-    table_put(TYPE, make_symbol(type), ret->in->info);
     return ret;
 }
 
@@ -129,8 +126,6 @@ oyster *make_symbol(int symbol_id)
 {
     oyster *ret = make_untyped_oyster();
     ret->in->type = SYMBOL;
-    incref(symbol_symbol);
-    table_put(TYPE, symbol_symbol, ret->in->info);
     ret->in->symbol_id = symbol_id;
     return ret;
 }
@@ -152,9 +147,6 @@ oyster *oyster_copy(oyster * x, table * new_bindings)
     decref(x);
     return ret;
 }
-
-
-
 
 oyster *make_cons(oyster * car, oyster * cdr)
 {
