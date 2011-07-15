@@ -1,11 +1,31 @@
-(print (clear t))
-(print (car (cons (clear t) (clear ())))) 
-(print ((clear ((a) a)) (clear t)))
-((' ((b) (print b))) (' t))
-(print (((' ((a) (' ((b) a)))) (' t)) (' b)))
-(set! a (clear q))
-(print (((leak a (' ((a) (' ((b) a))))) (' t)) (' b)))
-(print (is (' a) (' a)))
-(signal (' a))
-(with-signal-handler (leak a (' (((clear a)) (print a))))
- (signal (' a)))
+(set! def (' (((' name) ... (' code)) (leak (, name)) (set! (, name) code))))
+(def fn (... (' code)) code)
+
+
+(print (' (cons car cdr and fn tests)))
+
+(print (car (cons (' t) ())))
+(print (car ((fn (b) (cons (' t) (cons b ()))) (' a))))
+(print (car (cdr (((fn (b) (fn (a) (cons a (cons b ())))) (' t)) (' b)))))
+
+
+(print (' (Scope and leaking tests)))
+(print (set! a (' t)))
+(print a)
+(print ((fn ((' b)) b) t))
+(print ((fn ((' b)) b) (, a)))
+
+(set! a (' b))
+(print ((fn (a) a) (' t)))
+
+(set! a (' t))
+(print (* (cons ((fn (a) (leak a (' a))) (' b)) ())))
+
+#oif
+(print (oif (' a) (' t) (' a)))
+(print (oif () (' a) (' t)))
+
+# elipsis args
+(print (car ((fn (... (' b)) b) t a e q)))
+(print (car (car ((fn (... (' b)) b) (, (cons (' t) (cons (' a) ())))))))
+

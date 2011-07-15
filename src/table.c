@@ -8,6 +8,31 @@
 #include "oyster.h"
 #include <glib.h>
 
+void table_entry_ref(table_entry *x)
+{
+    x->ref++;
+}
+
+void table_entry_unref(table_entry *x)
+{
+    x->ref--;
+    if(x->ref == 0){
+        decref(x->it);
+        free(x);
+    }
+}
+
+table_entry *make_table_entry(oyster *it)
+{
+    table_entry *ret = NEW(table_entry);
+    ret->incref = &table_entry_ref;
+    ret->decref = &table_entry_unref;
+    ret->ref = 0;
+    ret->it = it;
+    incref(it);
+    return ret;
+}
+
 table *make_table()
 {
     table *ret = NEW(table);
@@ -17,7 +42,7 @@ table *make_table()
 
     ret->it =
         g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
-                              (GDestroyNotify) oyster_unref); 
+                              (GDestroyNotify) table_entry_unref); 
  
    ret->leaked =
         g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, NULL); 
@@ -27,12 +52,25 @@ table *make_table()
 
 oyster *table_get(int key, table * tab, int *flag)
 {
+    table_entry * ret = table_get_entry(key, tab, flag);
+    if (ret) {
+        if(!ret->it){
+            *flag = 0;
+            return NULL;
+        }
+        return ret->it;
+    }
+    return NULL;
+}
+
+table_entry *table_get_entry(int key, table * tab, int *flag)
+{
     int leaked = GPOINTER_TO_INT(g_hash_table_lookup(tab->leaked, GINT_TO_POINTER(key)));
     if(leaked){
-        *flag = 2;
+        *flag = 2; // magic number. fix, or use to produce rabbits.
         return NULL;
     }
-    oyster *ret = g_hash_table_lookup(tab->it, GINT_TO_POINTER(key));
+    table_entry *ret = g_hash_table_lookup(tab->it, GINT_TO_POINTER(key));
     if (ret == NULL) {
         *flag = 0;
         return NULL;
@@ -43,6 +81,11 @@ oyster *table_get(int key, table * tab, int *flag)
 
 void table_put(int key, oyster * entry, table * tab)
 {
+    table_entry *entree = make_table_entry(entry);
+    table_put_entry(key, entree, tab);
+}
+
+void table_put_entry(int key, table_entry *entry, table *tab){
     int *poo = GINT_TO_POINTER(key);
     incref(entry);
     g_hash_table_insert(tab->it, poo, entry);
@@ -76,13 +119,21 @@ void table_unref(table * x)
     }
 }
 
+
+int leaked_p(int sym, table *tab)
+{
+    return GPOINTER_TO_INT(g_hash_table_lookup(tab->leaked, GINT_TO_POINTER(sym)));
+}
+
+
 void table_print(table * x)
 {
+    if(!x) {printf("NONE\n"); return;}
     int key;
-    oyster *value;
-    table_loop(key, value, x){
+    table_entry *value;
+    table_loop(key, value, x->it){
         printf("    %s : ", string_from_sym_id(key));
-        oyster_print(value);
+        oyster_print(value->it);
         printf("\n");
     } table_end_loop;
     printf("\n");

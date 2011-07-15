@@ -8,7 +8,7 @@
 #include "test_table.c"
 #include "test_oysters.c"
 #include "test_bindings.c" 
- #include "test_machine.c"
+#include "test_machine.c"
 #include "test_builtins.c"
 #include "test_continuation.c"
 #include "test_signals.c"

@@ -1,6 +1,152 @@
 #ifndef INTERPRETER
 #define INTERPRETER
 
+
+
+void step_machine(machine * m)
+{
+ 
+    frame *instruct = machine_pop_stack(m);
+    //    machine_print(m); // Should be some kind of debug-mode to turn this on.
+    if(!instruct) return;
+
+    if (instruct->flag == EVALUATE) {
+
+        evaluate_oyster(instruct, m);
+
+    } else if (instruct->flag == PREPARE_ARGUMENTS) {
+        if(m->accumulator->bindings)
+            m->now->scope_to_be = table_copy(m->accumulator->bindings);
+        else
+            m->now->scope_to_be = make_table();
+        set_accumulator(m, oyster_copy(m->accumulator, make_table()));
+
+        push_new_instruction(m, cdr(m->accumulator), APPLY_FUNCTION);
+        argument_chain_link(car(m->accumulator), instruct->instruction, m);
+
+    } else if (instruct->flag == CONTINUE) {
+        argument_chain_link(car(instruct->instruction),
+                            car(cdr(instruct->instruction)),
+                            m);
+
+    } else if (instruct->flag == ATPEND_CONTINUE) {
+        argument_chain_link(car(instruct->instruction),
+                                append(unevaluate_list(m->accumulator),
+                                       car(cdr(instruct->instruction))),
+                                m);
+
+    } else if (instruct->flag == ASTERPEND_CONTINUE) {
+        argument_chain_link(car(instruct->instruction),
+                            append(m->accumulator,
+                                   car(cdr(instruct->instruction))),
+                            m);
+
+    } else if (instruct->flag == ARGUMENT) {
+        table_put(instruct->instruction->in->symbol_id,
+                  m->accumulator, m->current_frame->scope_to_be);
+
+    } else if (instruct->flag == ELIPSIS_ARGUMENT) {
+        // This MUST be modified. Continuations occuring during an e-argument will 
+        // be totally clobbered when that argument is re-evaluated. Superbad.
+
+        int sym = instruct->instruction->in->symbol_id;
+        int i = 0;
+        oyster *so_far = table_get(sym, m->current_frame->scope_to_be, &i);
+        if (i) {
+            oyster *new = append(so_far, list(1, m->accumulator));
+
+            table_put(sym, new, m->current_frame->scope_to_be);
+
+        } else {
+            table_put(sym,
+                      list(1, m->accumulator),
+                      m->current_frame->scope_to_be);
+        }
+
+
+    } else if (instruct->flag == APPLY_FUNCTION) {
+        // This is super ridiculous and must be trimmed. MUST.
+        oyster *ins = instruct->instruction;
+        table *new_scope = instruct->scope_to_be;
+        // ins = oyster_copy(ins, make_table());
+        incref(ins);
+        frame *top = make_frame(NULL,
+                                new_scope,
+                                NULL,
+                                m->now->scope,
+                                car(ins),
+                                EVALUATE);
+        frame *cur = top;
+        oyster *ins2 = cdr(ins);
+        decref(ins);
+        ins = ins2;
+        incref(ins);
+        while (!nilp(ins)) {
+            cur->below = make_frame(NULL,
+                                    new_scope,
+                                    NULL, 
+                                    m->now->scope,
+                                    car(ins),
+                                    EVALUATE);
+            cur = cur->below;
+            incref(cur->below);
+
+            oyster *ins2 = cdr(ins);
+            decref(ins);
+            ins = ins2;
+            incref(ins);
+        }
+        decref(ins);
+        cur->below = m->current_frame;
+        m->current_frame = top;
+        incref(top);
+    }
+}
+
+void evaluate_oyster(frame * instruct, machine * m)
+{
+    oyster *object = instruct->instruction;
+    incref(object);
+    int object_type = oyster_type(object);
+
+    if (object_type == BUILT_IN_FUNCTION) {
+
+        set_accumulator(m, object->in->built_in(m));
+
+    } else if (object->bindings && !table_empty(object->bindings)) {
+
+        push_bindings_to_scope(m, object);
+
+    } else if (object_type == SYMBOL) {
+
+        set_accumulator(m, look_up_symbol(object, instruct));
+        if(!m->accumulator){
+            oyster *signal = list(2, 
+                                  make_symbol(sym_id_from_string("Lookup-fail-error")),
+                                  object);
+            toss_signal(make_signal(signal, m), m);
+        }
+        
+    } else if (object_type == CONS) {
+
+        if (car_is_sym(object, CLEAR)) {
+            set_accumulator(m, car(cdr(object)));
+
+        } else {
+            push_new_instruction(m, cdr(object), PREPARE_ARGUMENTS);
+            push_new_instruction(m, car(object), EVALUATE);
+
+        }
+
+    } else {
+
+        set_accumulator(m, object);
+    }
+
+    decref(object);
+}
+
+
 //---------------------------- handling argument lists -----------------------//
 
 int car_is_sym(oyster * x, int sym)
@@ -142,145 +288,15 @@ void push_bindings_to_scope(machine * m, oyster * o)
     frame *t = m->current_frame;
     oyster *next = oyster_copy(o, make_table());
     m->current_frame = make_frame(t,
-                                  binding_union(m->now->scope,
-                                                o->bindings),
+                                  o->bindings,
                                   m->now->scope_to_be,
-                                  t,
+                                  m->now->scope, 
                                   next,
                                   EVALUATE);
     decref(t);
 }
 
 
-void evaluate_oyster(frame * instruct, machine * m)
-{
-    oyster *object = instruct->instruction;
-    incref(object);
-    int object_type = oyster_type(object);
-
-    if (object_type == BUILT_IN_FUNCTION) {
-
-        set_accumulator(m, object->in->built_in(m));
-
-    } else if (!table_empty(object->bindings)) {
-
-        push_bindings_to_scope(m, object);
-
-    } else if (object_type == SYMBOL) {
-
-        set_accumulator(m, look_up_symbol(object, instruct));
-
-    } else if (object_type == CONS) {
-
-        if (car_is_sym(object, CLEAR)) {
-            set_accumulator(m, car(cdr(object)));
-
-        } else {
-            push_new_instruction(m, cdr(object), PREPARE_ARGUMENTS);
-            push_new_instruction(m, car(object), EVALUATE);
-
-        }
-
-    } else {
-
-        set_accumulator(m, object);
-    }
-
-    decref(object);
-}
-
-
-void step_machine(machine * m)
-{
- 
-    frame *instruct = machine_pop_stack(m);
-    //        machine_print(m); // Should be some kind of debug-mode to turn this on.
-    if(!instruct) return;
-
-    if (instruct->flag == EVALUATE) {
-
-        evaluate_oyster(instruct, m);
-
-    } else if (instruct->flag == PREPARE_ARGUMENTS) {
-        push_new_instruction(m, cdr(m->accumulator), APPLY_FUNCTION);
-        argument_chain_link(car(m->accumulator), instruct->instruction, m);
-
-    } else if (instruct->flag == CONTINUE) {
-        argument_chain_link(car(instruct->instruction),
-                            car(cdr(instruct->instruction)),
-                            m);
-
-    } else if (instruct->flag == ATPEND_CONTINUE) {
-        argument_chain_link(car(instruct->instruction),
-                                append(unevaluate_list(m->accumulator),
-                                       car(cdr(instruct->instruction))),
-                                m);
-
-    } else if (instruct->flag == ASTERPEND_CONTINUE) {
-        argument_chain_link(car(instruct->instruction),
-                            append(m->accumulator,
-                                   car(cdr(instruct->instruction))),
-                            m);
-
-    } else if (instruct->flag == ARGUMENT) {
-        table_put(instruct->instruction->in->symbol_id,
-                  m->accumulator, m->current_frame->scope_to_be);
-
-    } else if (instruct->flag == ELIPSIS_ARGUMENT) {
-        // This MUST be modified. Continuations occuring during an e-argument will 
-        // be totally clobbered when that argument is re-evaluated. Superbad.
-
-        int sym = instruct->instruction->in->symbol_id;
-        int i = 0;
-        oyster *so_far = table_get(sym, m->current_frame->scope_to_be, &i);
-        if (i) {
-            oyster *new = append(so_far, list(1, m->accumulator));
-
-            table_put(sym, new, m->current_frame->scope_to_be);
-
-        } else {
-            table_put(sym,
-                      list(1, m->accumulator),
-                      m->current_frame->scope_to_be);
-        }
-
-
-    } else if (instruct->flag == APPLY_FUNCTION) {
-        // This is super ridiculous and must be trimmed. MUST.
-        oyster *ins = instruct->instruction;
-        incref(ins);
-        frame *top = make_frame(NULL,
-                                instruct->scope_to_be,
-                                make_table(),
-                                m->now,
-                                car(ins),
-                                EVALUATE);
-        frame *cur = top;
-        oyster *ins2 = cdr(ins);
-        decref(ins);
-        ins = ins2;
-        incref(ins);
-        while (!nilp(ins)) {
-            cur->below = make_frame(NULL,
-                                    instruct->scope_to_be,
-                                    make_table(),
-                                    m->now,
-                                    car(ins),
-                                    EVALUATE);
-            cur = cur->below;
-            incref(cur->below);
-
-            oyster *ins2 = cdr(ins);
-            decref(ins);
-            ins = ins2;
-            incref(ins);
-        }
-        decref(ins);
-        cur->below = m->current_frame;
-        m->current_frame = top;
-        incref(top);
-    }
-}
 
 
 
@@ -299,8 +315,8 @@ oyster *evaluate_scan(GScanner * in, int print)
         frame *t = m->current_frame;
         m->current_frame = make_frame(t, 
                                       t->scope,
-                                      make_table(), 
-                                      t,
+                                      NULL,
+                                      t->scope,
                                       func, 
                                       EVALUATE);
         incref(m->current_frame);

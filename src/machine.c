@@ -8,7 +8,12 @@
 machine *make_machine()
 {
     machine *ret = NEW(machine);
-    ret->base_frame = make_frame(NULL, make_table(), make_table(), NULL, NULL, PAUSE);
+    ret->base_frame = make_frame(NULL, 
+                                 make_table(), 
+                                 make_table(), 
+                                 make_table(), 
+                                 NULL, 
+                                 PAUSE);
     incref(ret->base_frame);
 
     ret->current_frame = ret->base_frame;
@@ -71,10 +76,12 @@ void set_accumulator(machine * m, oyster * value)
     decref(t);
 }
 
+
+
 frame *make_frame(frame * below, 
                   table * scope, 
                   table * scope_to_be, 
-                  frame * scope_below, 
+                  table * scope_below, 
                   oyster *instruction,
                   int flag)
 {
@@ -85,12 +92,12 @@ frame *make_frame(frame * below,
 
     ret->scope = scope;
     incref(ret->scope);
+
     ret->scope_to_be = scope_to_be;
     incref(ret->scope_to_be);
+
     ret->scope_below = scope_below;
     incref(scope_below);
-
-    ret->signal_handler = NULL;
 
     ret->instruction = instruction;
     incref(instruction);
@@ -115,22 +122,17 @@ frame *new_instruction(frame *now, frame *below, oyster *instruction, int flag)
     return  make_frame(below, 
                        make_table(), 
                        make_table(), 
-                       NULL, 
+                       make_table(),
                        instruction, 
                        flag);
 }
 
 void push_new_instruction(machine *m, oyster *instruction, int flag){
     frame *t = m->current_frame;
-    table *scope_to_be;
-    if(flag == EVALUATE)
-        scope_to_be = make_table();
-    else
-        scope_to_be = m->now->scope_to_be;
     m->current_frame = make_frame(t, 
                                   m->now->scope, 
-                                  scope_to_be, 
-                                  m->now->scope_below, 
+                                  m->now->scope_to_be,
+                                  m->now->scope_below,
                                   instruction, 
                                   flag);
     incref(m->current_frame);
@@ -153,8 +155,6 @@ void frame_unref(frame * x)
         decref(x->scope_to_be);
         decref(x->scope_below);
 
-        decref(x->signal_handler);
-
         decref(x->instruction);
         free(x);
     }
@@ -167,15 +167,15 @@ void machine_print(machine * m)
 {
     frame *f = m->current_frame;
     printf("Now: ");
-    frame_print(m->now);
+    frame_print(m->now, 1);
     if(m->now->instruction && !table_empty(m->now->instruction->bindings)){
         printf(" with the bindings: \n");
         table_print(m->now->instruction->bindings);
     }
     while (f) {
-        printf("vvv vvv vvv\n\n");
+        printf("vvv vvv vvv\n");
         printf("frame: ");
-        frame_print(f);
+        frame_print(f, 1);
         f = f->below;
     }
     if (m->accumulator) {
@@ -184,7 +184,23 @@ void machine_print(machine * m)
     printf("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
 }
 
-void frame_print(frame * i)
+void print_stack_trace(machine * m)
+{
+    printf("Now: ");
+    frame_print(m->now, 1);
+
+    frame *f = m->current_frame;
+    while (f) {
+        frame_print(f, 0);
+        f = f->below;
+    }
+    if (m->accumulator) {
+        printf("accum: ");oyster_print(m->accumulator);
+    }
+    printf("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
+}
+
+void frame_print(frame * i, int print_scope)
 {
     char *flags[] = {"ASTERPEND_CONTINUE",
                      "ATPEND_CONTINUE",
@@ -200,10 +216,13 @@ void frame_print(frame * i)
     printf("%s, ", flags[i->flag]);
     if (i->instruction)
         oyster_print(i->instruction);
-    printf("\n Scope:\n");
-    table_print(i->scope);
-    printf("Upcoming scope:\n");
-    table_print(i->scope_to_be);
+    if(print_scope){
+        printf("\n Scope:\n");
+        table_print(i->scope);
+        printf("Upcoming scope:\n");
+        table_print(i->scope_to_be);
+    }
+    printf("\n");
 }
 
 

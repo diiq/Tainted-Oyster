@@ -80,14 +80,15 @@ GScanner *make_scanner()
     GScanner *scan = g_scanner_new(NULL);
     scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
                                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                           "'-!@#$%^&*<>?,./=_+`~");
+                                           "'-!@$%^&*<>?,./=_+`~");
     scan->config->cset_identifier_nth = ("abcdefghijklmnopqrstuvwxyz"
                                          "1234567890"
                                          "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                         "'-!@#$%^&*<>?,./=_+`~");
+                                         "'-!@$%^&*<>?,./=_+`~");
     //    scan->config->char_2_token = FALSE;
     scan->config->scan_string_sq = FALSE;
     scan->config->scan_identifier_1char = TRUE;
+    scan->config->skip_comment_single = TRUE;
     return scan;
 }
 

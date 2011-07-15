@@ -15,6 +15,9 @@ machine *machine_copy(machine * m)
     ret->base_frame = m->base_frame;
     incref(ret->base_frame);
 
+    ret->now = m->now;
+    incref(ret->now);
+
     return ret;
 }
 
@@ -45,7 +48,7 @@ oyster *make_continuation(machine * m)
     oyster *cont = make_oyster(sym_id_from_string("continuation"));
     cont->in->value = machine_copy(m);
     incref(cont->in->value);
-    table_put(sym_id_from_string("continuation"), cont, ret->bindings);
+    oyster_add_to_bindings(sym_id_from_string("continuation"), cont, ret);
     decref(m);
     return ret;
 }

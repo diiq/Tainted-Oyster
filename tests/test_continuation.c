@@ -13,9 +13,9 @@ _test(machine_copy)
     while (func) {
         frame *t = m->current_frame;
         m->current_frame = make_frame(t, 
-                                      binding_copy(t->scope),
+                                      table_copy(t->scope),
                                       make_table(), 
-                                      t,
+                                      t->scope,
                                       func, 
                                       EVALUATE);
         incref(m->current_frame);

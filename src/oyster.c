@@ -65,8 +65,7 @@ oyster *make_untyped_oyster()
 
     ret->in->value = NULL;
 
-    ret->bindings = make_table();
-    incref(ret->bindings);
+    ret->bindings = NULL;
 
     ret->ref = 0;
     ret->incref = &oyster_ref;
@@ -148,6 +147,16 @@ oyster *oyster_copy(oyster * x, table * new_bindings)
     return ret;
 }
 
+void oyster_add_to_bindings(int sym_id, oyster *val, oyster *x)
+{
+    if(!x->bindings){
+        x->bindings = make_table();
+        incref(x->bindings);
+    }
+    table_put(sym_id, val, x->bindings);
+}
+        
+
 oyster *make_cons(oyster * car, oyster * cdr)
 {
     oyster *ret = make_oyster(CONS);
@@ -214,16 +223,37 @@ oyster *cons(oyster * car, oyster * cdr)
     // There are many optimizations to be made here; but clarity, clarity.
     incref(car);
     incref(cdr);
+    oyster *ret;
+    if(nilp(car)){
+        oyster *new_cdr = oyster_copy(cdr, make_table());
+        ret = make_cons(nil(), new_cdr);
 
-    oyster *new_car = oyster_copy(car, make_table());
-    oyster *new_cdr = oyster_copy(cdr, make_table());
+        decref(ret->bindings);
+        ret->bindings = cdr->bindings;
+        incref(ret->bindings);
 
-    oyster *ret = make_cons(new_car, new_cdr);
+    } else if (nilp(cdr)){
+        oyster *new_car = oyster_copy(car, make_table());
+        ret = make_cons(new_car, nil());
 
-    decref(ret->bindings);
-    ret->bindings = binding_combine(car->bindings, cdr->bindings,
-                                    new_car->bindings, new_cdr->bindings);
-    incref(ret->bindings);
+        decref(ret->bindings);
+        ret->bindings = car->bindings;
+        incref(ret->bindings);
+
+    } else if (car->bindings == cdr->bindings){
+        oyster *new_car = oyster_copy(car, make_table());
+        oyster *new_cdr = oyster_copy(cdr, make_table());
+        
+        ret = make_cons(new_car, new_cdr);
+        
+        decref(ret->bindings);
+        ret->bindings = car->bindings;
+        incref(ret->bindings);
+    } else {
+        // I do believe that this copy-on-write buisness works;
+        // but not copying car and cdr is a culprit in future snafu
+        ret = make_cons(car, cdr);
+    }
 
     decref(car);
     decref(cdr);
@@ -238,9 +268,12 @@ oyster *car(oyster * cons)
     if (nilp(cons)) {
         ret = nil();
     } else {
-        ret = oyster_copy(cheap_car(cons),
-                          binding_union(cons->bindings,
-                                        cheap_car(cons)->bindings));
+        oyster *c = cheap_car(cons);
+        if(c->bindings && !table_empty(c->bindings)){
+            return oyster_copy(c, c->bindings);
+        } else { 
+            ret = oyster_copy(c, cons->bindings);
+        }
     }
     decref(cons);
     return ret;
@@ -254,9 +287,12 @@ oyster *cdr(oyster * cons)
     if (nilp(cons)) {
         ret = nil();
     } else {
-        ret = oyster_copy(cheap_cdr(cons),
-                          binding_union(cons->bindings,
-                                        cheap_cdr(cons)->bindings));
+        oyster *c = cheap_cdr(cons);
+        if(c->bindings && !table_empty(c->bindings)){
+            return oyster_copy(c, c->bindings);
+        } else { 
+            ret = oyster_copy(c, cons->bindings);
+        }
     }
     decref(cons);
     return ret;

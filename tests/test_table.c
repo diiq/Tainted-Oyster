@@ -42,11 +42,11 @@ _test(table_loop)
     table_put(1, make_symbol(5), tab);
     table_put(4, make_symbol(4), tab);
     int i = 0;
-    oyster *entry;
+    table_entry *entry;
     int key;
-    table_loop(key, entry, tab) {
-        assert((entry->in->symbol_id == 5 && key == 1) ||
-               (entry->in->symbol_id == 4 && key == 4));
+    table_loop(key, entry, tab->it) {
+        assert((entry->it->in->symbol_id == 5 && key == 1) ||
+               (entry->it->in->symbol_id == 4 && key == 4));
         i++;
     } table_end_loop;
     assert(i == 2);

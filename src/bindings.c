@@ -6,146 +6,83 @@
 
 #include "oyster.h"
 
-int leaked_p(oyster *x){
-    return 0;
-}
-
-// The ability to sensibly combine two scopes is what makes oyster's
-// scoping magic possible. It's worth understanding what's going on here.
-
-table *binding_combine(table * a, table * b, table * newa, table * newb)
-{
-    incref(a);
-    incref(b);
-
-    // newa and newb are the new bindings of the component parts.
-    table *ret = make_table();  // this is the binding for the combination;
-
-    int key;
-    oyster *avalue;
-    oyster *bvalue;
-    table_loop(key, avalue, a) {
-        int in_b = 0;
-        // We must examine every symbol-value pair (slowslowslow)
-        bvalue = table_get(key, b, &in_b);
-        if (in_b) {
-            if (bvalue == avalue) {
-                // If the values are the same, move the pair to the larger scope.
-                // This ensures that x <=> (cons (car x) (cdr x))  
-                table_put(key, avalue, ret);
-            } else {
-                // A symbol that's bound differently must remain in the sub-bindings
-                table_put(key, avalue, newa);
-                table_put(key, bvalue, newb);
-            }
-        } else {                // A pair only in one scope moves to the combined binding.
-            table_put(key, avalue, ret);
-        }
-    }
-    table_end_loop;
-
-
-    table_loop(key, bvalue, b) {
-        int in_a = 0;
-        avalue = table_get(key, a, &in_a);
-        if (!in_a) {            // A pair only in one scope moves to the combined binding.
-            table_put(key, bvalue, ret);
-        }
-    }
-    table_end_loop;
-
-    decref(a);
-    decref(b);
-
-    return ret;
-}
-
-// The other binary operation, unioning, is much more obvious. 
-// All conflicts are resolved in b's favor.
-table *binding_union(table * a, table * b)
-{
-    incref(a);
-    incref(b);
-
-    table *ret = make_table();
-    oyster *value;
-    int key;
-    table_loop(key, value, a) {
-        table_put(key, value, ret);
-    } table_end_loop;
-    table_loop(key, value, b) {
-        if (!leaked_p(value)) {
-            table_put(key, value, ret);
-        }
-    }
-    table_end_loop;
-
-    decref(a);
-    decref(b);
-    return ret;
-}
-
-table *binding_copy(table * x)
-{
-    incref(x);
-
-    table *ret = make_table();
-    oyster *value;
-    int key;
-    table_loop(key, value, x) {
-        table_put(key, value, ret);
-    } table_end_loop;
-
-    decref(x);
-    return ret;
-}
-
 
 //--------------------- Scope lookups -------------------------//
 
-oyster *look_up(int sym, frame *cur)
+table_entry *look_up_entry(int sym, frame *cur)
 {
-    oyster *ret;
+    table_entry *ret;
     int i = 0;
 
-    for (; cur; cur = cur->scope_below) {
-        ret = table_get(sym, cur->scope, &i);
-        if (i && leaked_p(ret))
-            continue;
-        break;
-    }
-
-    if (!i) {
-        ret = NULL;             // hmmmm.
-    }
+    ret = table_get_entry(sym, cur->scope, &i);
+    if (i == 2)
+        ret = table_get_entry(sym, cur->scope_below, &i);
 
     return ret;
+}
+
+oyster *look_up(int sym, frame *cur)
+{
+    table_entry *e = look_up_entry(sym, cur);
+    if (e)
+        return e->it;
+    return NULL;
 }
 
 // Not consing the entries in the scopes leaves me having to duplicate
 // the whole procedure in order to set. 
 
-void set(int sym, oyster * val, machine * m, frame * f)
+void set(int sym, oyster * val, frame * f)
 {
-    oyster *ret;
-    frame *cur;
+    table_entry *ret;
     int i = 0;
 
-    for (cur = f; cur; cur = cur->scope_below) {
-        ret = table_get(sym, cur->scope, &i);
-        if (i && leaked_p(ret))
-            continue;
-        if (i)
-            break;
-    }
+    ret = table_get_entry(sym, f->scope, &i);
+    if (i == 2)
+        ret = table_get_entry(sym, f->scope_below, &i);
 
+    if (i == 1){
+        ret->it = val;
+        incref(val);
 
-    if (!cur) {
-        cur = f;
-    }
-
-    table_put(sym, val, cur->scope);
+    } else { 
+        table_put(sym, val, f->scope);
+    }    
 }
+
+
+table *table_copy(table *t)
+{
+    table *ret = make_table();
+    table_entry *entry;
+    int k;
+    table_loop(k, entry, t->it){
+        table_put_entry(k, entry, ret);
+    } table_end_loop;
+    return ret;
+}
+
+table *reify_scope(table *t, frame *f)
+{
+    table *ret = table_copy(t);
+    table_entry *entry;
+    int k;
+    table_loop(k, entry, t->leaked){
+        table_entry *real = look_up_entry(k, f);
+        if (real) {
+            table_put_entry(k, real, ret);
+        }
+    } table_end_loop;
+    return ret;
+}
+
+
+
+
+
+
+
+//------------------ Convenience ------------------------//
 
 
 oyster *look_up_symbol(oyster * sym, frame * f)

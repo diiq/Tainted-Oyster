@@ -7,6 +7,7 @@
 #include <glib.h>
 
 typedef struct table table;
+typedef struct table_entry table_entry;
 
 typedef struct oyster oyster;
 typedef struct cons_cell cons_cell;
@@ -39,6 +40,13 @@ void decref(void *x);
 // but this is the interface to use. It's gon' be a challenge to cope
 // with union and combine in an efficient way.
 
+struct table_entry { // I hate doing this.
+    void (*incref) (table_entry * x);
+    void (*decref) (table_entry * x);
+    int ref;
+    oyster *it;
+};
+
 
 struct table {
     void (*incref) (table * x);
@@ -49,21 +57,24 @@ struct table {
 };
 
 table *make_table();
+table_entry *table_get_entry(int key, table * tab, int *flag);
+void table_put_entry(int key, table_entry *entry, table *tab);
 oyster *table_get(int key, table * tab, int *err);
 void table_put(int key, oyster * ent, table * tab);
+
 void table_ref(table * x);
 void table_unref(table * x);
+
+int leaked_p(int sym, table *tab);
 int table_empty(table * tab);
 void table_print(table * x);
 
 #define table_loop(k, v, tab) {                                         \
     GHashTableIter iter;                                                \
-    g_hash_table_iter_init(&iter, tab->it);                             \
+    g_hash_table_iter_init(&iter, tab);                                 \
     int *TEMPVAR;                                                       \
     while(g_hash_table_iter_next(&iter, (void **)&TEMPVAR, (void **)&v)){ \
     k = GPOINTER_TO_INT(TEMPVAR);
-
-
 
 #define table_end_loop }} do{}while(0)
 
@@ -72,14 +83,11 @@ void table_print(table * x);
 //--------------------------------- Bindings --------------------------------//
 // Bindings are just tables with symbol_ids as keys and oysters as values.
 
-int leaked_p(oyster * x);
-table *binding_combine(table * a, table * b, table * newa, table * newb);
-
-table *binding_union(table * a, table * b);
-table *binding_copy(table * x);
-
+table_entry *look_up_entry(int sym, frame *cur);
 oyster *look_up(int sym, frame *cur);
-void set(int sym, oyster * val, machine * m, frame * f);
+void set(int sym, oyster * val, frame * f);
+table *table_copy(table *t);
+table *reify_scope(table *t, frame *f);
 oyster *look_up_symbol(oyster * sym, frame * f);
 
 
@@ -152,6 +160,7 @@ oyster *make_oyster(int type);
 void oyster_ref(oyster * x);
 void oyster_unref(oyster * x);
 oyster *oyster_copy(oyster * x, table * bindings);
+void oyster_add_to_bindings(int sym_id, oyster *val, oyster *x);
 
 oyster *make_symbol(int symbol_id);
 oyster *make_cons(oyster * car, oyster * cdr);
@@ -179,23 +188,16 @@ void oyster_print(oyster * x);
 
 //-------------------------------- The Machine ------------------------------//
 // I want you to be totally honest with me about how the machine makes you feel.
-// Frames come in stacks:
+//
+// Each frame represents an instructions and a scope in which
+// that instruction should be carried out. Instructions, like slaves,
+// come in chains:
 //
 //  Current frame
 //   vvvbelowvvv
-//  Another frame
+//  Another frame 
 //   vvvbelowvvv
-//  Da base frame
-//
-// Each frame represents a set of instructions and a scope in which
-// those instructions should be carriet out. Instructions, like slaves,
-// come in chains:
-//
-//  Current frame -> current instruction -> next instruction -> null
-//   vvvbelowvvv
-//  Another frame -> 'current' instruction -> null
-//   vvvbelowvvv
-//  Da base frame -> null
+//  Da base frame 
 //
 // Most instructions are simply oysters waiting to be evaluated as code.
 // Some, though, are flagged as special instructions to the machine --- 
@@ -211,9 +213,7 @@ struct frame {
 
     table *scope;
     table *scope_to_be;
-    frame *scope_below;
-
-    oyster *signal_handler;
+    table *scope_below;
 
     oyster *instruction;
     int flag;
@@ -240,13 +240,14 @@ enum instruction_flags {
     CONTINUE,
     APPLY_FUNCTION,
     PREPARE_ARGUMENTS,
-    PAUSE
+    PAUSE,
+    HANDLE_SIGNALS
 };
 
 frame *make_frame(frame * below, 
                   table * scope, 
                   table * scope_to_be, 
-                  frame * scope_below, 
+                  table * scope_below, 
                   oyster *instruction,
                   int flag);
 void frame_ref(frame * x);
@@ -258,9 +259,14 @@ void machine_ref(machine * x);
 void machine_free(machine * x);
 void machine_unref(machine * x);
 
+//-------------------------- The interpreter ----------------------------//
+
+
+void step_machine(machine * m);
+void evaluate_oyster(frame * instruct, machine * m);
 
 frame *machine_pop_stack(machine * m);
-frame *netw_instruction(frame *below, oyster *instruction, int flag);
+frame *new_instruction(frame *now, frame *below, oyster *instruction, int flag);
 void push_new_instruction(machine *m, oyster *instruction, int flag);
 
 int asterix_p(oyster * x);
@@ -268,16 +274,19 @@ int atpend_p(oyster * x);
 int comma_p(oyster * x);
 int elipsis_p(oyster * x);
 void argument_chain_link(oyster * lambda_list,
-                          oyster * arg_list, 
-                          machine * m);
+                         oyster * arg_list, 
+                         machine * m);
+
 
 oyster *unevaluate_list(oyster * xs);
+void push_bindings_to_scope(machine * m, oyster * o);
 
-oyster *run_built_in_function(oyster * o, machine * m);
-void step_machine(machine * m);
+int car_is_sym(oyster * x, int sym);
+
 
 void machine_print(machine * m);
-void frame_print(frame * f);
+void print_stack_trace(machine * m);
+void frame_print(frame * f, int print_scope);
 
 
 
@@ -305,13 +314,17 @@ typedef struct {
 
 oyster *make_number(int num);
 
-#endif
+
 
 //------------------------------ Continuations --------------------------//
 
 oyster *make_continuation(machine * m);
 
+
+
 //--------------------------------- Signals -----------------------------//
 
 oyster *make_signal(oyster * message, machine * m);
 void toss_signal(oyster * signal, machine * m);
+
+#endif
