@@ -263,6 +263,10 @@ int leaked_p(int sym, table * tab);
 
 //------------------------------ built in functions --------------------------//
 // These are functions that push the core functions in the beginning.
+
+#define ARG(a) oyster *a = look_up(sym_id_from_string(#a), m->now)
+#define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), m->now)
+
 oyster *make_builtin(oyster * (*func) (machine * m));
 oyster *arg(char *name);
 oyster *unev(char *name);
@@ -285,6 +289,12 @@ oyster *make_continuation(machine * m);
 //--------------------------------- Memory -----------------------------------//
 // Functions that handle memory management. These are gonna hafta change, as 
 // the reference counting is a necessarily temporary arrangement.
+struct memorable {
+    void (*inc) (void *);
+    void (*dec) (void *);
+    int ref;
+};
+
 void *initialize_memory_object(size_t size, void *inc, void *dec);
 void incref(void *x);
 void decref(void *x);
