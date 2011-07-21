@@ -5,12 +5,16 @@
 #include "machine.c"
 #include "interpreter.c"
 #include "parsing.c"
-#include "bindings.c"
+#include "scopes.c"
 #include "table.c"
 #include "memory.c"
 #include "builtins.c"
 #include "continuations.c"
 #include "signals.c"
+
+#include "printing.c"
+#include "cons_tools.c"
+#include "assemble.c"
 
 
 #include "stdio.h"
@@ -32,9 +36,10 @@ int main(int argc, char *argv[])
 
     /// g'damn g_scanner won't return a token until EOF is reached.
     /// all my trickery is for naught.
-    oyster *ret = evaluate_scan(file_scanner(filename), print);
 
+    oyster *ret = evaluate_scan(file_scanner(filename), print);
     decref(ret);
+
 
     clean_up_oyster();
 

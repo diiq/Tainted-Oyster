@@ -7,29 +7,22 @@ _test(machine_copy)
 
     oyster *func = next_oyster(in);
     machine *ma = make_machine();
-    add_builtins(ma);
     machine *m = machine_copy(ma);
     incref(m);
-    while (func) {
-        frame *t = m->current_frame;
-        m->current_frame = make_frame(t, 
-                                      table_copy(t->scope),
-                                      make_table(), 
-                                      t->scope,
-                                      func, 
-                                      EVALUATE);
-        incref(m->current_frame);
-        decref(t);
 
-        incref(func);
+    while (func) {
+        push_new_instruction(m, func, EVALUATE);
+
         while (!m->paused) {
             step_machine(m);
         }
         m->paused = 0;
-        decref(func);
+
         func = next_oyster(in);
     }
+
     g_scanner_destroy(in);
+
     assert(m->accumulator->in->type == CONS);
     decref(ma);
     decref(m);

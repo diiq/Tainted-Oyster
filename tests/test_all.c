@@ -7,11 +7,15 @@
 #include "test_parsing.c"
 #include "test_table.c"
 #include "test_oysters.c"
-#include "test_bindings.c" 
+#include "test_scopes.c" 
 #include "test_machine.c"
 #include "test_builtins.c"
 #include "test_continuation.c"
 #include "test_signals.c"
+
+#include "printing.c"
+#include "cons_tools.c"
+#include "assemble.c"
 
 int tests_run = 0;
 

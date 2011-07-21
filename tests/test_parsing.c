@@ -24,6 +24,7 @@ _test(next_oyster)
 
     decref(ret);
     g_scanner_destroy(a);
+
 } _tset;
 
 _test(parsing)

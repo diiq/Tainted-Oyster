@@ -9,9 +9,11 @@ machine *machine_copy(machine * m)
     machine *ret = make_machine();
     decref(ret->current_frame);
     decref(ret->base_frame);
+    decref(ret->now);
 
     ret->current_frame = m->current_frame;
     incref(ret->current_frame);
+
     ret->base_frame = m->base_frame;
     incref(ret->base_frame);
 

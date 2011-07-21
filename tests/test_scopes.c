@@ -1,7 +1,10 @@
-#include "oyster.h"
-#include "bindings.c"
-#include "testing.h"
 #include "stdio.h"
+
+
+#include "oyster.h"
+#include "testing.h"
+#include "scopes.c"
+
 
 _test(look_up)
 {

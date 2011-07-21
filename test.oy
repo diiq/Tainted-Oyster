@@ -1,4 +1,4 @@
-(set! def (' (((' name) ... (' code)) (leak (, name)) (set! (, name) code))))
+(set! def (' (((' name) ... (' code)) (leak (just name)) (set! (just name) code))))
 (def fn (... (' code)) code)
 
 
@@ -13,7 +13,7 @@
 (print (set! a (' t)))
 (print a)
 (print ((fn ((' b)) b) t))
-(print ((fn ((' b)) b) (, a)))
+(print ((fn ((' b)) b) (just a)))
 
 (set! a (' b))
 (print ((fn (a) a) (' t)))
@@ -21,11 +21,11 @@
 (set! a (' t))
 (print (* (cons ((fn (a) (leak a (' a))) (' b)) ())))
 
-#oif
+(print (' (oif tests)))
 (print (oif (' a) (' t) (' a)))
 (print (oif () (' a) (' t)))
 
-# elipsis args
+(print (' ( elipsis args tests)))
 (print (car ((fn (... (' b)) b) t a e q)))
-(print (car (car ((fn (... (' b)) b) (, (cons (' t) (cons (' a) ())))))))
+(print (car (car ((fn (... (' b)) b) (just (cons (' t) (cons (' a) ())))))))
 

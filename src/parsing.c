@@ -43,17 +43,10 @@ void add_symbol(int id, char *sym)
 {
     char *val = malloc(sizeof(char) * (strlen(sym) + 1));
     memcpy(val, sym, (strlen(sym) + 1) * sizeof(char));
-    int *key = NEW(int);
+    int *key = malloc(sizeof(int));
     *key = id;
     g_hash_table_insert(symbol_table->sym, key, val);
     g_hash_table_insert(symbol_table->str, val, key);
-}
-
-int string_equal(void *a, void *b)
-{
-    if (strcmp((char *) a, (char *) b) == 0)
-        return 1;
-    return 0;
 }
 
 int sym_id_from_string(char *sym)

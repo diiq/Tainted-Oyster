@@ -24,7 +24,7 @@ test:
 
 valgrind-heap:
 	@gcc $(CFLAGS) tests/test_all.c -o testes $(DEBUG_FLAGS)
-	G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind --leak-check=full --show-reachable=yes ./testes
+	G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind --leak-check=yes ./testes
 	@rm ./testes
 
 valgrind-test:

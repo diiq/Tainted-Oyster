@@ -90,6 +90,7 @@ oyster *builtin_leak(machine * m)
     if (nilp(closure)){
         int i = 0;
         table_entry *a = table_get_entry(id, m->current_frame->scope_below, &i);
+
         if(i) {
             table_put_entry(id, a, m->current_frame->scope);
         } else {
@@ -97,9 +98,12 @@ oyster *builtin_leak(machine * m)
             table_put_entry(id, a, m->current_frame->scope);
             table_put_entry(id, a, m->current_frame->scope_below);
         }
+
     } else {
-        if(!closure->bindings)
+        if(!closure->bindings){
             closure->bindings = make_table();
+            incref(closure->bindings);
+        }
         leak(id, closure->bindings);
     }
 

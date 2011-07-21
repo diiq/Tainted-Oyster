@@ -19,50 +19,34 @@ machine *make_machine()
     ret->current_frame = ret->base_frame;
     incref(ret->current_frame);
 
-    ret->now = ret->current_frame;
+    ret->now = ret->base_frame;
     incref(ret->now);
 
     ret->accumulator = NULL;
     ret->paused = 0;
 
-    ret->ref = 0;
-    ret->incref = &machine_ref;
-    ret->decref = &machine_unref;
+    add_builtins(ret);
 
     return ret;
 }
 
-void machine_ref(machine * x)
-{
-    x->ref++;
-}
-
-void machine_unref(machine * x)
-{
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->current_frame);
-        decref(x->base_frame);
-        decref(x->now);
-        decref(x->accumulator);
-        free(x);
-    }
-}
-
 frame *machine_pop_stack(machine * m)
 {
-    if (m->current_frame &&
-        m->current_frame->below) {
-        frame *t = m->current_frame;
+    if (m->current_frame->flag != PAUSE) {
+        decref(m->now);
+        m->now = m->current_frame;
+
         m->current_frame = m->current_frame->below;
         incref(m->current_frame);
-        
-        frame *f = m->now;
-        m->now = t;
-        incref(t);
-        decref(f);
-        return t;
+
+        return m->now;
+
     } else {
+
+        decref(m->now);
+        m->now = m->current_frame;
+        incref(m->now);
+
         m->paused = 1;
         return NULL;
     }
@@ -101,30 +85,10 @@ frame *make_frame(frame * below,
 
     ret->instruction = instruction;
     incref(instruction);
+
     ret->flag = flag;
 
-    ret->ref = 0;
-    ret->incref = &frame_ref;
-    ret->decref = &frame_unref;
-
     return ret;
-}
-
-frame *new_instruction(frame *now, frame *below, oyster *instruction, int flag)
-{
-    if (below)
-        return make_frame(below, 
-                          below->scope, 
-                          below->scope_to_be, 
-                          below->scope_below, 
-                          instruction, 
-                          flag);
-    return  make_frame(below, 
-                       make_table(), 
-                       make_table(), 
-                       make_table(),
-                       instruction, 
-                       flag);
 }
 
 void push_new_instruction(machine *m, oyster *instruction, int flag){
@@ -139,96 +103,35 @@ void push_new_instruction(machine *m, oyster *instruction, int flag){
     decref(t);
 }
 
-
-void frame_ref(frame * x)
+void push_instruction_list(machine *m, 
+                           oyster *ins,
+                           table *scope,
+                           table *scope_below)
 {
-    x->ref++;
+    incref(ins);
+
+    frame *top = NULL;
+    frame **cur = &top;
+    while (!nilp(ins)) {
+        (*cur) = make_frame(NULL,
+                            scope,
+                            NULL, 
+                            scope_below,
+                            car(ins),
+                            EVALUATE);
+        incref(*cur);
+
+        cur = &((*cur)->below);
+         
+        oyster *ins2 = cdr(ins);
+        incref(ins2);
+        decref(ins);
+        ins = ins2;
+    }
+
+    decref(ins);
+    (*cur) = m->current_frame;
+    m->current_frame = top;
 }
-
-void frame_unref(frame * x)
-{
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->below);
-
-        decref(x->scope);
-        decref(x->scope_to_be);
-        decref(x->scope_below);
-
-        decref(x->instruction);
-        free(x);
-    }
-}
-
-
-//------------------------ Printing ---------------------------//
-
-void machine_print(machine * m)
-{
-    frame *f = m->current_frame;
-    printf("Now: ");
-    frame_print(m->now, 1);
-    if(m->now->instruction && !table_empty(m->now->instruction->bindings)){
-        printf(" with the bindings: \n");
-        table_print(m->now->instruction->bindings);
-    }
-    while (f) {
-        printf("vvv vvv vvv\n");
-        printf("frame: ");
-        frame_print(f, 1);
-        f = f->below;
-    }
-    if (m->accumulator) {
-        printf("accum: ");oyster_print(m->accumulator);
-    }
-    printf("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
-}
-
-void print_stack_trace(machine * m)
-{
-    printf("Now: ");
-    frame_print(m->now, 1);
-
-    frame *f = m->current_frame;
-    while (f) {
-        frame_print(f, 0);
-        f = f->below;
-    }
-    if (m->accumulator) {
-        printf("accum: ");oyster_print(m->accumulator);
-    }
-    printf("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
-}
-
-void frame_print(frame * i, int print_scope)
-{
-    char *flags[] = {"ASTERPEND_CONTINUE",
-                     "ATPEND_CONTINUE",
-                     "ARGUMENT",
-                     "ELIPSIS_ARGUMENT",
-                     "EVALUATE",
-                     "CONTINUE",
-                     "APPLY_FUNCTION",
-                     "PREPARE_ARGUMENTS",
-                     "PAUSE"};
-
-    printf(" --> ");
-    printf("%s, ", flags[i->flag]);
-    if (i->instruction)
-        oyster_print(i->instruction);
-    if(print_scope){
-        printf("\n Scope:\n");
-        table_print(i->scope);
-        printf("Upcoming scope:\n");
-        table_print(i->scope_to_be);
-    }
-    printf("\n");
-}
-
-
-
-
-
-
 
 #endif

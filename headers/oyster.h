@@ -2,7 +2,10 @@
 #define OYSTERH
 
 #define UNTO_DUST 0
-#define NEW(x) malloc(sizeof(x))
+
+#define NEW(type) initialize_memory_object(sizeof(type),            \
+                                            &type ## _ref,          \
+                                            &type ## _unref)        
 
 #include <glib.h>
 
@@ -25,28 +28,35 @@ typedef struct machine machine;
 struct memorable {
     void (*inc) (void *);
     void (*dec) (void *);
+    int ref;
 };
 
 void incref(void *x);
 void decref(void *x);
-
+void * initialize_memory_object(size_t size,     
+                                void * inc,
+                                void * dec);
 
 
 //--------------------------------- Tables -----------------------------------//
 // Tables are used to keep track of symbol-bindings --- in individual
 // objects, in scopes, and during parsing.
 //
-// Tables are gonna change in implementation, for the sake of speed,
-// but this is the interface to use. It's gon' be a challenge to cope
-// with union and combine in an efficient way.
+// Tables also track leaks, which allows the use of symbol bindings from 
+// higher scopes.
 
-struct table_entry { // I hate doing this.
+enum {
+    TABLE_ENTRY_NOT_FOUND,
+    TABLE_ENTRY_FOUND,
+    TABLE_ENTRY_LEAKED,
+};
+
+struct table_entry {
     void (*incref) (table_entry * x);
     void (*decref) (table_entry * x);
     int ref;
     oyster *it;
 };
-
 
 struct table {
     void (*incref) (table * x);
@@ -61,7 +71,6 @@ table_entry *table_get_entry(int key, table * tab, int *flag);
 void table_put_entry(int key, table_entry *entry, table *tab);
 oyster *table_get(int key, table * tab, int *err);
 void table_put(int key, oyster * ent, table * tab);
-
 void table_ref(table * x);
 void table_unref(table * x);
 
@@ -143,7 +152,7 @@ enum {
     ATPEND,
     ELIPSIS,
     ASTERIX,
-    COMMA,
+    JUST,
     CLEAR,
     BUILT_IN_FUNCTION,
     MAX_PREDEF_SYMBOL,
@@ -163,9 +172,12 @@ oyster *oyster_copy(oyster * x, table * bindings);
 void oyster_add_to_bindings(int sym_id, oyster *val, oyster *x);
 
 oyster *make_symbol(int symbol_id);
+
+//----------------------- Cons tools -----------------------------//
+
 oyster *make_cons(oyster * car, oyster * cdr);
-void cons_ref(cons_cell * x);
-void cons_unref(cons_cell * x);
+void cons_cell_ref(cons_cell * x);
+void cons_cell_unref(cons_cell * x);
 
 int oyster_type(oyster * x);
 int nilp(oyster * x);
@@ -255,19 +267,23 @@ void frame_unref(frame * x);
 void frame_free(frame * x);
 
 machine *make_machine();
+frame *machine_pop_stack(machine * m);
 void machine_ref(machine * x);
 void machine_free(machine * x);
 void machine_unref(machine * x);
+
+void push_instruction_list(machine *m, 
+                           oyster *ins,
+                           table *scope,
+                           table *scope_below);
+
+void push_new_instruction(machine *m, oyster *instruction, int flag);
 
 //-------------------------- The interpreter ----------------------------//
 
 
 void step_machine(machine * m);
 void evaluate_oyster(frame * instruct, machine * m);
-
-frame *machine_pop_stack(machine * m);
-frame *new_instruction(frame *now, frame *below, oyster *instruction, int flag);
-void push_new_instruction(machine *m, oyster *instruction, int flag);
 
 int asterix_p(oyster * x);
 int atpend_p(oyster * x);
@@ -287,6 +303,12 @@ int car_is_sym(oyster * x, int sym);
 void machine_print(machine * m);
 void print_stack_trace(machine * m);
 void frame_print(frame * f, int print_scope);
+
+
+//------------------------------ Assemble -------------------------------//
+// jesus what do these things have in common
+
+oyster *evaluate_string(char *str);
 
 
 
