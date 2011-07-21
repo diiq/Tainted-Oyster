@@ -5,7 +5,7 @@
 
 #define NEW(type) initialize_memory_object(sizeof(type),            \
                                             &type ## _ref,          \
-                                            &type ## _unref)        
+                                            &type ## _unref)
 
 #include <glib.h>
 
@@ -34,18 +34,13 @@ oyster *evaluate_string(char *str);
 void step_machine(machine * m);
 void evaluate_oyster(frame * instruct, machine * m);
 
-void push_argument(oyster *argument, 
-                   oyster *name, 
-                   int flag, 
-                   oyster* continu, 
-                   machine *m);
-void push_normal_argument(oyster *arg, 
-                          oyster *lambda_list,
-                          oyster *arg_list,
-                          machine *m);
+void push_argument(oyster * argument,
+                   oyster * name, int flag, oyster * continu, machine * m);
+void push_normal_argument(oyster * arg,
+                          oyster * lambda_list,
+                          oyster * arg_list, machine * m);
 void argument_chain_link(oyster * lambda_list,
-                         oyster * arg_list, 
-                         machine * m);
+                         oyster * arg_list, machine * m);
 int car_is_sym(oyster * x, int sym);
 oyster *unevaluate_list(oyster * xs);
 void push_bindings_to_scope(machine * m, oyster * o);
@@ -113,17 +108,14 @@ enum instruction_flags {
 machine *make_machine();
 frame *machine_pop_stack(machine * m);
 void set_accumulator(machine * m, oyster * value);
-frame *make_frame(frame * below, 
-                  table * scope, 
-                  table * scope_to_be, 
-                  table * scope_below, 
-                  oyster *instruction,
-                  int flag);
-void push_new_instruction(machine *m, oyster *instruction, int flag);
-void push_instruction_list(machine *m, 
-                           oyster *ins,
-                           table *scope,
-                           table *scope_below);
+frame *make_frame(frame * below,
+                  table * scope,
+                  table * scope_to_be,
+                  table * scope_below, oyster * instruction, int flag);
+void push_new_instruction(machine * m, oyster * instruction, int flag);
+void push_instruction_list(machine * m,
+                           oyster * ins,
+                           table * scope, table * scope_below);
 
 
 
@@ -204,17 +196,17 @@ oyster *make_oyster(int type);
 int oyster_type(oyster * x);
 oyster *make_symbol(int symbol_id);
 oyster *oyster_copy(oyster * x, table * new_bindings);
-void oyster_add_to_bindings(int sym_id, oyster *val, oyster *x);
+void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x);
 
 
 
 //--------------------------------- Scopes -----------------------------------//
 // Looking up, leaking, setting, and packaging scopes, so that the right 
 // symbol is bound to the right variable at the right time.
-table_entry *look_up_entry(int sym, frame *cur);
-oyster *look_up(int sym, frame *cur);
+table_entry *look_up_entry(int sym, frame * cur);
+oyster *look_up(int sym, frame * cur);
 void set(int sym, oyster * val, frame * f);
-table *reify_scope(table *t, frame *f);
+table *reify_scope(table * t, frame * f);
 
 
 
@@ -246,17 +238,17 @@ struct table {
     GHashTable *leaked;
 };
 
-table_entry *make_table_entry(oyster *it);
+table_entry *make_table_entry(oyster * it);
 table *make_table();
-table *table_copy(table *t);
-void table_put_entry(int key, table_entry *entry, table *tab);
+table *table_copy(table * t);
+void table_put_entry(int key, table_entry * entry, table * tab);
 table_entry *table_get_entry(int key, table * tab, int *flag);
 void table_put(int key, oyster * entry, table * tab);
 oyster *table_get(int key, table * tab, int *flag);
 int table_empty(table * tab);
 
-void leak(int sym, table *tab);
-int leaked_p(int sym, table *tab);
+void leak(int sym, table * tab);
+int leaked_p(int sym, table * tab);
 
 #define table_loop(k, v, tab) {                                         \
     GHashTableIter iter;                                                \
@@ -293,13 +285,11 @@ oyster *make_continuation(machine * m);
 //--------------------------------- Memory -----------------------------------//
 // Functions that handle memory management. These are gonna hafta change, as 
 // the reference counting is a necessarily temporary arrangement.
-void * initialize_memory_object(size_t size,     
-                                void * inc,
-                                void * dec);
+void *initialize_memory_object(size_t size, void *inc, void *dec);
 void incref(void *x);
 void decref(void *x);
-void table_entry_ref(table_entry *x);
-void table_entry_unref(table_entry *x);
+void table_entry_ref(table_entry * x);
+void table_entry_unref(table_entry * x);
 void table_ref(table * x);
 void table_unref(table * x);
 void oyster_ref(oyster * x);

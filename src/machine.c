@@ -8,12 +8,9 @@
 machine *make_machine()
 {
     machine *ret = NEW(machine);
-    ret->base_frame = make_frame(NULL, 
-                                 make_table(), 
-                                 make_table(), 
-                                 make_table(), 
-                                 NULL, 
-                                 PAUSE);
+    ret->base_frame = make_frame(NULL,
+                                 make_table(),
+                                 make_table(), make_table(), NULL, PAUSE);
     incref(ret->base_frame);
 
     ret->current_frame = ret->base_frame;
@@ -62,12 +59,10 @@ void set_accumulator(machine * m, oyster * value)
 
 
 
-frame *make_frame(frame * below, 
-                  table * scope, 
-                  table * scope_to_be, 
-                  table * scope_below, 
-                  oyster *instruction,
-                  int flag)
+frame *make_frame(frame * below,
+                  table * scope,
+                  table * scope_to_be,
+                  table * scope_below, oyster * instruction, int flag)
 {
     frame *ret = NEW(frame);
 
@@ -91,22 +86,20 @@ frame *make_frame(frame * below,
     return ret;
 }
 
-void push_new_instruction(machine *m, oyster *instruction, int flag){
+void push_new_instruction(machine * m, oyster * instruction, int flag)
+{
     frame *t = m->current_frame;
-    m->current_frame = make_frame(t, 
-                                  m->now->scope, 
+    m->current_frame = make_frame(t,
+                                  m->now->scope,
                                   m->now->scope_to_be,
-                                  m->now->scope_below,
-                                  instruction, 
-                                  flag);
+                                  m->now->scope_below, instruction, flag);
     incref(m->current_frame);
     decref(t);
 }
 
-void push_instruction_list(machine *m, 
-                           oyster *ins,
-                           table *scope,
-                           table *scope_below)
+void push_instruction_list(machine * m,
+                           oyster * ins,
+                           table * scope, table * scope_below)
 {
     incref(ins);
 
@@ -114,15 +107,11 @@ void push_instruction_list(machine *m,
     frame **cur = &top;
     while (!nilp(ins)) {
         (*cur) = make_frame(NULL,
-                            scope,
-                            NULL, 
-                            scope_below,
-                            car(ins),
-                            EVALUATE);
+                            scope, NULL, scope_below, car(ins), EVALUATE);
         incref(*cur);
 
         cur = &((*cur)->below);
-         
+
         oyster *ins2 = cdr(ins);
         incref(ins2);
         decref(ins);

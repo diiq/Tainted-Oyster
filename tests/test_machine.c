@@ -99,7 +99,9 @@ _tset;
 _test(argument_chain_link_elipsis)
 {
     // Elipsis args
-    oyster *lambda_list = list(2, make_symbol(ELIPSIS), list(2, make_symbol(5), make_symbol(10)));
+    oyster *lambda_list =
+        list(2, make_symbol(ELIPSIS),
+             list(2, make_symbol(5), make_symbol(10)));
     oyster *arg_list = list(4, make_symbol(60), make_symbol(30),
                             make_symbol(40), make_symbol(50));
 
@@ -108,7 +110,8 @@ _test(argument_chain_link_elipsis)
 
     assert(m->current_frame->flag == EVALUATE, "flag");
     assert(m->current_frame->instruction->in->type == CONS, "fcall");
-    assert(m->current_frame->instruction->in->cons->car->in->symbol_id == 5, "function");
+    assert(m->current_frame->instruction->in->cons->car->in->symbol_id ==
+           5, "function");
 
     assert(m->current_frame->below->flag == ELIPSIS_ARGUMENT, "flag2");
     assert(m->current_frame->below->instruction->in->symbol_id == 10);
@@ -129,8 +132,8 @@ _test(basic_step)
                        list(2,
                             make_symbol(CLEAR),
                             list(2,     // function
-                                 list(1, make_symbol(TYPE)),      //lambda list
-                                 make_symbol(TYPE))),     // expression
+                                 list(1, make_symbol(TYPE)),    //lambda list
+                                 make_symbol(TYPE))),   // expression
                        list(2,  // argument
                             make_symbol(CLEAR),
                             make_symbol(BUILT_IN_FUNCTION)));
@@ -142,8 +145,8 @@ _test(basic_step)
     }
     assert(m->accumulator, "no answer");
     assert(m->accumulator->in->type == SYMBOL, "Wrong answer type");
-    assert(m->accumulator->in->symbol_id == BUILT_IN_FUNCTION, "Wrong answer, %d",
-           m->accumulator->in->symbol_id);
+    assert(m->accumulator->in->symbol_id == BUILT_IN_FUNCTION,
+           "Wrong answer, %d", m->accumulator->in->symbol_id);
 
     decref(m);
 

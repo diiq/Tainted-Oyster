@@ -58,7 +58,7 @@ oyster *builtin_car(machine * m)
         oyster *signal = list(2, arg("car-of-wrong-type"), cons);
         toss_signal(make_signal(signal, m), m);
         return NULL;
-    } 
+    }
     return car(cons);
 }
 
@@ -69,7 +69,7 @@ oyster *builtin_cdr(machine * m)
         oyster *signal = list(2, arg("cdr-of-wrong-type"), cons);
         toss_signal(make_signal(signal, m), m);
         return NULL;
-    } 
+    }
     return cdr(cons);
 }
 
@@ -87,11 +87,12 @@ oyster *builtin_leak(machine * m)
     ARG(symbol);
     ARG(closure);
     int id = symbol->in->symbol_id;
-    if (nilp(closure)){
+    if (nilp(closure)) {
         int i = 0;
-        table_entry *a = table_get_entry(id, m->current_frame->scope_below, &i);
+        table_entry *a =
+            table_get_entry(id, m->current_frame->scope_below, &i);
 
-        if(i) {
+        if (i) {
             table_put_entry(id, a, m->current_frame->scope);
         } else {
             a = make_table_entry(NULL);
@@ -100,7 +101,7 @@ oyster *builtin_leak(machine * m)
         }
 
     } else {
-        if(!closure->bindings){
+        if (!closure->bindings) {
             closure->bindings = make_table();
             incref(closure->bindings);
         }
@@ -232,16 +233,14 @@ void add_builtins(machine * m)
     add_builtin("signal", list(1, arg("message")), builtin_signal, m);
     add_builtin("with-signal-handler",
                 list(3, quot("handler"),
-                        arg("..."),
-                        quot("code")),
-                builtin_with_signal_handler, m);
+                     arg("..."),
+                     quot("code")), builtin_with_signal_handler, m);
 
     add_builtin("current-scope", nil(), builtin_current_scope, m);
     add_builtin("table-get", list(2, arg("table"), unev("symbol")),
                 builtin_table_get, m);
 
-    add_builtin("print-bindings", list(1, arg("x")),
-                print_bindings, m);
+    add_builtin("print-bindings", list(1, arg("x")), print_bindings, m);
 }
 
 #endif

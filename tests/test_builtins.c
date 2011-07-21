@@ -17,7 +17,9 @@ _test(builtin_cons)
     decref(ret);
     decref(c);
     decref(d);
-} _tset;
+}
+
+_tset;
 
 _test(builtin_car)
 {
@@ -25,7 +27,9 @@ _test(builtin_car)
     assert(ret->in->type == SYMBOL);
     assert(ret->in->symbol_id == sym_id_from_string("shi"));
     decref(ret);
-} _tset;
+}
+
+_tset;
 
 _test(builtin_cdr)
 {
@@ -33,7 +37,9 @@ _test(builtin_cdr)
     assert(ret->in->type == SYMBOL);
     assert(ret->in->symbol_id == sym_id_from_string("it"));
     decref(ret);
-} _tset;
+}
+
+_tset;
 
 
 _test(builtin_set)
@@ -41,7 +47,9 @@ _test(builtin_set)
     oyster *ret = evaluate_string("(set! a (clear b)) a");
     assert(ret->in->symbol_id == sym_id_from_string("b"));
     decref(ret);
-} _tset;
+}
+
+_tset;
 
 _test(builtin_current_scope)
 {

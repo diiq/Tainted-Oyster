@@ -7,7 +7,7 @@
 #include "test_parsing.c"
 #include "test_table.c"
 #include "test_oysters.c"
-#include "test_scopes.c" 
+#include "test_scopes.c"
 #include "test_machine.c"
 #include "test_builtins.c"
 #include "test_continuation.c"

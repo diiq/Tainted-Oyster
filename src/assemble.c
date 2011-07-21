@@ -4,6 +4,7 @@
 
 void init_oyster()              // Where does this belong? Quo vadis, init?
 {
+    // This is the first call that should ever occur.
     static int a = 0;
     if (!a) {
 
@@ -27,6 +28,7 @@ void init_oyster()              // Where does this belong? Quo vadis, init?
 
 void clean_up_oyster()          // And can clean_up come with you?
 {
+    // and this is the last call in any oyster program.
     free_symbol_table();
 }
 
@@ -59,7 +61,7 @@ oyster *evaluate_scan(GScanner * in, int print) // o god, it's a miscellaneous f
 }
 
 
-oyster *evaluate_string(char *str) // you disgust me
+oyster *evaluate_string(char *str)      // you disgust me, miscellany
 {
     return evaluate_scan(string_scanner(str), 0);
 }

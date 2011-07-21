@@ -11,7 +11,7 @@
 #include "stdio.h"
 
 #include "oyster.h"
-#include "parsing.h" // Not sure if this needs be here.
+#include "parsing.h"            // Not sure if this needs be here.
 
 
 oyster *make_untyped_oyster()
@@ -20,7 +20,7 @@ oyster *make_untyped_oyster()
     ret->in = NEW(inner);
     incref(ret->in);
 
-    ret->in->type = -1;        
+    ret->in->type = -1;
 
     ret->in->value = NULL;
     ret->bindings = NULL;
@@ -63,14 +63,14 @@ oyster *oyster_copy(oyster * x, table * new_bindings)
     return ret;
 }
 
-void oyster_add_to_bindings(int sym_id, oyster *val, oyster *x)
+void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x)
 {
-    if(!x->bindings){
+    if (!x->bindings) {
         x->bindings = make_table();
         incref(x->bindings);
     }
     table_put(sym_id, val, x->bindings);
 }
-        
+
 
 #endif

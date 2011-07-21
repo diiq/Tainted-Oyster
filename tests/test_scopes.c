@@ -24,7 +24,8 @@ _test(look_up)
     table_put(2, make_symbol(3), m->current_frame->scope);
     ret = look_up(2, m->current_frame);
     assert(ret, "There was no second return.");
-    assert(ret->in->symbol_id == 3, "The second return was the wrong symbol.");
+    assert(ret->in->symbol_id == 3,
+           "The second return was the wrong symbol.");
 
     decref(m);
 } _tset;

@@ -6,9 +6,7 @@
 
 #include "oyster.h"
 
-void * initialize_memory_object(size_t size,     
-                                void * inc,
-                                void * dec)
+void *initialize_memory_object(size_t size, void *inc, void *dec)
 {
     struct memorable *obj = malloc(size);
     obj->inc = inc;
@@ -32,15 +30,15 @@ void decref(void *x)
 
 //
 
-void table_entry_ref(table_entry *x)
+void table_entry_ref(table_entry * x)
 {
     x->ref++;
 }
 
-void table_entry_unref(table_entry *x)
+void table_entry_unref(table_entry * x)
 {
     x->ref--;
-    if(x->ref == 0){
+    if (x->ref == 0) {
         decref(x->it);
         free(x);
     }

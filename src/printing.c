@@ -1,10 +1,13 @@
 
 void table_print(table * x)
 {
-    if(!x) {printf("NONE\n"); return;}
+    if (!x) {
+        printf("NONE\n");
+        return;
+    }
     int key;
     table_entry *value;
-    table_loop(key, value, x->it){
+    table_loop(key, value, x->it) {
         printf("    %s : ", string_from_sym_id(key));
         oyster_print(value->it);
         printf("\n");
@@ -20,7 +23,7 @@ void machine_print(machine * m)
     frame *f = m->current_frame;
     printf("Now: ");
     frame_print(m->now, 1);
-    if(m->now->instruction && !table_empty(m->now->instruction->bindings)){
+    if (m->now->instruction && !table_empty(m->now->instruction->bindings)) {
         printf(" with the bindings: \n");
         table_print(m->now->instruction->bindings);
     }
@@ -31,9 +34,11 @@ void machine_print(machine * m)
         f = f->below;
     }
     if (m->accumulator) {
-        printf("accum: ");oyster_print(m->accumulator);
+        printf("accum: ");
+        oyster_print(m->accumulator);
     }
-    printf("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
+    printf
+        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
 }
 
 void print_stack_trace(machine * m)
@@ -47,28 +52,31 @@ void print_stack_trace(machine * m)
         f = f->below;
     }
     if (m->accumulator) {
-        printf("accum: ");oyster_print(m->accumulator);
+        printf("accum: ");
+        oyster_print(m->accumulator);
     }
-    printf("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
+    printf
+        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
 }
 
 void frame_print(frame * i, int print_scope)
 {
-    char *flags[] = {"ASTERPEND_CONTINUE",
-                     "ATPEND_CONTINUE",
-                     "ARGUMENT",
-                     "ELIPSIS_ARGUMENT",
-                     "EVALUATE",
-                     "CONTINUE",
-                     "APPLY_FUNCTION",
-                     "PREPARE_ARGUMENTS",
-                     "PAUSE"};
+    char *flags[] = { "ASTERPEND_CONTINUE",
+        "ATPEND_CONTINUE",
+        "ARGUMENT",
+        "ELIPSIS_ARGUMENT",
+        "EVALUATE",
+        "CONTINUE",
+        "APPLY_FUNCTION",
+        "PREPARE_ARGUMENTS",
+        "PAUSE"
+    };
 
     printf(" --> ");
     printf("%s, ", flags[i->flag]);
     if (i->instruction)
         oyster_print(i->instruction);
-    if(print_scope){
+    if (print_scope) {
         printf("\n Scope:\n");
         table_print(i->scope);
         printf("Upcoming scope:\n");
@@ -123,4 +131,3 @@ void oyster_print(oyster * o)
     }
     decref(o);
 }
-

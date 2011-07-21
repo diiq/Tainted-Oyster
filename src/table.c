@@ -12,7 +12,7 @@
 
 
 
-table_entry *make_table_entry(oyster *it)
+table_entry *make_table_entry(oyster * it)
 {
     table_entry *ret = NEW(table_entry);
     ret->it = it;
@@ -25,29 +25,27 @@ table_entry *make_table_entry(oyster *it)
 table *make_table()
 {
     table *ret = NEW(table);
-    ret->it = g_hash_table_new_full(g_direct_hash, 
-                                    g_direct_equal, 
-                                    NULL, decref);
-    
-    ret->leaked = g_hash_table_new_full(g_direct_hash, 
-                                        g_direct_equal, 
-                                        NULL, NULL);  
+    ret->it = g_hash_table_new_full(g_direct_hash,
+                                    g_direct_equal, NULL, decref);
+
+    ret->leaked = g_hash_table_new_full(g_direct_hash,
+                                        g_direct_equal, NULL, NULL);
     return ret;
 }
 
-table *table_copy(table *t)
+table *table_copy(table * t)
 {
     table *ret = make_table();
     table_entry *entry;
     int k;
-    table_loop(k, entry, t->it){
+    table_loop(k, entry, t->it) {
         table_put_entry(k, entry, ret);
     } table_end_loop;
     return ret;
 }
 
 
-void table_put_entry(int key, table_entry *entry, table *tab)
+void table_put_entry(int key, table_entry * entry, table * tab)
 {
     g_hash_table_insert(tab->it, GINT_TO_POINTER(key), entry);
     incref(entry);
@@ -56,9 +54,9 @@ void table_put_entry(int key, table_entry *entry, table *tab)
 table_entry *table_get_entry(int key, table * tab, int *flag)
 {
     // Check if symbol is leaked.
-    if(GPOINTER_TO_INT(g_hash_table_lookup(tab->leaked, 
-                                           GINT_TO_POINTER(key)))){
-        *flag = TABLE_ENTRY_LEAKED; 
+    if (GPOINTER_TO_INT(g_hash_table_lookup(tab->leaked,
+                                            GINT_TO_POINTER(key)))) {
+        *flag = TABLE_ENTRY_LEAKED;
         return NULL;
     }
     // otherwise, grab it.
@@ -80,11 +78,11 @@ void table_put(int key, oyster * entry, table * tab)
 
 oyster *table_get(int key, table * tab, int *flag)
 {
-    table_entry * ret = table_get_entry(key, tab, flag);
+    table_entry *ret = table_get_entry(key, tab, flag);
     if (ret) {
         // Due to the reification of leaks, it is possible to have an
         // entry with no oyster inside.
-        if(!ret->it){
+        if (!ret->it) {
             *flag = TABLE_ENTRY_NOT_FOUND;
             return NULL;
         }
@@ -106,14 +104,17 @@ int table_empty(table * tab)
 // LEAKED in the current scope, the value from the scope *below* is used
 // instead. The sea water seeps in, see? Don't seal the hole.
 
-void leak(int sym, table *tab)
+void leak(int sym, table * tab)
 {
-    g_hash_table_insert(tab->leaked, GINT_TO_POINTER(sym), GINT_TO_POINTER(1)); 
+    g_hash_table_insert(tab->leaked, GINT_TO_POINTER(sym),
+                        GINT_TO_POINTER(1));
 }
 
-int leaked_p(int sym, table *tab)
+int leaked_p(int sym, table * tab)
 {
-    return GPOINTER_TO_INT(g_hash_table_lookup(tab->leaked, GINT_TO_POINTER(sym)));
+    return
+        GPOINTER_TO_INT(g_hash_table_lookup
+                        (tab->leaked, GINT_TO_POINTER(sym)));
 }
 
 
