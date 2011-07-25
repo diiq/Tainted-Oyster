@@ -5,6 +5,9 @@
 
 enum {
     SYMBOL_TOKEN,
+    PREFIX_TOKEN,
+    OPEN_TOKEN,
+    CLOSE_TOKEN,
 };
 
 typedef struct {

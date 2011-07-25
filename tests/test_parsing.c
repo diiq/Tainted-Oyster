@@ -48,10 +48,25 @@ _test(read_prefix)
 } _tset;
 
 
+_test(read_open_close)
+{
+    char *str = "(hello-there)";
+    FILE *stream = fmemopen(str, strlen(str), "r");
+    token *a  = read_open(stream);
+    token *b = read_symbol(stream);
+    token *c  = read_close(stream);
+    assert(a->type == OPEN_TOKEN);
+    assert(c->type == CLOSE_TOKEN);
+    free(b->string);
+    free(b);
+} _tset;
+
+
 _test(parsing)
 {
     printf("\nTesting parsing:\n");
     run_test(read_symbol);
     run_test(read_prefix);
+    run_test(read_open_close);
     run_test(next_oyster);
 } _tset;

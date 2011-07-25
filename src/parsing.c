@@ -85,8 +85,23 @@ token *read_prefix(FILE *stream){
 }
 
 
-/* token *read_open(FILE *stream); */
-/* token *read_closed(FILE *stream); */
+token *read_open(FILE *stream){
+    int c = fgetc(stream);
+    if(c != '('){
+        ungetc(c, stream);
+        return NULL;
+    }
+    return make_token(OPEN_TOKEN);
+}
+
+token *read_close(FILE *stream){
+    int c = fgetc(stream);
+    if(c != ')'){
+        ungetc(c, stream);
+        return NULL;
+    }
+    return make_token(CLOSE_TOKEN);
+}
 
 /* token *read_colon(FILE *stream); */
 /* token *read_newline(FILE *stream); */
