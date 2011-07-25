@@ -14,6 +14,7 @@
 
 // ------------------------ psychotic bastard ------------------------- //
 // -------------------------- tokenizer ------------------------------- //
+// All of this needs EOF validation somewhere.
 
 int delimiter(char c){
     if (c == ' '  ||
@@ -57,7 +58,33 @@ token *read_symbol(FILE *stream){
 }
 
 
-/* token *read_prefix(FILE *stream); */
+token *read_prefix(FILE *stream){
+    int c = fgetc(stream);
+    if(isalnum(c) || delimiter(c)){
+        ungetc(c, stream);
+        return NULL;
+    } 
+    int d = fgetc(stream);
+    if(!isalnum(d)){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return NULL;
+    }
+    ungetc(d, stream);
+    token *ret = make_token(PREFIX_TOKEN);
+    ret->string = malloc(sizeof(char)*8); 
+    ret->string[0] = 'u';
+    ret->string[1] = 'n';
+    ret->string[2] = 'a';
+    ret->string[3] = 'r';
+    ret->string[4] = 'y';
+    ret->string[5] = '-';
+    ret->string[6] = c;
+    ret->string[7] = '\0';
+    return ret;
+}
+
+
 /* token *read_open(FILE *stream); */
 /* token *read_closed(FILE *stream); */
 
