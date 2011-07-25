@@ -3,6 +3,16 @@
 
 #include "stdio.h"
 
+enum {
+    SYMBOL_TOKEN,
+};
+
+typedef struct {
+    char *string;
+    int type;
+    int count;
+} token;
+
 oyster *next_oyster(GScanner * in);
 int sym_id_from_string(char *sym);
 char *string_from_sym_id(int sym);

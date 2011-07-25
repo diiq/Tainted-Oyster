@@ -9,6 +9,63 @@
 #include "stdio.h"
 #include <stdlib.h>
 #include <glib.h>
+#include <ctype.h>
+
+
+// ------------------------ psychotic bastard ------------------------- //
+// -------------------------- tokenizer ------------------------------- //
+
+int delimiter(char c){
+    if (c == ' '  ||
+        c == '('  ||
+        c == ')'  ||
+        c == ':'  ||
+        c == '\n')
+        return 1;
+    return 0;
+}
+
+token *make_token(int type){
+    token *ret = malloc(sizeof(token));
+    ret->type = type;
+    return ret;
+}
+
+token *read_symbol(FILE *stream){
+    char a[1000]; // for clarity, for now
+    int c = fgetc(stream);
+    if(!isalnum(c)){
+        ungetc(c, stream);
+        return NULL;
+    } 
+      
+    a[0] = c;
+    int i = 1;
+    c = fgetc(stream);
+    while(!delimiter(c)){
+        a[i] = c;
+        c = fgetc(stream);
+        i++;
+    }
+    ungetc(c, stream);
+    a[i] = '\0';
+    
+    token *ret = make_token(SYMBOL_TOKEN);
+    ret->string = malloc((strlen(a)+1)*sizeof(char));
+    strcpy(ret->string, a);
+    return ret;
+}
+
+
+/* token *read_prefix(FILE *stream); */
+/* token *read_open(FILE *stream); */
+/* token *read_closed(FILE *stream); */
+
+/* token *read_colon(FILE *stream); */
+/* token *read_newline(FILE *stream); */
+
+
+
 
 
 // -------------------------------------------------------------------- //
