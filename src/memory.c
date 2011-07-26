@@ -27,7 +27,6 @@ void decref(void *x)
         ((struct memorable *) x)->dec(x);
 }
 
-
 //
 
 void table_entry_ref(table_entry * x)
@@ -100,7 +99,6 @@ void inner_unref(inner * x)
 
 //
 
-
 void cons_cell_ref(cons_cell * x)
 {
     x->ref++;
@@ -116,9 +114,7 @@ void cons_cell_unref(cons_cell * x)
     }
 }
 
-
 //
-
 
 void machine_ref(machine * x)
 {
@@ -136,7 +132,6 @@ void machine_unref(machine * x)
         free(x);
     }
 }
-
 
 //
 
