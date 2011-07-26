@@ -73,14 +73,7 @@ token *read_prefix(FILE *stream){
     ungetc(d, stream);
     token *ret = make_token(PREFIX_TOKEN);
     ret->string = malloc(sizeof(char)*8); 
-    ret->string[0] = 'u';
-    ret->string[1] = 'n';
-    ret->string[2] = 'a';
-    ret->string[3] = 'r';
-    ret->string[4] = 'y';
-    ret->string[5] = '-';
-    ret->string[6] = c;
-    ret->string[7] = '\0';
+    sprintf(ret->string, "unary-%c", c);
     return ret;
 }
 
@@ -103,9 +96,80 @@ token *read_close(FILE *stream){
     return make_token(CLOSE_TOKEN);
 }
 
-/* token *read_colon(FILE *stream); */
-/* token *read_newline(FILE *stream); */
+token *read_colon(FILE *stream){
+    int c = fgetc(stream);
+    if(c != ':'){
+        ungetc(c, stream);
+        return NULL;
+    }
+    return make_token(COLON_TOKEN);
+}
 
+token *read_newline(FILE *stream){
+    int c = fgetc(stream);
+    if(c != '\n'){
+        ungetc(c, stream);
+        return NULL;
+    }
+    token *ret =  make_token(NEWLINE_TOKEN);
+    ret->count = 0;
+    for(c = fgetc(stream); c == ' '; c = fgetc(stream)){
+        ret->count++;
+    }
+    ungetc(c, stream);
+    return ret;
+}
+
+token *read_backslash(FILE *stream)
+{
+    int c = fgetc(stream);
+    if(c != '\\'){
+        ungetc(c, stream);
+        return NULL;
+    }
+    int d = fgetc(stream);
+    if(d != '\n'){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return NULL;
+    }
+    ungetc(d, stream);
+    return make_token(BACKSLASH_TOKEN);
+}
+
+token *read_infix(FILE *stream)
+{
+    int c = fgetc(stream);
+    int d = fgetc(stream);
+    
+    if(c != '<' || d != '<'){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return NULL;
+    } 
+    token *ret = make_token(INFIX_TOKEN);
+    return ret;
+}
+
+token *read_defix(FILE *stream)
+{
+    int c = fgetc(stream);
+    int d = fgetc(stream);
+    
+    if(c != '>' || d != '>'){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return NULL;
+    } 
+    token *ret = make_token(DEFIX_TOKEN);
+    return ret;
+}
+
+void read_space(FILE *stream){
+    int c;
+    for(c = fgetc(stream); c == ' '; c = fgetc(stream));
+    ungetc(c, stream);
+}
 
 
 

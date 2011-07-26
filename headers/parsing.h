@@ -6,8 +6,13 @@
 enum {
     SYMBOL_TOKEN,
     PREFIX_TOKEN,
+    INFIX_TOKEN,
+    DEFIX_TOKEN,
     OPEN_TOKEN,
     CLOSE_TOKEN,
+    COLON_TOKEN,
+    NEWLINE_TOKEN,
+    BACKSLASH_TOKEN
 };
 
 typedef struct {

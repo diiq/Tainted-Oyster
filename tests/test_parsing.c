@@ -61,6 +61,15 @@ _test(read_open_close)
     free(b);
 } _tset;
 
+_test(read_newline)
+{
+    char *str = "\n    there)";
+    FILE *stream = fmemopen(str, strlen(str), "r");
+    token *a  = read_newline(stream);
+    assert(a->type == NEWLINE_TOKEN);
+    assert(a->count == 4);
+} _tset;
+
 
 _test(parsing)
 {
@@ -69,4 +78,5 @@ _test(parsing)
     run_test(read_prefix);
     run_test(read_open_close);
     run_test(next_oyster);
+    run_test(read_newline);
 } _tset;
