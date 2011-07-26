@@ -21,6 +21,7 @@ int delimiter(char c){
         c == '('  ||
         c == ')'  ||
         c == ':'  ||
+        c == '>'  ||
         c == '\n')
         return 1;
     return 0;
@@ -35,7 +36,7 @@ token *make_token(int type){
 token *read_symbol(FILE *stream){
     char a[1000]; // for clarity, for now
     int c = fgetc(stream);
-    if(!isalnum(c)){
+    if(!isalpha(c)){
         ungetc(c, stream);
         return NULL;
     } 
@@ -117,10 +118,17 @@ token *read_newline(FILE *stream){
         ret->count++;
     }
     ungetc(c, stream);
-    return ret;
+
+    token *ret2 = read_newline(stream);
+    if (ret2){
+        free(ret);
+        return ret2;
+    } else {
+        return ret;
+    }
 }
 
-token *read_backslash(FILE *stream)
+void *read_backslash(FILE *stream)
 {
     int c = fgetc(stream);
     if(c != '\\'){
@@ -133,8 +141,7 @@ token *read_backslash(FILE *stream)
         ungetc(c, stream);
         return NULL;
     }
-    ungetc(d, stream);
-    return make_token(BACKSLASH_TOKEN);
+    return NULL;
 }
 
 token *read_infix(FILE *stream)
@@ -171,8 +178,41 @@ void read_space(FILE *stream){
     ungetc(c, stream);
 }
 
+token *next_token(FILE *stream){
+    token *ret;
 
+    read_backslash(stream);
+    read_space(stream);
 
+    ret = read_newline(stream);
+    if (ret) return ret;
+
+    ret = read_symbol(stream);
+    if (ret) return ret;
+
+    ret = read_prefix(stream);
+    if (ret) return ret;
+
+    ret = read_open(stream);
+    if (ret) return ret;
+
+    ret = read_close(stream);
+    if (ret) return ret;
+
+    ret = read_colon(stream);
+    if (ret) return ret;
+
+    ret = read_newline(stream);
+    if (ret) return ret;
+
+    ret = read_infix(stream);
+    if (ret) return ret;
+
+    ret = read_defix(stream);
+    if (ret) return ret;
+
+    return NULL;
+}
 
 // -------------------------------------------------------------------- //
 

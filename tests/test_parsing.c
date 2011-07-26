@@ -70,6 +70,30 @@ _test(read_newline)
     assert(a->count == 4);
 } _tset;
 
+_test(next_token)
+{
+    char *str = "this <<is>> a: (series) 'of\n    tokens ";
+    FILE *stream = fmemopen(str, strlen(str), "r");
+    
+    int conv[] = {SYMBOL_TOKEN, 
+                  INFIX_TOKEN,
+                  SYMBOL_TOKEN, 
+                  DEFIX_TOKEN,
+                  SYMBOL_TOKEN,
+                  COLON_TOKEN,
+                  OPEN_TOKEN,
+                  SYMBOL_TOKEN, 
+                  CLOSE_TOKEN,
+                  PREFIX_TOKEN,
+                  SYMBOL_TOKEN, 
+                  NEWLINE_TOKEN,
+                  SYMBOL_TOKEN};
+    token *a;
+    int i;
+    for(i = 0, a = next_token(stream); a; a = next_token(stream), i++){
+        assert(a->type == conv[i]);
+    }
+}_tset;
 
 _test(parsing)
 {
@@ -79,4 +103,5 @@ _test(parsing)
     run_test(read_open_close);
     run_test(next_oyster);
     run_test(read_newline);
+    run_test(next_token);
 } _tset;

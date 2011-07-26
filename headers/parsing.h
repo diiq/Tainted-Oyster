@@ -12,7 +12,6 @@ enum {
     CLOSE_TOKEN,
     COLON_TOKEN,
     NEWLINE_TOKEN,
-    BACKSLASH_TOKEN
 };
 
 typedef struct {
