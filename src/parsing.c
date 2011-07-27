@@ -245,6 +245,101 @@ void unget_token(token *token, token_stream *stream)
 
 // ------------------------------ PB parser --------------------------- //
 
+oyster *read_line(token_stream *stream, int indent){
+    // o sweet baby jesus
+    // TODO: FREE CUR
+    oyster *ret;
+    token *cur = get_token(stream);
+    switch (cur->type){
+
+    case SYMBOL_TOKEN:
+        {
+            token *next;
+            ret = nil();
+            int i;
+            for(next = cur, i = 0;
+                next->type == SYMBOL_TOKEN;
+                next = get_token(stream), i++){
+                ret = cons(make_symbol(sym_id_from_string(next->string)), ret);
+                free(next);
+            }
+            unget_token(next, stream);
+            oyster *ret2 = read_line(stream, indent);
+            if (i == 1 && nilp(ret2)){
+                ret = car(ret);
+            } else {
+                ret = reverse(ret);
+                ret = append(ret, ret2);
+            }
+        }
+        break;
+
+    case NEWLINE_TOKEN:
+        if (cur->count < indent){
+            unget_token(cur, stream);
+        } else if (cur->count != indent){
+            printf("What the hey? There's an indent without a colon!\n");
+        }
+        ret = nil();
+        break;
+
+    case COLON_TOKEN:
+        {
+            token *next = get_token(stream);
+            if (next->type == NEWLINE_TOKEN){
+                if (next->count <= indent){
+                    printf ("What the hey? That's a colon without an indent!\n");
+                }
+                int cindent = next->count;
+                free(next);
+                ret = nil();
+                //for each read_line, check for newline; 
+                // if found, check against current indent
+                // stop when indent completed.
+                while(1){
+                    ret = cons(read_line(stream, cindent), ret);
+                    next = get_token(stream);
+                    if (next->type != NEWLINE_TOKEN){
+                        unget_token(next, stream);
+                        continue;
+                    } else {
+                        if (next->count < indent){
+                            unget_token(next, stream);
+                            break;
+                        } else if (next->count == indent){
+                            break;
+                        } else {
+                            cindent = next->count;
+                        }
+                    }
+                }
+                ret = reverse(ret);
+                    
+            } else {
+                unget_token(next, stream);
+                ret = list(1, read_line(stream, indent));
+            }
+        }
+        break;
+        
+
+    case INFIX_TOKEN:
+        break;
+
+    case DEFIX_TOKEN:
+        break;
+
+    case OPEN_TOKEN:
+        break;
+
+    case CLOSE_TOKEN:
+        break;
+
+    case PREFIX_TOKEN:
+        break;
+    }
+    return ret;
+}
 
 // -------------------------------------------------------------------- //
 

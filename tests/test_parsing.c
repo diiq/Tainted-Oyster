@@ -113,14 +113,25 @@ _test(token_stream){
     free(a);
 }_tset;
 
+_test(read_line){
+    char *str = "o my sweet baby under:\n    or a: dagger\n    of the\ncrime";
+    FILE *cstream = fmemopen(str, strlen(str), "r");
+    
+    token_stream *stream = make_token_stream(cstream);
+    oyster *a = read_line(stream, 0);
+    oyster_print(a);printf("\n");
+    free(stream);
+}_tset;
+
 _test(parsing)
 {
     printf("\nTesting parsing:\n");
     run_test(read_symbol);
     run_test(read_prefix);
     run_test(read_open_close);
-    run_test(next_oyster);
     run_test(read_newline);
     run_test(next_token);
     run_test(token_stream);
+    run_test(read_line);
+    run_test(next_oyster);
 } _tset;
