@@ -214,6 +214,38 @@ token *next_token(FILE *stream){
     return NULL;
 }
 
+//------------------------ token stream -------------------------------//
+
+token_stream *make_token_stream(FILE *stream)
+{
+    token_stream *ret = calloc(1, sizeof(token_stream));
+    ret->char_stream = stream;
+    return ret;
+}
+
+token *get_token(token_stream *stream)
+{
+    if(stream->pulled){
+        token *ret = stream->pulled->it;
+        token_chain *temp = stream->pulled;
+        stream->pulled = stream->pulled->next;
+        free(temp);
+        return ret;
+    }
+    return next_token(stream->char_stream);
+}
+
+void unget_token(token *token, token_stream *stream)
+{
+    token_chain *t = malloc(sizeof(token_chain));
+    t->next = stream->pulled;
+    t->it = token;
+    stream->pulled = t;
+}
+
+// ------------------------------ PB parser --------------------------- //
+
+
 // -------------------------------------------------------------------- //
 
 int current_max_symbol;

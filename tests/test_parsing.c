@@ -92,7 +92,25 @@ _test(next_token)
     int i;
     for(i = 0, a = next_token(stream); a; a = next_token(stream), i++){
         assert(a->type == conv[i]);
+        free(a);
     }
+}_tset;
+
+_test(token_stream){
+    char *str = "this <<is>> a: (series) 'of\n    tokens ";
+    FILE *stream = fmemopen(str, strlen(str), "r");
+    
+    token_stream *a = make_token_stream(stream);
+    token *b = get_token(a);
+    assert(b->type == SYMBOL_TOKEN);
+    unget_token(b, a);
+    b = get_token(a);
+    assert(b->type == SYMBOL_TOKEN);
+    free(b);
+    b = get_token(a);
+    assert(b->type == INFIX_TOKEN);
+    free(b);
+    free(a);
 }_tset;
 
 _test(parsing)
@@ -104,4 +122,5 @@ _test(parsing)
     run_test(next_oyster);
     run_test(read_newline);
     run_test(next_token);
+    run_test(token_stream);
 } _tset;

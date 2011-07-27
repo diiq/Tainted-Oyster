@@ -20,6 +20,18 @@ typedef struct {
     int count;
 } token;
 
+typedef struct token_chain_struct token_chain;
+
+struct token_chain_struct {
+    token_chain *next;
+    token *it;
+};
+
+typedef struct {
+    token_chain *pulled;
+    FILE *char_stream;
+} token_stream;
+
 oyster *next_oyster(GScanner * in);
 int sym_id_from_string(char *sym);
 char *string_from_sym_id(int sym);
