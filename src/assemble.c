@@ -1,6 +1,7 @@
 #include "oyster.h"
 #include "parsing.h"
-#include "string.h"
+#include <string.h>
+#include <stdio.h>
 
 void init_oyster()              // Where does this belong? Quo vadis, init?
 {
@@ -33,9 +34,37 @@ void clean_up_oyster()          // And can clean_up come with you?
 }
 
 
+oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
+{
+    token_stream *in = make_token_stream(inf);
+    oyster *func = read_one(in, 0);
+    machine *m = make_machine();
+    incref(m);
+    printf(" -<<\n");
+    while (!nilp(func)) {
+        incref(func);
+        oyster_print(func); printf(" -<<\n");
+        push_new_instruction(m, func, EVALUATE);
+
+        while (!m->paused) {
+            step_machine(m);
+        }
+        m->paused = 0;
+
+        func = read_one(in, 0);
+    }
+
+    fclose(inf);
+    free(in);
+    oyster *ret = m->accumulator;
+
+    incref(ret);
+    decref(m);
+    return ret;
+}
 
 
-oyster *evaluate_scan(GScanner * in, int print) // o god, it's a miscellaneous file
+oyster *evaluate_scan(GScanner * in,  int print) // o god, it's a miscellaneous file
 {
     oyster *func = next_oyster(in);
     machine *m = make_machine();

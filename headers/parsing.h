@@ -12,6 +12,7 @@ enum {
     CLOSE_TOKEN,
     COLON_TOKEN,
     NEWLINE_TOKEN,
+    NOTHING_TOKEN
 };
 
 typedef struct {
@@ -41,6 +42,9 @@ void free_symbol_table();
 GScanner *string_scanner(char *text);
 GScanner *file_scanner(char *file);
 
-oyster *read_line_straight(token_stream *stream, int indent);
-oyster *read_line(token_stream *stream, int indent);
+token_stream *make_token_stream(FILE *stream);
+token *get_token(token_stream *stream);
+void unget_token(token *token, token_stream *stream);
+oyster *read_one(token_stream *stream, int indent);
+
 #endif

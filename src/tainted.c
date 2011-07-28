@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     /// g'damn g_scanner won't return a token until EOF is reached.
     /// all my trickery is for naught.
 
-    oyster *ret = evaluate_scan(file_scanner(filename), print);
+    oyster *ret = evaluate_file(fopen(filename, "r"), print);
     decref(ret);
 
 

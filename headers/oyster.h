@@ -8,6 +8,7 @@
                                             &type ## _unref)
 
 #include <glib.h>
+#include <stdio.h>
 
 typedef struct table table;
 typedef struct table_entry table_entry;
@@ -25,6 +26,7 @@ typedef struct machine machine;
 void init_oyster();
 void clean_up_oyster();
 oyster *evaluate_scan(GScanner * in, int print);
+oyster *evaluate_file(FILE * in, int print);
 oyster *evaluate_string(char *str);
 
 

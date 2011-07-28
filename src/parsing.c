@@ -131,22 +131,6 @@ token *read_newline(FILE *stream){
     }
 }
 
-void *read_backslash(FILE *stream)
-{
-    int c = fgetc(stream);
-    if(c != '\\'){
-        ungetc(c, stream);
-        return NULL;
-    }
-    int d = fgetc(stream);
-    if(d != '\n'){
-        ungetc(d, stream);
-        ungetc(c, stream);
-        return NULL;
-    }
-    return NULL;
-}
-
 token *read_infix(FILE *stream)
 {
     int c = fgetc(stream);
@@ -175,17 +159,54 @@ token *read_defix(FILE *stream)
     return ret;
 }
 
-void read_space(FILE *stream){
-    int c;
+int read_backslash(FILE *stream)
+{
+    int c = fgetc(stream);
+    if(c != '\\'){
+        ungetc(c, stream);
+        return 0;
+    }
+    int d = fgetc(stream);
+    if(d != '\n'){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return 0;
+    }
+    return 1;
+}
+
+int read_space(FILE *stream){
+    int c = fgetc(stream);
+    if(c != ' ') {
+        ungetc(c, stream);
+        return 0;
+    }
     for(c = fgetc(stream); c == ' '; c = fgetc(stream));
     ungetc(c, stream);
+    return 1;
+}
+
+int read_comment(FILE *stream){
+    int c = fgetc(stream);
+    if(c != '#'){
+        ungetc(c, stream);
+        return 0;
+    }
+    while(c != '\n')
+        c = fgetc(stream);
+    return 1;
 }
 
 token *next_token(FILE *stream){
-    token *ret;
-
-    read_backslash(stream);
-    read_space(stream);
+    token *ret = NULL;
+    
+    int i = 1;
+    while(i){
+        i = 0;
+        i += read_backslash(stream);
+        i += read_space(stream);
+        i += read_comment(stream);
+    }
 
     ret = read_newline(stream);
     if (ret) return ret;
@@ -225,6 +246,12 @@ token_stream *make_token_stream(FILE *stream)
 {
     token_stream *ret = calloc(1, sizeof(token_stream));
     ret->char_stream = stream;
+    token * next = get_token(ret);
+    while(next->type == NEWLINE_TOKEN){ // kuldge!
+        free(next);
+        next = get_token(ret);
+    }
+    unget_token(next, ret);
     return ret;
 }
 
@@ -248,31 +275,57 @@ void unget_token(token *token, token_stream *stream)
     stream->pulled = t;
 }
 
+void print_token(token *t){
+    char * conv[]={"SYMBOL_TOKEN",
+                   "PREFIX_TOKEN",
+                   "INFIX_TOKEN",
+                   "DEFIX_TOKEN",
+                   "OPEN_TOKEN",
+                   "CLOSE_TOKEN",
+                   "COLON_TOKEN",
+                   "NEWLINE_TOKEN",
+                   "NOTHING_TOKEN"};
+    printf("%s\n", conv[t->type]);
+}
+
 // ------------------------------ PB parser --------------------------- //
 oyster *parse_symbols(token_stream *stream, int indent)
 {
     token *next;
     oyster *ret = nil();
-    while(1){ // change to for loop or summat
-        next = get_token(stream);
-        if(next->type != SYMBOL_TOKEN){
-            unget_token(next, stream);
-            break;
-        }
+    for(next = get_token(stream);
+        next->type == SYMBOL_TOKEN;
+        next = get_token(stream)){
         ret = cons(make_symbol(sym_id_from_string(next->string)), ret);
         free(next);
     }
+    unget_token(next, stream);
     ret = reverse(ret);
     return ret;
 }
 
 oyster *read_one(token_stream *stream, int indent){
+    // asap, break into individual functions.
+    // soon, comment it up
     // eventually, turn this into a dijkstra-style operator-precedence thing. Maybe.
     //repeatedly:
     oyster *ret = parse_symbols(stream, indent);
     token *next = get_token(stream);
+    print_token(next);
     switch(next->type){
     case NEWLINE_TOKEN:
+        {
+            token * nnext = get_token(stream);
+            while(nnext->type == NEWLINE_TOKEN &&
+                  nnext->count >= 0){
+                free(next);
+                next = nnext;
+                nnext = get_token(stream);
+            }
+            unget_token(nnext, stream);
+            unget_token(next, stream);
+        }
+        break;
     case CLOSE_TOKEN:
     case DEFIX_TOKEN:
         unget_token(next, stream);
@@ -314,6 +367,7 @@ oyster *read_one(token_stream *stream, int indent){
                 free(nnext);
                 break;
             default:
+                print_token(nnext);
                 error(314, 0, "Unexpected token following a prefix.");
             }
 

@@ -222,6 +222,7 @@ void add_builtins(machine * m)
                 builtin_leak, m);
 
     add_builtin("'", list(1, unev("x")), builtin_quote, m);
+    add_builtin("unary-'", list(1, unev("x")), builtin_quote, m);
 
     add_builtin("atom-p", list(1, arg("x")), builtin_atom_p, m);
     add_builtin("is", list(2, arg("a"), arg("b")), builtin_is, m);

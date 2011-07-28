@@ -129,6 +129,16 @@ _test(read_one){
     free(stream);
 }_tset;
 
+_test(tricky_parses){
+    char *str = "print: cdr: cons () 't ";
+    FILE *cstream = fmemopen(str, strlen(str), "r");
+    
+    token_stream *stream = make_token_stream(cstream);
+    oyster *a = read_one(stream, 0);
+    oyster_print(a);printf("\n");
+    free(stream);
+}_tset;
+
 _test(parsing)
 {
     printf("\nTesting parsing:\n");
@@ -139,5 +149,6 @@ _test(parsing)
     run_test(next_token);
     run_test(token_stream);
     run_test(read_one);
+    run_test(tricky_parses);
     run_test(next_oyster);
 } _tset;
