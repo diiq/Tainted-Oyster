@@ -41,4 +41,6 @@ void free_symbol_table();
 GScanner *string_scanner(char *text);
 GScanner *file_scanner(char *file);
 
+oyster *read_line_straight(token_stream *stream, int indent);
+oyster *read_line(token_stream *stream, int indent);
 #endif

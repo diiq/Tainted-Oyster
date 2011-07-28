@@ -22,7 +22,8 @@ int delimiter(char c){
         c == ')'  ||
         c == ':'  ||
         c == '>'  ||
-        c == '\n')
+        c == '\n' ||
+        c == EOF)
         return 1;
     return 0;
 }
@@ -36,6 +37,7 @@ token *make_token(int type){
 token *read_symbol(FILE *stream){
     char a[1000]; // for clarity, for now
     int c = fgetc(stream);
+
     if(!isalpha(c)){
         ungetc(c, stream);
         return NULL;
@@ -66,7 +68,7 @@ token *read_prefix(FILE *stream){
         return NULL;
     } 
     int d = fgetc(stream);
-    if(!isalnum(d)){
+    if(d == ' ' || d == ':'){
         ungetc(d, stream);
         ungetc(c, stream);
         return NULL;
@@ -190,9 +192,6 @@ token *next_token(FILE *stream){
     ret = read_symbol(stream);
     if (ret) return ret;
 
-    ret = read_prefix(stream);
-    if (ret) return ret;
-
     ret = read_open(stream);
     if (ret) return ret;
 
@@ -209,6 +208,9 @@ token *next_token(FILE *stream){
     if (ret) return ret;
 
     ret = read_defix(stream);
+    if (ret) return ret;
+
+    ret = read_prefix(stream);
     if (ret) return ret;
 
     return NULL;
@@ -245,7 +247,52 @@ void unget_token(token *token, token_stream *stream)
 
 // ------------------------------ PB parser --------------------------- //
 
-oyster *read_line(token_stream *stream, int indent){
+oyster *read_line(token_stream *stream, int indent)
+{
+    // test here for prefix
+    oyster * ret;
+
+    token * cur = get_token(stream);
+    if(cur->type == INFIX_TOKEN ||
+       cur->type == CLOSE_TOKEN){
+        unget_token(cur, stream);
+        return NULL;
+    }
+
+    unget_token(cur, stream);
+
+    ret = read_line_straight(stream, indent);
+   
+    cur = get_token(stream);
+    if(cur->type == INFIX_TOKEN){
+        oyster *med = read_line(stream, indent);
+        free(cur);
+        cur = get_token(stream);
+        if (cur->type != DEFIX_TOKEN){
+            printf("What the hey? I was expecting a >>!\n");
+        }
+        oyster *final = read_line(stream, indent);
+        ret = list(3, med, ret, final);
+    } else if (cur->type == OPEN_TOKEN){
+        free(cur);
+        oyster *inner = cons(read_line(stream, indent), nil());
+        cur = get_token(stream);
+        while(cur->type != CLOSE_TOKEN){
+            unget_token(cur, stream);
+            inner = cons(read_line(stream, indent), inner);
+            cur = get_token(stream);
+        }
+        inner = reverse(inner);
+        ret = inner;
+    } else {
+        unget_token(cur, stream);
+    }
+    return ret;
+}
+
+
+oyster *read_line_straight(token_stream *stream, int indent)
+{
     // o sweet baby jesus
     // TODO: FREE CUR
     oyster *ret;
@@ -264,12 +311,14 @@ oyster *read_line(token_stream *stream, int indent){
                 free(next);
             }
             unget_token(next, stream);
+
+            ret = reverse(ret);
             oyster *ret2 = read_line(stream, indent);
-            if (i == 1 && nilp(ret2)){
+
+            if (i == 1 && (!ret2 || nilp(ret2))){
                 ret = car(ret);
-            } else {
-                ret = reverse(ret);
-                ret = append(ret, ret2);
+            } else if (ret2){
+                 ret = append(ret, ret2);
             }
         }
         break;
@@ -297,7 +346,10 @@ oyster *read_line(token_stream *stream, int indent){
                 // if found, check against current indent
                 // stop when indent completed.
                 while(1){
-                    ret = cons(read_line(stream, cindent), ret);
+
+                    oyster *a = read_line(stream, cindent);
+
+                    ret = cons(a, ret);
                     next = get_token(stream);
                     if (next->type != NEWLINE_TOKEN){
                         unget_token(next, stream);
@@ -317,22 +369,19 @@ oyster *read_line(token_stream *stream, int indent){
                     
             } else {
                 unget_token(next, stream);
-                ret = list(1, read_line(stream, indent));
+                oyster *a = read_line(stream, indent);
+                ret = list(1, a);
             }
         }
         break;
         
-
+        //    case NEWLINE_TOKEN:
     case INFIX_TOKEN:
-        break;
-
-    case DEFIX_TOKEN:
-        break;
-
+    case DEFIX_TOKEN: 
     case OPEN_TOKEN:
-        break;
-
     case CLOSE_TOKEN:
+        unget_token(cur, stream);
+        ret = NULL;
         break;
 
     case PREFIX_TOKEN:

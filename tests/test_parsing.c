@@ -91,7 +91,7 @@ _test(next_token)
     token *a;
     int i;
     for(i = 0, a = next_token(stream); a; a = next_token(stream), i++){
-        assert(a->type == conv[i]);
+        assert(a->type == conv[i], "I failed on %d cause %d isnt %d.", i, a->type, conv[i]);
         free(a);
     }
 }_tset;
@@ -114,7 +114,7 @@ _test(token_stream){
 }_tset;
 
 _test(read_line){
-    char *str = "o my sweet baby under:\n    or a: dagger\n    of the\ncrime";
+    char *str = "o my sweet baby under:\n    (or to <<a <<or>> c>> dagger to\n    of) the doorway\ncrime";
     FILE *cstream = fmemopen(str, strlen(str), "r");
     
     token_stream *stream = make_token_stream(cstream);
