@@ -159,7 +159,7 @@ oyster *append(oyster * a, oyster * b)
     if (!nilp(a)) {
         ret = cons(car(a), append(cdr(a), b));
     } else {
-        ret = b;
+        ret = oyster_copy(b, b->bindings);
     }
 
     decref(a);
@@ -173,11 +173,22 @@ oyster *reverse(oyster * xs)
     incref(xs);
     oyster *ret = nil();
     oyster *cur, *a;
-    for (cur = xs, incref(cur); !nilp(cur); a = cur, cur = cdr(cur), incref(cur), decref(a)) {  // ew. gross.
+    for (cur = xs, incref(cur); 
+         !nilp(cur); 
+         a = cur, cur = cdr(cur), incref(cur), decref(a)) {  // ew. gross.
         ret = cons(car(cur), ret);
     }
     decref(cur);
     return ret;
+}
+
+int oyster_length(oyster *xs)
+{
+    int i;
+    for(i=0; !nilp(xs); i++){
+        xs = cdr(xs);
+    }
+    return i;
 }
 
 #endif

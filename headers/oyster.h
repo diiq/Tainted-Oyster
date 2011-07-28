@@ -132,7 +132,7 @@ int nilp(oyster * x);
 oyster *list(int count, ...);
 oyster *append(oyster * a, oyster * b);
 oyster *reverse(oyster * xs);
-
+int oyster_length(oyster *xs);
 
 
 //--------------------------------- Oysters ----------------------------------// 

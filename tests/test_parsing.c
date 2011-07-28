@@ -90,8 +90,11 @@ _test(next_token)
                   SYMBOL_TOKEN};
     token *a;
     int i;
-    for(i = 0, a = next_token(stream); a; a = next_token(stream), i++){
-        assert(a->type == conv[i], "I failed on %d cause %d isnt %d.", i, a->type, conv[i]);
+    for(i = 0, a = next_token(stream); 
+        a->count >= 0;
+        a = next_token(stream), i++){
+        assert(a->type == conv[i], 
+               "I failed on %d cause %d isnt %d.", i, a->type, conv[i]);
         free(a);
     }
 }_tset;
@@ -113,13 +116,16 @@ _test(token_stream){
     free(a);
 }_tset;
 
-_test(read_line){
-    char *str = "o my sweet baby under:\n    (or to <<a <<or>> c>> dagger to\n    of) the doorway\ncrime";
+_test(read_one){
+    char *str = "\\'x:\n    so many (things)\n    x\n    so: there";
     FILE *cstream = fmemopen(str, strlen(str), "r");
     
     token_stream *stream = make_token_stream(cstream);
-    oyster *a = read_line(stream, 0);
+    oyster *a = read_one(stream, 0);
     oyster_print(a);printf("\n");
+    a = read_one(stream, 0);
+    oyster_print(a);printf("\n");
+
     free(stream);
 }_tset;
 
@@ -132,6 +138,6 @@ _test(parsing)
     run_test(read_newline);
     run_test(next_token);
     run_test(token_stream);
-    run_test(read_line);
+    run_test(read_one);
     run_test(next_oyster);
 } _tset;
