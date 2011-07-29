@@ -443,7 +443,7 @@ oyster *parse_expression(token_stream *stream)
 
         subret = parse_infix(stream);
         if(subret){
-            oyster *pre = ret;
+            oyster *pre = reverse(ret);
             
             incref(pre);
             handle_singleton(pre);

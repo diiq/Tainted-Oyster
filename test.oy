@@ -29,5 +29,24 @@ print: quoted Scope and leaking tests.
 print: set! a 't
 
 print: a
-print: (\'b b): t
-print: (\'b b): really a
+print: (\('b) b) t
+print: (\('b) b): really a
+
+set! b 'b
+print: (\b b) 't
+
+print: *((\a: leak a 'a) 'b <<cons>> ())
+
+#--------------------------------------------------------------#
+print: quoted oif tests.
+
+print: oif 'a 't 'a
+print: oif () 'a 't
+
+#--------------------------------------------------------------#
+print: quoted Elipsis argument tests
+
+# This one still fails, because of the faulty way elipsis args
+# are currently handled. Needed to be fixed for the sake of continuations,
+# anyway. 
+#print: car: (\(... 'b) b) t e a q
