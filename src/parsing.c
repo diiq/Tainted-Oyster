@@ -62,7 +62,7 @@ token *read_symbol(FILE *stream){
     char a[1000]; // for clarity, for now
     int c = fgetc(stream);
 
-    if(!isalpha(c)){
+    if(!isalpha(c) && c != '.'){
         ungetc(c, stream);
         return NULL;
     } 
@@ -376,6 +376,15 @@ oyster *parse_infix(token_stream *stream){
     return NULL;
 }
 
+#define handle_singleton(expression)                  \
+    if(nilp(cdr(expression))){                        \
+        oyster *temp = car(expression);               \
+        incref(temp);                                 \
+        decref(expression);                           \
+        expression = temp;                            \
+    }                                                 \
+
+// todo break into parse_colon and parse_colon_newline
 oyster *parse_colon(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == COLON_TOKEN){
@@ -385,7 +394,13 @@ oyster *parse_colon(token_stream *stream){
             int indent = next->count;
             oyster *ret = nil();
             while(1){
-                ret = cons(parse_expression(stream), ret);
+                oyster *subret = parse_expression(stream);
+                
+                incref(subret);
+                handle_singleton(subret);
+
+                ret = cons(subret, ret);
+                decref(subret);
                 free(next);
                 next = get_token(stream);
                 if(next->type != NEWLINE_TOKEN){
@@ -401,7 +416,12 @@ oyster *parse_colon(token_stream *stream){
             return ret;
         } else {
             unget_token(next, stream);
-            oyster *ret = list(1, parse_expression(stream));
+            oyster *subret = parse_expression(stream);
+
+            incref(subret);
+            handle_singleton(subret);
+            oyster *ret = list(1, subret);
+            decref(subret);
             return ret;
         }
     }
@@ -423,7 +443,18 @@ oyster *parse_expression(token_stream *stream)
 
         subret = parse_infix(stream);
         if(subret){
-            ret = list(3, parse_expression(stream), ret, subret);
+            oyster *pre = ret;
+            
+            incref(pre);
+            handle_singleton(pre);
+
+            oyster *post = parse_expression(stream);
+            incref(post);
+            handle_singleton(post);
+ 
+            ret = list(3, post, pre, subret);
+            decref(pre);
+            decref(post);
             continue;
         }
 
@@ -436,7 +467,22 @@ oyster *parse_expression(token_stream *stream)
 
         break;
     }
+
     return reverse(ret);
+}
+
+oyster *read(token_stream *x){
+    oyster *ret = parse_expression(x);
+
+    incref(ret);
+    handle_singleton(ret);
+
+    token *t = get_token(x);
+    if(t->type != NEWLINE_TOKEN){
+        error(314, 0, "Unexpected token.");
+    }
+    free(t);
+    return ret;
 }
 
 // -------------------------------------------------------------------- //

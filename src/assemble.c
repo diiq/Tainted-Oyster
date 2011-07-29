@@ -34,34 +34,35 @@ void clean_up_oyster()          // And can clean_up come with you?
 }
 
 
-/* oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file */
-/* { */
-/*     token_stream *in = make_token_stream(inf); */
-/*     oyster *func = read_one(in, 0); */
-/*     machine *m = make_machine(); */
-/*     incref(m); */
-/*     printf(" -<<\n"); */
-/*     while (!nilp(func)) { */
-/*         incref(func); */
-/*         oyster_print(func); printf(" -<<\n"); */
-/*         push_new_instruction(m, func, EVALUATE); */
+oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
+{
+    token_stream *in = make_token_stream(inf);
+    oyster *func = read(in);
+    machine *m = make_machine();
+    incref(m);
+    while (!nilp(func)) {
 
-/*         while (!m->paused) { */
-/*             step_machine(m); */
-/*         } */
-/*         m->paused = 0; */
+        oyster_print(func);printf("\n");
 
-/*         func = read_one(in, 0); */
-/*     } */
+        push_new_instruction(m, func, EVALUATE);
 
-/*     fclose(inf); */
-/*     free(in); */
-/*     oyster *ret = m->accumulator; */
+        while (!m->paused) {
+            step_machine(m);
+        }
+        m->paused = 0;
 
-/*     incref(ret); */
-/*     decref(m); */
-/*     return ret; */
-/* } */
+        decref(func);
+        func = read(in);
+    }
+
+    fclose(inf);
+    free(in);
+    oyster *ret = m->accumulator;
+
+    incref(ret);
+    decref(m);
+    return ret;
+}
 
 
 oyster *evaluate_scan(GScanner * in,  int print) // o god, it's a miscellaneous file

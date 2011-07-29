@@ -1,83 +1,16 @@
-# (set! def (' (((' name) ... (' code)) (leak (just name)) (set! (just name) code))))
-# (def fn (... (' code)) code)
+set! quoted: '((... 'args) args)
+
+set! list: '((... args) args)
+
+set! unary-\:
+    quoted:
+        ('args)
+        oif (atom-p args):
+            set! args: cons args ()
+        quoted:
+            (... 'code)
+            list args @code
+
+print: \(x a g d): figs
 
 
-# (print (' (cons car cdr and fn tests)))
-
-# (print (car (cons (' t) ())))
-# (print (car ((fn (b) (cons (' t) (cons b ()))) (' a))))
-# (print (car (cdr (((fn (b) (fn (a) (cons a (cons b ())))) (' t)) (' b)))))
-
-
-# (print (' (Scope and leaking tests)))
-# (print (set! a (' t)))
-# (print a)
-# (print ((fn ((' b)) b) t))
-# (print ((fn ((' b)) b) (just a)))
-
-# (set! a (' b))
-# (print ((fn (a) a) (' t)))
-
-# (set! a (' t))
-# (print (* (cons ((fn (a) (leak a (' a))) (' b)) ())))
-
-# (print (' (oif tests)))
-# (print (oif (' a) (' t) (' a)))
-# (print (oif () (' a) (' t)))
-
-# (print (' ( elipsis args tests)))
-# (print (car ((fn (... (' b)) b) t a e q)))
-# (print (car (car ((fn (... (' b)) b) (just (cons (' t) (cons (' a) ())))))))
-
-# (signal 5)
-
-
-# set unary-\:
-#     quoted:
-#         '(('args):
-#         if (atomp args):
-#             args => (list args)
-#         quoted:
-#             (... 'code)
-#             cons args code
-
-#set! quoted: '((... 'args) args)
- 
-#print: quoted cons car cdr and fn tests
-
-(print (car (cons (unary-' t) ())))
-print: car: cons 't ()
-
-# print: car: 
-#        (\b: cons 't (cons b ())) 'a
-
-# print: car: cdr:
-#         ((\b: \a: cons a (cons b ())) 't) 'b
-
-
-# print: quoted Scope and leaking tests
-
-# print: set a 't
-# print: a
-# print: (\'b b): t
-# print: (\'b b): just a
-
-# set b 'b
-# print: (\b b) 't
-
-# print: 
-#     *(cons: 
-#         (\a: leak a 'a) 'b
-#         ())
-
-
-# print: quoted oif tests
-
-# print: oif 'a 't 'a
-# print: oif () 'a 't
-
-# print: quoted elipsis args tests
-# print: car: (\(... 'b) b) t a e q
-# print: car: car: 
-#        (\(... 'b) b): 
-#            just: cons 't (cons 'a ())

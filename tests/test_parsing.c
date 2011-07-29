@@ -117,10 +117,17 @@ _test(token_stream){
 }_tset;
 
 _test(read_one){
-    char *str = "this '(is <<antioch>> ,unweildy a) feild:\n    of dust and peat\n    soooper sauce\n    soop";
+    char *str = ("this '(is <<(antioch)>> ,unweildy a) feild:\n"
+                 "    of dust and peat\n"
+                 "    (single sauce)\n"
+                 "    soop:\n"
+                 "        (poop)\n"
+                 "this is another expression here");
     FILE *stream = fmemopen(str, strlen(str), "r");    
     token_stream *a = make_token_stream(stream);
 
+    oyster_print(parse_expression(a));printf("\n");
+    free(get_token(a));
     oyster_print(parse_expression(a));
 }_tset;
 
