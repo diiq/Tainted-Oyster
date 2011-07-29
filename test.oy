@@ -11,6 +11,23 @@ set! unary-\:
             (... 'code)
             list args @code
 
-print: \(x a g d): figs
+#--------------------------------------------------------------#
+print: quoted Cons car cdr and fn tests.
+
+print: car: cons 't ()
+
+print: car: 
+    (\b: cons 't (cons b ())) 'a
+
+print: car: cdr:
+    ((\b: \a: a <<cons>> b <<cons>> ()) 't) 'b
 
 
+#--------------------------------------------------------------#
+print: quoted Scope and leaking tests.
+
+print: set! a 't
+
+print: a
+print: (\'b b): t
+print: (\'b b): really a

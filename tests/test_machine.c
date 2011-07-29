@@ -168,7 +168,7 @@ _tset;
 _test(atpend)
 {
     oyster *ret = evaluate_string("((clear ((... foo) foo))"
-                                  "    (@ (clear (bar bash))))");
+                                  "    (unary-@ (clear (bar bash))))");
     assert(ret->in->type == CONS);
     decref(ret);
 }
@@ -178,7 +178,7 @@ _tset;
 _test(asterpend)
 {
     oyster *ret = evaluate_string("((clear ((... foo) foo))"
-                                  "    (* (clear ((clear bar) (clear bash)))))");
+                                  "    (unary-* (clear ((clear bar) (clear bash)))))");
     assert(ret->in->type == CONS);
     decref(ret);
 }
@@ -218,7 +218,7 @@ _tset;
 
 _test(cons_from_cont)
 {
-    oyster *ret = evaluate_string("(cons (' a) (' b))");
+    oyster *ret = evaluate_string("(cons (unary-' a) (unary-' b))");
     decref(ret);
 }
 

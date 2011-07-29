@@ -19,7 +19,7 @@ void init_oyster()              // Where does this belong? Quo vadis, init?
         add_symbol(ATPEND, "unary-@");
         add_symbol(ELIPSIS, "...");
         add_symbol(ASTERIX, "unary-*");
-        add_symbol(JUST, "just");
+        add_symbol(REALLY, "really");
         add_symbol(CLEAR, "clear");
         add_symbol(BUILT_IN_FUNCTION, "built-in-function");
 
@@ -42,7 +42,7 @@ oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
     incref(m);
     while (!nilp(func)) {
 
-        oyster_print(func);printf("\n");
+        //        oyster_print(func);printf("\n");
 
         push_new_instruction(m, func, EVALUATE);
 

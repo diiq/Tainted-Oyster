@@ -187,7 +187,7 @@ enum {
     ATPEND,
     ELIPSIS,
     ASTERIX,
-    JUST,
+    REALLY,
     CLEAR,
     BUILT_IN_FUNCTION,
     MAX_PREDEF_SYMBOL,

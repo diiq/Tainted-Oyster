@@ -192,8 +192,8 @@ void push_normal_argument(oyster * arg, oyster * lambda_list,
         // The argument name is wrapped in a function call
         name = car(cdr(lambda));
 
-        if (car_is_sym(arg, JUST)) {
-            // but the argument is wrapped in JUST! Do nothing.
+        if (car_is_sym(arg, REALLY)) {
+            // but the argument is wrapped in really! Do nothing.
             func = car(cdr(arg));
 
         } else {
