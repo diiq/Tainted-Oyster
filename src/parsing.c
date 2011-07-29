@@ -31,8 +31,31 @@ int delimiter(char c){
 token *make_token(int type){
     token *ret = malloc(sizeof(token));
     ret->type = type;
+    ret->string = NULL;
     ret->count = 0;
     return ret;
+}
+
+void print_token(token *t){
+    if(t->type == SYMBOL_TOKEN){
+        printf("%s", t->string);
+    } else {
+        char * conv[]={"SYMBOL_TOKEN",
+                       "PREFIX_TOKEN",
+                       "INFIX_TOKEN",
+                       "DEFIX_TOKEN",
+                       "OPEN_TOKEN",
+                       "CLOSE_TOKEN",
+                       "COLON_TOKEN",
+                       "NEWLINE_TOKEN",
+                       "NOTHING_TOKEN"};
+        printf("%s", conv[t->type]);
+    }
+}
+
+void free_token(token *t){
+    if(t->string) free(t->string);
+    free(t);
 }
 
 token *read_symbol(FILE *stream){
@@ -109,27 +132,6 @@ token *read_colon(FILE *stream){
     return make_token(COLON_TOKEN);
 }
 
-token *read_newline(FILE *stream){
-    int c = fgetc(stream);
-    if(c != '\n'){
-        ungetc(c, stream);
-        return NULL;
-    }
-    token *ret =  make_token(NEWLINE_TOKEN);
-    ret->count = 0;
-    for(c = fgetc(stream); c == ' '; c = fgetc(stream)){
-        ret->count++;
-    }
-    ungetc(c, stream);
-
-    token *ret2 = read_newline(stream);
-    if (ret2){
-        free(ret);
-        return ret2;
-    } else {
-        return ret;
-    }
-}
 
 token *read_infix(FILE *stream)
 {
@@ -195,6 +197,35 @@ int read_comment(FILE *stream){
     while(c != '\n')
         c = fgetc(stream);
     return 1;
+}
+
+token *read_newline(FILE *stream){
+    int c = fgetc(stream);
+    if(c != '\n'){
+        ungetc(c, stream);
+        return NULL;
+    }
+    token *ret =  make_token(NEWLINE_TOKEN);
+    ret->count = 0;
+    for(c = fgetc(stream); c == ' '; c = fgetc(stream)){
+        ret->count++;
+    }
+
+    int i = 1;
+    while(i){
+        i = 0;
+        i += read_backslash(stream);
+        i += read_space(stream);
+        i += read_comment(stream);
+    }
+
+    token *ret2 = read_newline(stream);
+    if (ret2){
+        free(ret);
+        return ret2;
+    } else {
+        return ret;
+    }
 }
 
 token *next_token(FILE *stream){
@@ -275,196 +306,97 @@ void unget_token(token *token, token_stream *stream)
     stream->pulled = t;
 }
 
-void print_token(token *t){
-    char * conv[]={"SYMBOL_TOKEN",
-                   "PREFIX_TOKEN",
-                   "INFIX_TOKEN",
-                   "DEFIX_TOKEN",
-                   "OPEN_TOKEN",
-                   "CLOSE_TOKEN",
-                   "COLON_TOKEN",
-                   "NEWLINE_TOKEN",
-                   "NOTHING_TOKEN"};
-    printf("%s\n", conv[t->type]);
-}
 
-// ------------------------------ PB parser --------------------------- //
-oyster *parse_symbols(token_stream *stream, int indent)
-{
-    token *next;
-    oyster *ret = nil();
-    for(next = get_token(stream);
-        next->type == SYMBOL_TOKEN;
-        next = get_token(stream)){
-        ret = cons(make_symbol(sym_id_from_string(next->string)), ret);
+
+// ---------------------------- Parsing --------------------------------//
+
+oyster *parse_symbol(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == SYMBOL_TOKEN){
+        oyster *ret = make_symbol(sym_id_from_string(next->string));
         free(next);
+        return ret;
     }
     unget_token(next, stream);
-    ret = reverse(ret);
-    return ret;
+    return NULL;
 }
 
-oyster *read_one(token_stream *stream, int indent){
-    // asap, break into individual functions.
-    // soon, comment it up
-    // eventually, turn this into a dijkstra-style operator-precedence thing. Maybe.
-    //repeatedly:
-    oyster *ret = parse_symbols(stream, indent);
+oyster *parse_parens(token_stream *stream){
     token *next = get_token(stream);
-    print_token(next);
-    switch(next->type){
-    case NEWLINE_TOKEN:
-        {
-            token * nnext = get_token(stream);
-            while(nnext->type == NEWLINE_TOKEN &&
-                  nnext->count >= 0){
-                free(next);
-                next = nnext;
-                nnext = get_token(stream);
-            }
-            unget_token(nnext, stream);
-            unget_token(next, stream);
-        }
-        break;
-    case CLOSE_TOKEN:
-    case DEFIX_TOKEN:
-        unget_token(next, stream);
-        //wrap up
-        break;
-    
-    case PREFIX_TOKEN:
-        {
-            oyster *full;
-            token *nnext = get_token(stream);
-            int flag = 1;
-            switch (nnext->type){
-            case PREFIX_TOKEN:
-                flag = 0;
-            case OPEN_TOKEN:
-                {
-                    unget_token(nnext, stream);
-                    oyster *rest = read_one(stream, indent);
-                    incref(rest);
-                    oyster *first = car(rest);
-                    oyster *last = cdr(rest);
-                    decref(rest);
-                    full = cons(list(2, 
-                                     make_symbol(sym_id_from_string(next->string)),
-                                     first),
-                                last);
-                    if (flag){
-                        full = cons(full, read_one(stream, indent));
-                    }
-                }
-                break;
-            case SYMBOL_TOKEN:
-                full = cons(list(2, 
-                                 make_symbol(sym_id_from_string(next->string)),
-                                 make_symbol(sym_id_from_string(nnext->string))),
-                            read_one(stream, indent));
-
-                free(nnext->string);
-                free(nnext);
-                break;
-            default:
-                print_token(nnext);
-                error(314, 0, "Unexpected token following a prefix.");
-            }
-
-            free(next->string);
-            free(next);
-            ret = append(ret, full);
-        }
-        break;
-
-    case OPEN_TOKEN:
-        {
-            free(next);
-            oyster *first = ret;
-            oyster *inner = read_one(stream, indent);
-            token *close = get_token(stream);
-            if (close->type != CLOSE_TOKEN){
-                error(314, 0, "I was expecting a \")\".");
-            }
-            free(close);
-            oyster *after = read_one(stream, indent);
-            ret = append(first, cons(inner, after));
-        }
-        break;
-
-    case INFIX_TOKEN:
-        {
-            free(next);
-            oyster *first = ret;
-            oyster *inner = read_one(stream, indent);
-            token *close = get_token(stream);
-            if (close->type != DEFIX_TOKEN){
-                error(314, 0, "I was expecting a \">>\".");
-            }
-            free(close);
-            oyster *after = read_one(stream, indent);
-            ret = list(3, inner, first, after);
-        }
-        break;
-
-    case COLON_TOKEN:
-        { 
-            free(next);
-            next = get_token(stream);
-            if (next->type == NEWLINE_TOKEN){
-                oyster *rest = nil();
-                int cindent = next->count;
-                while(1){
-                    oyster *this = read_one(stream, cindent);
-                    incref(this);
-                    oyster *that;
-                    if(oyster_length(this) == 1){
-                        that = car(this);
-                    } else {
-                        that = oyster_copy(this, this->bindings);
-                    } 
-                    decref(this);
-                    rest = cons(that, rest);
-                    free(next);
-                    next = get_token(stream);
-                    if (next->type != NEWLINE_TOKEN){
-                        error(314, 0, "I was expecting a new line.");
-                    } else if (next->count == indent){
-                        break;
-                    } else if (next->count < indent){
-                        unget_token(next, stream);
-                        break;
-                    } else if (next->count > cindent){
-                        error(314, 0, "Unexpected indent.");
-                    } else {
-                        cindent = next->count;
-                    }
-                }
-                rest = reverse(rest);
-                ret = append(ret, rest);
-            } else {
-                unget_token(next, stream);
-
-                oyster *this = read_one(stream, indent);
-                incref(this);
-                oyster *rest;
-                if(oyster_length(this) == 1){
-                    rest = car(this);
-                } else {
-                    rest = oyster_copy(this, this->bindings);
-                } 
-                decref(this);
-                    
-                ret = append(ret, list(1, rest));
-            }
-        }
-        break;
-
+    if(next->type == OPEN_TOKEN){
+        oyster *ret = parse_expression(stream);
+        free(next);
+        next = get_token(stream);
+        if(next->type != CLOSE_TOKEN)
+            error(314, 0, "Parse error: expected ).");
+        return ret;
     }
-
-    return ret;
+    unget_token(next, stream);
+    return NULL;
 }
 
+oyster *parse_prefix(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == PREFIX_TOKEN){
+        oyster *func = make_symbol(sym_id_from_string(next->string));
+        oyster *ret = list(2, func, parse_one(stream));
+        free(next);
+        return ret;
+    }
+    unget_token(next, stream);
+    return NULL;
+}
+
+oyster *parse_one(token_stream *stream)
+{
+    oyster *ret;
+    ret = parse_symbol(stream);
+    if (ret) return ret;
+    
+    ret = parse_parens(stream);
+    if (ret) return ret;
+
+    ret = parse_prefix(stream);
+    if (ret) return ret;
+
+    return NULL;
+}
+
+oyster *parse_infix(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == INFIX_TOKEN){
+        oyster *ret = parse_one(stream);
+        free(next);
+        next = get_token(stream);
+        if(next->type != DEFIX_TOKEN)
+            error(314, 0, "Parse error: expected >>.");
+        return ret;
+    }
+    unget_token(next, stream);
+    return NULL;
+}
+
+oyster *parse_expression(token_stream *stream)
+{
+    oyster *ret = nil();
+    oyster *subret = NULL;
+    while(1){
+        subret = parse_one(stream);
+        if(subret){
+            ret = cons(subret, ret);
+            continue;
+        }
+
+        subret = parse_infix(stream);
+        if(subret){
+            ret = list(3, parse_expression(stream), ret, subret);
+            continue;
+        }
+
+        break;
+    }
+    return reverse(ret);
+}
 
 // -------------------------------------------------------------------- //
 

@@ -117,27 +117,13 @@ _test(token_stream){
 }_tset;
 
 _test(read_one){
-    char *str = "\\'x:\n    so many (things)\n    x\n    so: there";
-    FILE *cstream = fmemopen(str, strlen(str), "r");
-    
-    token_stream *stream = make_token_stream(cstream);
-    oyster *a = read_one(stream, 0);
-    oyster_print(a);printf("\n");
-    a = read_one(stream, 0);
-    oyster_print(a);printf("\n");
+    char *str = "this '(is <<antioch>> ,unweildy a) feild";
+    FILE *stream = fmemopen(str, strlen(str), "r");    
+    token_stream *a = make_token_stream(stream);
 
-    free(stream);
+    oyster_print(parse_expression(a));
 }_tset;
 
-_test(tricky_parses){
-    char *str = "print: cdr: cons () 't ";
-    FILE *cstream = fmemopen(str, strlen(str), "r");
-    
-    token_stream *stream = make_token_stream(cstream);
-    oyster *a = read_one(stream, 0);
-    oyster_print(a);printf("\n");
-    free(stream);
-}_tset;
 
 _test(parsing)
 {
@@ -149,6 +135,8 @@ _test(parsing)
     run_test(next_token);
     run_test(token_stream);
     run_test(read_one);
-    run_test(tricky_parses);
+
     run_test(next_oyster);
 } _tset;
+
+
