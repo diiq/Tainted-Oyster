@@ -210,7 +210,7 @@ token *read_newline(FILE *stream){
     for(c = fgetc(stream); c == ' '; c = fgetc(stream)){
         ret->count++;
     }
-
+    ungetc(c, stream);
     int i = 1;
     while(i){
         i = 0;
@@ -376,6 +376,40 @@ oyster *parse_infix(token_stream *stream){
     return NULL;
 }
 
+oyster *parse_colon(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == COLON_TOKEN){
+        free(next);
+        next = get_token(stream);
+        if(next->type == NEWLINE_TOKEN){
+            int indent = next->count;
+            oyster *ret = nil();
+            while(1){
+                ret = cons(parse_expression(stream), ret);
+                free(next);
+                next = get_token(stream);
+                if(next->type != NEWLINE_TOKEN){
+                    unget_token(next, stream);
+                    break;
+                } else if (next->count > indent) {
+                    error(314, 0, "Unexpected indent.");
+                } else if (next->count < indent) {
+                    unget_token(next, stream);
+                    break;
+                } 
+            }
+            return ret;
+        } else {
+            unget_token(next, stream);
+            oyster *ret = list(1, parse_expression(stream));
+            return ret;
+        }
+    }
+    unget_token(next, stream);
+    return NULL;
+}
+
+
 oyster *parse_expression(token_stream *stream)
 {
     oyster *ret = nil();
@@ -390,6 +424,13 @@ oyster *parse_expression(token_stream *stream)
         subret = parse_infix(stream);
         if(subret){
             ret = list(3, parse_expression(stream), ret, subret);
+            continue;
+        }
+
+
+        subret = parse_colon(stream);
+        if(subret){
+            ret = append(subret, ret);
             continue;
         }
 

@@ -117,7 +117,7 @@ _test(token_stream){
 }_tset;
 
 _test(read_one){
-    char *str = "this '(is <<antioch>> ,unweildy a) feild";
+    char *str = "this '(is <<antioch>> ,unweildy a) feild:\n    of dust and peat\n    soooper sauce\n    soop";
     FILE *stream = fmemopen(str, strlen(str), "r");    
     token_stream *a = make_token_stream(stream);
 
