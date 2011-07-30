@@ -11,8 +11,7 @@ _test(read_symbol)
     FILE *stream = fmemopen(str, strlen(str), "r");
     token *ret  = read_symbol(stream);
     assert(strcmp("hello-there!dahling", ret->string) == 0);
-    free(ret->string);
-    free(ret);
+    free_token(ret);
 } _tset;
 
 _test(read_prefix)
@@ -21,8 +20,7 @@ _test(read_prefix)
     FILE *stream = fmemopen(str, strlen(str), "r");
     token *ret  = read_prefix(stream);
     assert(strcmp("unary-$", ret->string) == 0);
-    free(ret->string);
-    free(ret);
+    free_token(ret);
 } _tset;
 
 
@@ -35,8 +33,9 @@ _test(read_open_close)
     token *c  = read_close(stream);
     assert(a->type == OPEN_TOKEN);
     assert(c->type == CLOSE_TOKEN);
-    free(b->string);
-    free(b);
+    free_token(a);
+    free_token(b);
+    free_token(c);
 } _tset;
 
 _test(read_newline)
@@ -46,6 +45,7 @@ _test(read_newline)
     token *a  = read_newline(stream);
     assert(a->type == NEWLINE_TOKEN);
     assert(a->count == 4);
+    free_token(a);
 } _tset;
 
 _test(next_token)
@@ -87,10 +87,10 @@ _test(token_stream){
     unget_token(b, a);
     b = get_token(a);
     assert(b->type == SYMBOL_TOKEN);
-    free(b);
+    free_token(b);
     b = get_token(a);
     assert(b->type == INFIX_TOKEN);
-    free(b);
+    free_token(b);
     free_token_stream(a);
 }_tset;
 
