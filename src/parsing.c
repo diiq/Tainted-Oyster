@@ -340,7 +340,9 @@ oyster *parse_parens(token_stream *stream){
         next = get_token(stream);
         if(next->type != CLOSE_TOKEN)
             error(314, 0, "Parse error: expected ).");
+        free_token(next);
         return ret;
+        
     }
     unget_token(next, stream);
     return NULL;
@@ -381,6 +383,7 @@ oyster *parse_infix(token_stream *stream){
         next = get_token(stream);
         if(next->type != DEFIX_TOKEN)
             error(314, 0, "Parse error: expected >>.");
+        free_token(next);
         return ret;
     }
     unget_token(next, stream);
