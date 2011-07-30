@@ -486,6 +486,7 @@ oyster *read(token_stream *x){
 }
 
 // -------------------------------------------------------------------- //
+// The symbol table
 
 int current_max_symbol;
 
@@ -540,73 +541,6 @@ char *string_from_sym_id(int sym)
     if (ret)
         return ret;
     return "wow-I-have-no-idea-what-this-symbol-is-where-did-you-find-it?";
-}
-
-GScanner *make_scanner()
-{
-    GScanner *scan = g_scanner_new(NULL);
-    scan->config->cset_identifier_first = ("abcdefghijklmnopqrstuvwxyz"
-                                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                           "'-!@$%^&*<>?,./=_+`~");
-    scan->config->cset_identifier_nth = ("abcdefghijklmnopqrstuvwxyz"
-                                         "1234567890"
-                                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                         "'-!@$%^&*<>?,./=_+`~");
-    //    scan->config->char_2_token = FALSE;
-    scan->config->scan_string_sq = FALSE;
-    scan->config->scan_identifier_1char = TRUE;
-    scan->config->skip_comment_single = TRUE;
-    return scan;
-}
-
-
-GScanner *string_scanner(char *text)
-{
-    GScanner *scan = make_scanner();
-    g_scanner_input_text(scan, text, strlen(text));
-    return scan;
-}
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-GScanner *file_scanner(char *file)
-{
-    GScanner *scan = make_scanner();
-    if (file)
-        g_scanner_input_file(scan, open(file, 'r'));
-    else
-        g_scanner_input_file(scan, 0);
-    return scan;
-}
-
-
-oyster *next_oyster(GScanner * in)
-{
-    g_scanner_get_next_token(in);
-    //int line_number = g_scanner_cur_line(in);
-    oyster *ret;
-    if (in->token == G_TOKEN_EOF)
-        ret = NULL;
-    else if (in->token == G_TOKEN_IDENTIFIER)
-        ret = make_symbol(sym_id_from_string(in->value.v_string));
-    else if (in->token == G_TOKEN_LEFT_PAREN) {
-        ret = nil();
-        oyster *cur = next_oyster(in);
-        while (cur) {
-            ret = cons(cur, ret);
-            cur = next_oyster(in);
-        }
-        oyster *rev = reverse(ret);
-        decref(ret);
-        ret = rev;
-    } else if (in->token == G_TOKEN_RIGHT_PAREN)
-        ret = NULL;
-    //    table_set(sym_id_from_string("line-number"), 
-    //          make_number(line_number), 
-    //          ret->in->info);
-    return ret;
 }
 
 #endif
