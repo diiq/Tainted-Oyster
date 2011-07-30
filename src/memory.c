@@ -1,10 +1,8 @@
-#ifndef MEMORY
-#define MEMORY
-
 // This file contains functions dealing with memory management.
 #include <stdlib.h>
 
 #include "oyster.h"
+#include "machine.h"
 
 void *initialize_memory_object(size_t size, void *inc, void *dec)
 {
@@ -172,4 +170,3 @@ void number_unref(number * n)
 
 //
 
-#endif

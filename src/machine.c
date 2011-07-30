@@ -1,9 +1,7 @@
-#ifndef MAHCINE
-#define MACHINE
-
 // This file concerns itself with the process of the interpreter itself.
 
 #include "oyster.h"
+#include "machine.h"
 
 machine *make_machine()
 {
@@ -123,4 +121,3 @@ void push_instruction_list(machine * m,
     m->current_frame = top;
 }
 
-#endif

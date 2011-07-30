@@ -1,10 +1,9 @@
-#ifndef SCOPES
-#define SCOPES
 
 // This file handles tables specifically as they apply to scopes
 // in stack frames.
 
 #include "oyster.h"
+#include "machine.h"
 
 table_entry *look_up_entry(int sym, frame * cur)
 {
@@ -52,5 +51,3 @@ table *reify_scope(table * t, frame * f)
 }
 
 
-
-#endif

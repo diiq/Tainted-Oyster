@@ -3,7 +3,7 @@
 
 #include "oyster.h"
 #include "testing.h"
-
+#include "machine.h"
 
 _test(look_up)
 {

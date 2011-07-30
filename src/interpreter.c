@@ -2,6 +2,7 @@
 #define INTERPRETER
 
 #include "oyster.h"
+#include "machine.h"
 
 int DEBUG = 0;
 
@@ -9,7 +10,7 @@ void step_machine(machine * m)
 {
     frame *instruct = machine_pop_stack(m);
     if (DEBUG)
-        machine_print(m);       // Should be some kind of debug-mode to turn this on.
+        machine_print(m);     
     if (!instruct)
         return;
 

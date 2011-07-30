@@ -1,5 +1,6 @@
 #include "oyster.h"
 #include "parsing.h"
+#include "machine.h"
 #include <string.h>
 #include <stdio.h>
 

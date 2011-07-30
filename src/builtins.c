@@ -1,11 +1,9 @@
-#ifndef BUILTINS
-#define BUILTINS
 
 // This file contains basic builtin functions like cons, car, cdr, quote, and so on.
 
 #include "oyster.h"
 #include "parsing.h"
-
+#include "machine.h"
 
 // ------------------ The Apparatus -------------------//
 
@@ -243,4 +241,3 @@ void add_builtins(machine * m)
     add_builtin("print-bindings", list(1, arg("x")), print_bindings, m);
 }
 
-#endif

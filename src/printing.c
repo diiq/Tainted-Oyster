@@ -1,4 +1,5 @@
 #include "oyster.h"
+#include "machine.h"
 
 void table_print(table * x)
 {

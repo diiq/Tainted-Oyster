@@ -1,4 +1,5 @@
 #include "oyster.h"
+#include "machine.h"
 #include <error.h>
 
 void no_signal_handler(oyster * signal)

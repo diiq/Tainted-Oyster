@@ -2,7 +2,7 @@
 #define CONTINUATIONS
 
 #include "oyster.h"
-
+#include "machine.h"
 
 machine *machine_copy(machine * m)
 {
