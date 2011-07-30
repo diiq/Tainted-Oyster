@@ -42,7 +42,7 @@ oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
     incref(m);
     while (!nilp(func)) {
 
-        //oyster_print(func);printf("\n");
+        //ooyster_print(func);printf("\n");
 
         push_new_instruction(m, func, EVALUATE);
 
@@ -93,5 +93,6 @@ oyster *evaluate_scan(GScanner * in,  int print) // o god, it's a miscellaneous 
 
 oyster *evaluate_string(char *str)      // you disgust me, miscellany
 {
-    return evaluate_scan(string_scanner(str), 0);
+    FILE *in = fmemopen(str, strlen(str), "r");
+    return evaluate_file(in, 0);
 }

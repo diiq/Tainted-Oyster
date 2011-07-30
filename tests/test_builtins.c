@@ -44,7 +44,8 @@ _tset;
 
 _test(builtin_set)
 {
-    oyster *ret = evaluate_string("(set! a (clear b)) a");
+    oyster *ret = evaluate_string("(set! a (clear b))\n"
+                                  "a");
     assert(ret->in->symbol_id == sym_id_from_string("b"));
     decref(ret);
 }
