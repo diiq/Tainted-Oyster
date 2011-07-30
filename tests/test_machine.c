@@ -152,7 +152,7 @@ _test(elipsis)
 {
     oyster *ret = evaluate_string("((clear ((... foo) foo))"
                                   "    (clear foo) (clear (sipp))"
-                                  "    (clear bar) (clear bash))");
+                                  "    (clear bar) (clear bash))\n");
     assert(ret->in->type == CONS);
     decref(ret);
 }_tset;

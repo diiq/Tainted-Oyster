@@ -498,7 +498,11 @@ oyster *read(token_stream *x){
     if(t->type != NEWLINE_TOKEN){
         error(314, 0, "Unexpected token.");
     }
-    free(t);
+    if (nilp(ret) && t->count < 0){
+        decref(ret);
+        ret = NULL;
+    }
+    free_token(t);
     return ret;
 }
 

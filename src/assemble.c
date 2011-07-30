@@ -39,9 +39,8 @@ oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
     oyster *func = read(in);
     machine *m = make_machine();
     incref(m);
-    while (!nilp(func)) {
-
-        //ooyster_print(func);printf("\n");
+    while (func) {
+        // oyster_print(func);printf("\n");
 
         push_new_instruction(m, func, EVALUATE);
 
@@ -53,13 +52,13 @@ oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
         decref(func);
         func = read(in);
     }
+    oyster *ret = m->accumulator;
+    incref(ret);
 
     fclose(inf);
-    free(in);
-    oyster *ret = m->accumulator;
-
-    incref(ret);
+    free_token_stream(in);
     decref(m);
+
     return ret;
 }
 
