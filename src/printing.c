@@ -17,7 +17,6 @@ void table_print(table * x)
 
 //
 
-
 void machine_print(machine * m)
 {
     frame *f = m->current_frame;
@@ -96,19 +95,22 @@ void frame_print(frame * i, int print_scope)
 void list_print(oyster * o)
 {
     incref(o);
-    oyster_print(cheap_car(o));
-    oyster *d = cheap_cdr(o);
-    if (d->in->type == CONS) {
-        printf(" ");
-        list_print(d);
-    } else if (d->in->type == NIL) {
-        printf(")");
-    } else {
-        printf(" . ");
-        oyster_print(d);
-        printf(")");
+    oyster *t;
+    for(; !nilp(o); t = cheap_cdr(o), decref(o), o = t, incref(o)){
+        oyster *c = cheap_car(o);
+        incref(c);
+        if (c->in->type == CONS){
+            printf("(");
+            oyster_print(c);
+            printf(")");
+        } else {
+            oyster_print(c);
+        }
+        if (o->in->cons->cdr->in->type == CONS) //unacceptable!
+            printf(" ");
+
+        decref(c);
     }
-    decref(o);
 }
 
 void oyster_print(oyster * o)
@@ -117,7 +119,6 @@ void oyster_print(oyster * o)
     int type = o->in->type;
     switch (type) {
     case CONS:
-        printf("(");
         list_print(o);
         break;
     case SYMBOL:
