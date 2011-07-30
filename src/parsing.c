@@ -336,7 +336,7 @@ oyster *parse_parens(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == OPEN_TOKEN){
         oyster *ret = parse_expression(stream);
-        free(next);
+        free_token(next);
         next = get_token(stream);
         if(next->type != CLOSE_TOKEN)
             error(314, 0, "Parse error: expected ).");
@@ -351,7 +351,7 @@ oyster *parse_prefix(token_stream *stream){
     if(next->type == PREFIX_TOKEN){
         oyster *func = make_symbol(sym_id_from_string(next->string));
         oyster *ret = list(2, func, parse_one(stream));
-        free(next);
+        free_token(next);
         return ret;
     }
     unget_token(next, stream);
@@ -482,7 +482,6 @@ oyster *parse_expression(token_stream *stream)
 
         break;
     }
-
     return reverse(ret);
 }
 
