@@ -94,11 +94,13 @@ struct machine {
     int paused;
 };
 
-enum instruction_flags {
+enum instruction_flags { 
     ASTERPEND_CONTINUE,
     ATPEND_CONTINUE,
     ARGUMENT,
     ELIPSIS_ARGUMENT,
+    ELIPSIS_ASTERPEND_CONTINUE,
+    ELIPSIS_ATPEND_CONTINUE,
     EVALUATE,
     CONTINUE,
     APPLY_FUNCTION,
@@ -118,7 +120,8 @@ void push_new_instruction(machine * m, oyster * instruction, int flag);
 void push_instruction_list(machine * m,
                            oyster * ins,
                            table * scope, table * scope_below);
-
+void elipsis_argument(oyster *arg_list, oyster * lambda,
+                      oyster *so_far, machine * m);
 
 
 //------------------------ lists and how to use them -------------------------//

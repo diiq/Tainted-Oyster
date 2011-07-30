@@ -233,8 +233,7 @@ void add_builtins(machine * m)
 
     add_builtin("signal", list(1, arg("message")), builtin_signal, m);
     add_builtin("with-signal-handler",
-                list(3, quot("handler"),
-                     arg("..."),
+                list(2, quot("handler"),
                      quot("code")), builtin_with_signal_handler, m);
 
     add_builtin("current-scope", nil(), builtin_current_scope, m);

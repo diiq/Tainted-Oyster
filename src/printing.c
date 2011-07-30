@@ -61,15 +61,19 @@ void print_stack_trace(machine * m)
 
 void frame_print(frame * i, int print_scope)
 {
-    char *flags[] = { "ASTERPEND_CONTINUE",
+    char *flags[] = { 
+        "ASTERPEND_CONTINUE",
         "ATPEND_CONTINUE",
         "ARGUMENT",
         "ELIPSIS_ARGUMENT",
+        "ELIPSIS_ASTERPEND_CONTINUE",
+        "ELIPSIS_ATPEND_CONTINUE",
         "EVALUATE",
         "CONTINUE",
         "APPLY_FUNCTION",
         "PREPARE_ARGUMENTS",
-        "PAUSE"
+        "PAUSE",
+        "HANDLE_SIGNALS"
     };
 
     printf(" --> ");

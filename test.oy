@@ -6,7 +6,7 @@ set! unary-\:
     quoted:
         ('args)
         oif (atom-p args):
-            set! args: cons args ()
+            set! args: list args
         quoted:
             (... 'code)
             list args @code
@@ -14,10 +14,10 @@ set! unary-\:
 #--------------------------------------------------------------#
 print: quoted Cons car cdr and fn tests.
 
-print: car: cons 't ()
+print: car: 't <<cons>> ()
 
 print: car: 
-    (\b: cons 't (cons b ())) 'a
+    (\b: 't <<cons>> b <<cons>> ()) 'a
 
 print: car: cdr:
     ((\b: \a: a <<cons>> b <<cons>> ()) 't) 'b
@@ -44,9 +44,14 @@ print: oif 'a 't 'a
 print: oif () 'a 't
 
 #--------------------------------------------------------------#
-print: quoted Elipsis argument tests
+print: quoted Elipsis argument tests.
 
-# This one still fails, because of the faulty way elipsis args
-# are currently handled. Needed to be fixed for the sake of continuations,
-# anyway. 
-#print: car: (\(... 'b) b) t e a q
+print: car: (\(... 'b) b) t e a q
+print: car: car: (\(... 'b) b): really: 't <<cons>> 'a <<cons>> ()
+
+#--------------------------------------------------------------#
+print: quoted Signal handling tests.
+
+print: with-signal-handler:
+    \x: car x
+    signal 't

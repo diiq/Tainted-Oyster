@@ -56,27 +56,29 @@ void step_machine(machine * m)
         break;
 
     case ELIPSIS_ARGUMENT:
-        // This MUST be modified. Continuations occuring during an e-argument will 
-        // be totally clobbered when that argument is re-evaluated. Superbad.
-        // (Plus, its pretty damn inefficient, too .)
-
-        {
-            int sym = instruct->instruction->in->symbol_id;
-            int i = 0;
-            oyster *so_far =
-                table_get(sym, m->current_frame->scope_to_be, &i);
-            if (i) {
-                oyster *new = append(so_far, list(1, m->accumulator));
-
-                table_put(sym, new, m->current_frame->scope_to_be);
-
-            } else {
-                table_put(sym,
-                          list(1, m->accumulator),
-                          m->current_frame->scope_to_be);
-            }
-        }
+        elipsis_argument(car(cdr(instruct->instruction)),
+                         car(instruct->instruction),
+                         cons(m->accumulator, 
+                              car(cdr(cdr(instruct->instruction)))),
+                         m); //unweildy!
         break;
+
+    case ELIPSIS_ATPEND_CONTINUE:
+        elipsis_argument(append(unevaluate_list(m->accumulator),
+                                car(cdr(instruct->instruction))),
+                         car(instruct->instruction),
+                         car(cdr(cdr(instruct->instruction))),
+                         m); //unweildy!
+        break;
+
+    case ELIPSIS_ASTERPEND_CONTINUE:
+        elipsis_argument(append(m->accumulator,
+                                car(cdr(instruct->instruction))),
+                         car(instruct->instruction),
+                         car(cdr(cdr(instruct->instruction))),
+                         m); //unweildy!
+        break;
+
 
     case APPLY_FUNCTION:
         push_instruction_list(m,
@@ -162,6 +164,7 @@ int car_is_sym(oyster * x, int sym)
 // an argument prefaced by , will NOT be passed through the associated function,
 // and * and @ allow lists to be inserted into the argument chain without recourse
 // to (apply).
+
 void push_argument(oyster * argument, oyster * name, int flag,
                    oyster * continu, machine * m)
 {
@@ -170,49 +173,96 @@ void push_argument(oyster * argument, oyster * name, int flag,
     push_new_instruction(m, argument, EVALUATE);
 }
 
+void elipsis_argument(oyster *arg_list, oyster * lambda,
+                      oyster *so_far, machine * m)
+{
+    incref(lambda);
+    incref(arg_list);
+ 
+    //    oyster_print(arg_list); printf("\n");
+
+    if(nilp(arg_list)){
+        oyster *name = lambda;
+        if (lambda->in->type == CONS) {
+            name = car(cdr(lambda));
+        } 
+        push_new_instruction(m, name, ARGUMENT);
+        push_new_instruction(m, list(2, make_symbol(CLEAR), reverse(so_far)), EVALUATE);
+        decref(lambda);
+        decref(arg_list);
+        return;
+    }
+    
+    oyster *arg = car(arg_list); // CODE DUPLICATION! todo remove
+    incref(arg);
+    
+    if (car_is_sym(arg, ASTERIX)) {
+        // * arguments are lists of arguments that should be stiched in place.
+        push_new_instruction(m,
+                             list(3, lambda, cdr(arg_list), so_far),
+                             ELIPSIS_ASTERPEND_CONTINUE);
+        push_new_instruction(m, car(cdr(arg)), EVALUATE);
+        
+    } else if (car_is_sym(arg, ATPEND)) {
+        // @ arguments are lists of data that should be stiched in but not evaluated
+        push_new_instruction(m,
+                             list(3, lambda, cdr(arg_list), so_far),
+                             ELIPSIS_ATPEND_CONTINUE);
+        push_new_instruction(m, car(cdr(arg)), EVALUATE);
+        
+    } else {
+
+        oyster *func = arg;
+        if (lambda->in->type == CONS) {
+            if (car_is_sym(arg, REALLY)) {
+                func = car(cdr(arg));
+            } else {
+                func = append(list(2, car(lambda), arg), cdr(cdr(lambda)));
+            }
+        }
+
+        push_new_instruction(m, list(3, lambda, cdr(arg_list), so_far), ELIPSIS_ARGUMENT);
+        push_new_instruction(m, func, EVALUATE);
+    }
+    decref(lambda);
+    decref(arg);
+    decref(arg_list);
+}
+
+
 void push_normal_argument(oyster * arg, oyster * lambda_list,
                           oyster * arg_list, machine * m)
 {
-    oyster *lambda, *name, *func;
-    int flag;
 
-    if (car_is_sym(lambda_list, ELIPSIS)) {
-        lambda = car(cdr(lambda_list));
-        lambda_list = cons(nil(), lambda_list);
-        flag = ELIPSIS_ARGUMENT;
-
-    } else {
-        lambda = car(lambda_list);
-        flag = ARGUMENT;
-    }
-
+    oyster *lambda = car(lambda_list);
+    oyster *name, *func;
+    
     incref(lambda);
-
+    
     if (lambda->in->type == CONS) {
-        // The argument name is wrapped in a function call
+            // The argument name is wrapped in a function call
         name = car(cdr(lambda));
-
+        
         if (car_is_sym(arg, REALLY)) {
             // but the argument is wrapped in really! Do nothing.
             func = car(cdr(arg));
-
+            
         } else {
             // The argument is normal --- wrap that sucker!
             func = append(list(2, car(lambda), arg), cdr(cdr(lambda)));
         }
     } else {
         // it's a boring, every-dey argument/name pai--- I mean, it's an 
-        // extra special snowflake, just like you.
+            // extra special snowflake, just like you.
         name = lambda;
         func = arg;
     }
-
-    push_argument(func, name, flag,
+    
+    push_argument(func, name, ARGUMENT,
                   list(2, cdr(lambda_list), cdr(arg_list)), m);
-
+    
     decref(lambda);
 }
-
 
 void argument_chain_link(oyster * lambda_list,
                          oyster * arg_list, machine * m)
@@ -220,17 +270,22 @@ void argument_chain_link(oyster * lambda_list,
     incref(lambda_list);
     incref(arg_list);
 
+    if(!nilp(lambda_list) && lambda_list->in->type != CONS){
+        oyster *signal = list(2, make_symbol(sym_id_from_string
+                                             ("Bad lambda list?")),
+                              lambda_list);
+        toss_signal(make_signal(signal, m), m);
+        return;
+    }
+
     oyster *arg = car(arg_list);
     incref(arg);
 
     if (nilp(lambda_list)) {
         // DO NOTHING!
 
-    } else if (car_is_sym(lambda_list, ELIPSIS) && nilp(arg_list)) {
-        // DO NOTHING!
-
     } else if (car_is_sym(arg, ASTERIX)) {
-        // * arguments are lists of arguments that should be stiched in place.
+        // * arguments are lists of arguments that should be stitched in place.
         push_new_instruction(m,
                              list(2, lambda_list, cdr(arg_list)),
                              ASTERPEND_CONTINUE);
@@ -242,6 +297,9 @@ void argument_chain_link(oyster * lambda_list,
                              list(2, lambda_list, cdr(arg_list)),
                              ATPEND_CONTINUE);
         push_new_instruction(m, car(cdr(arg)), EVALUATE);
+
+    } else if (car_is_sym(lambda_list, ELIPSIS)) {
+        elipsis_argument(arg_list, car(cdr(lambda_list)), nil(), m);
 
     } else {
         // It's a normal argument.

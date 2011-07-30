@@ -114,10 +114,6 @@ _test(argument_chain_link_elipsis)
            5, "function");
 
     assert(m->current_frame->below->flag == ELIPSIS_ARGUMENT, "flag2");
-    assert(m->current_frame->below->instruction->in->symbol_id == 10);
-
-    assert(m->current_frame->below->below->flag == CONTINUE);
-    assert(m->current_frame->below->below->instruction->in->type == CONS);
 
     decref(m);
 }
@@ -150,9 +146,7 @@ _test(basic_step)
 
     decref(m);
 
-}
-
-_tset;
+}_tset;
 
 _test(elipsis)
 {
@@ -161,9 +155,7 @@ _test(elipsis)
                                   "    (clear bar) (clear bash))");
     assert(ret->in->type == CONS);
     decref(ret);
-}
-
-_tset;
+}_tset;
 
 _test(atpend)
 {
@@ -171,9 +163,7 @@ _test(atpend)
                                   "    (unary-@ (clear (bar bash))))");
     assert(ret->in->type == CONS);
     decref(ret);
-}
-
-_tset;
+}_tset;
 
 _test(asterpend)
 {

@@ -13,6 +13,7 @@ void no_signal_handler(oyster * signal)
          "Error message follows:\n");
     oyster_print(car(signal));
     printf("\n");
+    error(314, 0, "Exited with unhandled signal.");
     //    m->paused = 1;
 }
 
@@ -32,7 +33,7 @@ void toss_signal(oyster * signal, machine * m)
     }
     if (m->paused)
         m->paused = 0;          //hax
-    oyster *eval = list(2, m->now->instruction, signal);
+    oyster *eval = list(2, m->now->instruction, list(2, make_symbol(CLEAR), signal));
     incref(eval);
     push_new_instruction(m, eval, EVALUATE);
     decref(eval);
