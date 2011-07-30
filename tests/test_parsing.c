@@ -73,7 +73,7 @@ _test(next_token)
         a = next_token(stream), i++){
         assert(a->type == conv[i], 
                "I failed on %d cause %d isnt %d.", i, a->type, conv[i]);
-        free(a);
+        free_token(a);
     }
 }_tset;
 
