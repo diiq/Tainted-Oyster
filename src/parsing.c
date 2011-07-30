@@ -325,7 +325,7 @@ oyster *parse_symbol(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == SYMBOL_TOKEN){
         oyster *ret = make_symbol(sym_id_from_string(next->string));
-        free(next);
+        free_token(next);
         return ret;
     }
     unget_token(next, stream);
@@ -377,7 +377,7 @@ oyster *parse_infix(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == INFIX_TOKEN){
         oyster *ret = parse_one(stream);
-        free(next);
+        free_token(next);
         next = get_token(stream);
         if(next->type != DEFIX_TOKEN)
             error(314, 0, "Parse error: expected >>.");
@@ -403,7 +403,7 @@ oyster *parse_infix(token_stream *stream){
 oyster *parse_colon(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == COLON_TOKEN){
-        free(next);
+        free_token(next);
         next = get_token(stream);
         if(next->type == NEWLINE_TOKEN){
             int indent = next->count;
