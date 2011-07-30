@@ -1,5 +1,4 @@
 #include "oyster.h"
-#include "machine.h"
 
 void table_print(table * x)
 {
@@ -19,76 +18,6 @@ void table_print(table * x)
 
 //
 
-void machine_print(machine * m)
-{
-    frame *f = m->current_frame;
-    printf("Now: ");
-    frame_print(m->now, 1);
-    if (m->now->instruction && !table_empty(m->now->instruction->bindings)) {
-        printf(" with the bindings: \n");
-        table_print(m->now->instruction->bindings);
-    }
-    while (f) {
-        printf("vvv vvv vvv\n");
-        printf("frame: ");
-        frame_print(f, 1);
-        f = f->below;
-    }
-    if (m->accumulator) {
-        printf("accum: ");
-        oyster_print(m->accumulator);
-    }
-    printf
-        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
-}
-
-void print_stack_trace(machine * m)
-{
-    printf("Now: ");
-    frame_print(m->now, 1);
-
-    frame *f = m->current_frame;
-    while (f) {
-        frame_print(f, 1);
-        f = f->below;
-    }
-    if (m->accumulator) {
-        printf("accum: ");
-        oyster_print(m->accumulator);
-    }
-    printf
-        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
-}
-
-void frame_print(frame * i, int print_scope)
-{
-    char *flags[] = { 
-        "ASTERPEND_CONTINUE",
-        "ATPEND_CONTINUE",
-        "ARGUMENT",
-        "ELIPSIS_ARGUMENT",
-        "ELIPSIS_ASTERPEND_CONTINUE",
-        "ELIPSIS_ATPEND_CONTINUE",
-        "EVALUATE",
-        "CONTINUE",
-        "APPLY_FUNCTION",
-        "PREPARE_ARGUMENTS",
-        "PAUSE",
-        "HANDLE_SIGNALS"
-    };
-
-    printf(" --> ");
-    printf("%s, ", flags[i->flag]);
-    if (i->instruction)
-        oyster_print(i->instruction);
-    if (print_scope) {
-        printf("\n Scope:\n");
-        table_print(i->scope);
-        printf("Upcoming scope:\n");
-        table_print(i->scope_to_be);
-    }
-    printf("\n");
-}
 
 //
 

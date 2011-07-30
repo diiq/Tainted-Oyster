@@ -1,6 +1,5 @@
 #include "oyster.h"
 #include "parsing.h"
-#include "machine.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -45,15 +44,15 @@ oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
 
         push_new_instruction(m, func, EVALUATE);
 
-        while (!m->paused) {
+        while (!machine_paused(m)) {
             step_machine(m);
         }
-        m->paused = 0;
+        machine_unpause(m);
 
         decref(func);
         func = read(in);
     }
-    oyster *ret = m->accumulator;
+    oyster *ret = machine_accumulator(m);
     incref(ret);
 
     fclose(inf);

@@ -2,6 +2,7 @@
 
 #include "oyster.h"
 #include "machine.h"
+#include <stdlib.h>
 
 machine *make_machine()
 {
@@ -23,6 +24,22 @@ machine *make_machine()
     add_builtins(ret);
 
     return ret;
+}
+
+oyster *machine_accumulator(machine *m){
+    return m->accumulator;
+}
+
+int machine_paused(machine *m){
+    return m->paused;
+}
+
+void machine_unpause(machine *m){
+    m->paused = 0;
+}
+
+frame *machine_active_frame(machine *m){
+    return m->now;
 }
 
 frame *machine_pop_stack(machine * m)
@@ -47,6 +64,25 @@ frame *machine_pop_stack(machine * m)
     }
 }
 
+machine *machine_copy(machine * m)
+{
+    machine *ret = make_machine();
+    decref(ret->current_frame);
+    decref(ret->base_frame);
+    decref(ret->now);
+
+    ret->current_frame = m->current_frame;
+    incref(ret->current_frame);
+
+    ret->base_frame = m->base_frame;
+    incref(ret->base_frame);
+
+    ret->now = m->now;
+    incref(ret->now);
+
+    return ret;
+}
+
 void set_accumulator(machine * m, oyster * value)
 {
     oyster *t = m->accumulator;
@@ -55,69 +91,46 @@ void set_accumulator(machine * m, oyster * value)
     decref(t);
 }
 
+//-------------------------- Printing ----------------------------//
 
-
-frame *make_frame(frame * below,
-                  table * scope,
-                  table * scope_to_be,
-                  table * scope_below, oyster * instruction, int flag)
+void machine_print(machine * m)
 {
-    frame *ret = NEW(frame);
-
-    ret->below = below;
-    incref(ret->below);
-
-    ret->scope = scope;
-    incref(ret->scope);
-
-    ret->scope_to_be = scope_to_be;
-    incref(ret->scope_to_be);
-
-    ret->scope_below = scope_below;
-    incref(scope_below);
-
-    ret->instruction = instruction;
-    incref(instruction);
-
-    ret->flag = flag;
-
-    return ret;
-}
-
-void push_new_instruction(machine * m, oyster * instruction, int flag)
-{
-    frame *t = m->current_frame;
-    m->current_frame = make_frame(t,
-                                  m->now->scope,
-                                  m->now->scope_to_be,
-                                  m->now->scope_below, instruction, flag);
-    incref(m->current_frame);
-    decref(t);
-}
-
-void push_instruction_list(machine * m,
-                           oyster * ins,
-                           table * scope, table * scope_below)
-{
-    incref(ins);
-
-    frame *top = NULL;
-    frame **cur = &top;
-    while (!nilp(ins)) {
-        (*cur) = make_frame(NULL,
-                            scope, NULL, scope_below, car(ins), EVALUATE);
-        incref(*cur);
-
-        cur = &((*cur)->below);
-
-        oyster *ins2 = cdr(ins);
-        incref(ins2);
-        decref(ins);
-        ins = ins2;
+    frame *f = m->current_frame;
+    printf("Now: ");
+    frame_print(m->now, 1);
+    if (m->now->instruction && !table_empty(m->now->instruction->bindings)) {
+        printf(" with the bindings: \n");
+        table_print(m->now->instruction->bindings);
     }
-
-    decref(ins);
-    (*cur) = m->current_frame;
-    m->current_frame = top;
+    while (f) {
+        printf("vvv vvv vvv\n");
+        printf("frame: ");
+        frame_print(f, 1);
+        f = f->below;
+    }
+    if (m->accumulator) {
+        printf("accum: ");
+        oyster_print(m->accumulator);
+    }
+    printf
+        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
 }
 
+//------------------------- Memory -------------------------------//
+
+void machine_ref(machine * x)
+{
+    x->ref++;
+}
+
+void machine_unref(machine * x)
+{
+    x->ref--;
+    if (x->ref <= 0) {
+        decref(x->base_frame);
+        decref(x->current_frame);
+        decref(x->now);
+        decref(x->accumulator);
+        free(x);
+    }
+}

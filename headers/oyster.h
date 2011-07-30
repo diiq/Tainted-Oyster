@@ -50,6 +50,54 @@ void push_bindings_to_scope(machine * m, oyster * o);
 void elipsis_argument(oyster *arg_list, oyster * lambda,
                       oyster *so_far, machine * m);
 
+//-------------------------------- The Machine ------------------------------//
+
+enum instruction_flags { 
+    ASTERPEND_CONTINUE,
+    ATPEND_CONTINUE,
+    ARGUMENT,
+    ELIPSIS_ARGUMENT,
+    ELIPSIS_ASTERPEND_CONTINUE,
+    ELIPSIS_ATPEND_CONTINUE,
+    EVALUATE,
+    CONTINUE,
+    APPLY_FUNCTION,
+    PREPARE_ARGUMENTS,
+    PAUSE,
+    HANDLE_SIGNALS
+};
+
+machine *make_machine();
+frame *machine_pop_stack(machine * m);
+frame *machine_pop_stack(machine * m);
+oyster *machine_accumulator(machine *m);
+int machine_paused(machine *m);
+void machine_unpause(machine *m);
+frame *machine_active_frame(machine *m);
+
+
+//-------------------------------- Frames ------------------------------------//
+
+struct frame {
+    void (*incref) (frame * x);
+    void (*decref) (frame * x);
+    int ref;
+
+    frame *below;
+
+    table *scope;
+    table *scope_to_be;
+    table *scope_below;
+
+    oyster *instruction;
+    int flag;
+};
+
+frame *make_frame(frame * below,
+                  table * scope,
+                  table * scope_to_be,
+                  table * scope_below, oyster * instruction, int flag);
+void push_new_instruction(machine * m, oyster * instruction, int flag);
 
 //------------------------ lists and how to use them -------------------------//
 oyster *make_cons(oyster * car, oyster * cdr);

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #include "oyster.h"
-#include "machine.h"
 
 void *initialize_memory_object(size_t size, void *inc, void *dec)
 {
@@ -113,23 +112,6 @@ void cons_cell_unref(cons_cell * x)
 }
 
 //
-
-void machine_ref(machine * x)
-{
-    x->ref++;
-}
-
-void machine_unref(machine * x)
-{
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->base_frame);
-        decref(x->current_frame);
-        decref(x->now);
-        decref(x->accumulator);
-        free(x);
-    }
-}
 
 //
 
