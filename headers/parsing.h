@@ -33,20 +33,6 @@ typedef struct {
     FILE *char_stream;
 } token_stream;
 
-typedef struct partial_parse partial_parse;
-typedef struct partial_parsee partial_parsee;
-
-struct partial_parse{
-    partial_parsee *it;
-};
-
-struct partial_parsee {
-    int islist;
-    token *token;
-    partial_parsee *first;
-    partial_parsee *rest;
-};
-
 int sym_id_from_string(char *sym);
 char *string_from_sym_id(int sym);
 void init_symbol_table();
