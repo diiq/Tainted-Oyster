@@ -75,6 +75,7 @@ _test(next_token)
                "I failed on %d cause %d isnt %d.", i, a->type, conv[i]);
         free_token(a);
     }
+    free_token(a);
 }_tset;
 
 _test(token_stream){
