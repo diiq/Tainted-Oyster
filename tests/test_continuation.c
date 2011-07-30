@@ -1,6 +1,4 @@
 #include "oyster.h"
-#include "continuations.c"
-
 
 _test(make_continuation)
 {

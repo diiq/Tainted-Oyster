@@ -7,7 +7,6 @@
 #define TABLE
 
 #include "oyster.h"
-#include "memory.c"
 #include <glib.h>
 
 

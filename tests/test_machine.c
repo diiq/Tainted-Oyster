@@ -3,8 +3,6 @@
 #include "testing.h"
 #include "oyster.h"
 
-#include "machine.c"
-#include "interpreter.c"
 
 
 _test(make_machine)

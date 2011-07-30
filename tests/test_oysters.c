@@ -1,4 +1,4 @@
-#include "oyster.c"
+#include "oyster.h"
 #include "testing.h"
 #include "stdio.h"
 

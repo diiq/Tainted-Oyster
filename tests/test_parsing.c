@@ -1,52 +1,11 @@
 #include "oyster.h"
-#include "parsing.c"
+#include "parsing.h"
 #include "testing.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 extern int tests_run;
-
-_test(read_symbol)
-{
-    char *str = "hello-there!dahling never read this";
-    FILE *stream = fmemopen(str, strlen(str), "r");
-    token *ret  = read_symbol(stream);
-    assert(strcmp("hello-there!dahling", ret->string) == 0);
-    free_token(ret);
-} _tset;
-
-_test(read_prefix)
-{
-    char *str = "$hello-there!dahling never read this";
-    FILE *stream = fmemopen(str, strlen(str), "r");
-    token *ret  = read_prefix(stream);
-    assert(strcmp("unary-$", ret->string) == 0);
-    free_token(ret);
-} _tset;
-
-
-_test(read_open_close)
-{
-    char *str = "(hello-there)";
-    FILE *stream = fmemopen(str, strlen(str), "r");
-    token *a  = read_open(stream);
-    token *b = read_symbol(stream);
-    token *c  = read_close(stream);
-    assert(a->type == OPEN_TOKEN);
-    assert(c->type == CLOSE_TOKEN);
-    free_token(a);
-    free_token(b);
-    free_token(c);
-} _tset;
-
-_test(read_newline)
-{
-    char *str = "\n    there)";
-    FILE *stream = fmemopen(str, strlen(str), "r");
-    token *a  = read_newline(stream);
-    assert(a->type == NEWLINE_TOKEN);
-    assert(a->count == 4);
-    free_token(a);
-} _tset;
 
 _test(next_token)
 {
@@ -116,10 +75,6 @@ _test(read_one){
 _test(parsing)
 {
     printf("\nTesting parsing:\n");
-    run_test(read_symbol);
-    run_test(read_prefix);
-    run_test(read_open_close);
-    run_test(read_newline);
     run_test(next_token);
     run_test(token_stream);
     run_test(read_one);

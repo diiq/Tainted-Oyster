@@ -1,5 +1,5 @@
-#include "table.c"
 #include "testing.h"
+#include "oyster.h"
 #include "stdio.h"
 
 _test(new_table)

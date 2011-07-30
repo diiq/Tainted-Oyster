@@ -1,6 +1,8 @@
 #ifndef CONSTOOLS
 #define CONSTOOLS
 
+#include "oyster.h"
+#include <stdlib.h>
 //-------------------------- Cons, car, and cdr --------------------------//
 
 oyster *make_cons(oyster * car, oyster * cdr)

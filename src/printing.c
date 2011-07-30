@@ -1,3 +1,4 @@
+#include "oyster.h"
 
 void table_print(table * x)
 {

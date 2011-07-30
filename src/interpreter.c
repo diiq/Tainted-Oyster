@@ -1,6 +1,8 @@
 #ifndef INTERPRETER
 #define INTERPRETER
 
+#include "oyster.h"
+
 int DEBUG = 0;
 
 void step_machine(machine * m)

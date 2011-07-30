@@ -3,7 +3,6 @@
 
 #include "oyster.h"
 #include "testing.h"
-#include "scopes.c"
 
 
 _test(look_up)

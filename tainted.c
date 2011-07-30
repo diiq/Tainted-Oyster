@@ -1,23 +1,7 @@
-#include "stdlib.h"
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "oyster.h"
-
-#include "oyster.c"
-#include "machine.c"
-#include "interpreter.c"
-#include "parsing.c"
-#include "scopes.c"
-#include "table.c"
-#include "memory.c"
-#include "builtins.c"
-#include "continuations.c"
-#include "signals.c"
-
-#include "printing.c"
-#include "cons_tools.c"
-#include "assemble.c"
-
-
-#include "stdio.h"
 
 
 int main(int argc, char *argv[])

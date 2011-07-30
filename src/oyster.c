@@ -7,8 +7,8 @@
 // An oyster is a scope wrapped around an object, like a blanket around a
 // cold, wet, child.
 
-#include "stdarg.h"
-#include "stdio.h"
+#include <stdarg.h>
+#include <stdio.h>
 
 #include "oyster.h"
 #include "parsing.h"            // Not sure if this needs be here.

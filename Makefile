@@ -5,29 +5,30 @@ CFLAGS=-Wall $(GLIBFLAGS) -Itests -Iheaders -Isrc
 DEBUG_FLAGS=-g3
 PROFILE_FLAGS= -fprofile-arcs -ftest-coverage -pg
 TARGET=tainted
+MODULES=src/*.c
 
 all:
-	gcc $(CFLAGS) src/$(TARGET).c  -o $(TARGET)  
+	gcc $(CFLAGS) $(TARGET).c $(MODULES) -o $(TARGET)  
 
 debug:
-	gcc $(CFLAGS) -o $(TARGET) src/$(TARGET).c $(DEBUG_FLAGS)
+	gcc $(CFLAGS) src/$(TARGET).c $(MODULES)  -o $(TARGET) $(DEBUG_FLAGS)
 
 profile:
-	gcc $(CFLAGS) src/$(TARGET).c -o $(TARGET) $(PROFILE_FLAGS) 
+	gcc $(CFLAGS)  $(MODULES) src/$(TARGET).c -o $(TARGET) $(PROFILE_FLAGS) 
 
 test:
-	@gcc $(CFLAGS) tests/test_all.c -o testes $(DEBUG_FLAGS)
+	@gcc $(CFLAGS) tests/test_all.c $(MODULES) -o testes $(DEBUG_FLAGS)
 	@G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind -q ./testes 
 #	@gcc $(CFLAGS) src/$(TARGET).c  -o $(TARGET)  
 #	@./tainted test.oy
 #	@rm testes
 
 valgrind-heap:
-	@gcc $(CFLAGS) tests/test_all.c -o testes $(DEBUG_FLAGS)
+	@gcc $(CFLAGS) tests/test_all.c $(MODULES) -o testes $(DEBUG_FLAGS)
 	G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind --leak-check=yes ./testes
 	@rm ./testes
 
 valgrind-test:
-	@gcc $(CFLAGS) tests/test_all.c -o testes $(DEBUG_FLAGS)
+	@gcc $(CFLAGS) tests/test_all.c $(MODULES) -o testes $(DEBUG_FLAGS)
 	G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind --num-callers=20 ./testes
 	@rm ./testes

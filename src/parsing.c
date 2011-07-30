@@ -5,8 +5,8 @@
 
 #include "oyster.h"
 #include "parsing.h"
-#include "string.h"
-#include "stdio.h"
+#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <ctype.h>
@@ -228,7 +228,8 @@ token *read_newline(FILE *stream){
     }
 }
 
-token *next_token(FILE *stream){
+token *next_token(FILE *stream)
+{
     token *ret = NULL;
     
     int i = 1;

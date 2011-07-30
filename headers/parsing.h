@@ -39,10 +39,15 @@ void init_symbol_table();
 void add_symbol(int id, char *sym);
 void free_symbol_table();
 
+token *next_token(FILE *stream);
+void free_token(token *t);
+
 token_stream *make_token_stream(FILE *stream);
 token *get_token(token_stream *stream);
 void unget_token(token *token, token_stream *stream);
+void free_token_stream(token_stream *t);
 
+oyster *read(token_stream *stream);
 oyster *parse_one(token_stream *stream);
 oyster *parse_expression(token_stream *stream);
 
