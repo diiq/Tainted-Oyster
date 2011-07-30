@@ -44,30 +44,23 @@ oyster *cons(oyster * car, oyster * cdr)
     incref(car);
     incref(cdr);
     oyster *ret;
-    if (nilp(car)) {
-        oyster *new_cdr = oyster_copy(cdr, make_table());
-        ret = make_cons(nil(), new_cdr);
+    table *bindings = NULL;
 
-        decref(ret->bindings);
-        ret->bindings = cdr->bindings;
-        incref(ret->bindings);
+    if(car->bindings == cdr->bindings ||
+       (!table_empty(car->bindings) && table_empty(cdr->bindings))){
+        bindings = car->bindings;
+    } else if (!table_empty(cdr->bindings) && table_empty(car->bindings)){
+        bindings = cdr->bindings;
+    }
 
-    } else if (nilp(cdr)) {
-        oyster *new_car = oyster_copy(car, make_table());
-        ret = make_cons(new_car, nil());
-
-        decref(ret->bindings);
-        ret->bindings = car->bindings;
-        incref(ret->bindings);
-
-    } else if (car->bindings == cdr->bindings) {
+    if (bindings){
         oyster *new_car = oyster_copy(car, make_table());
         oyster *new_cdr = oyster_copy(cdr, make_table());
 
         ret = make_cons(new_car, new_cdr);
 
         decref(ret->bindings);
-        ret->bindings = car->bindings;
+        ret->bindings = bindings;
         incref(ret->bindings);
     } else {
         // I do believe that this copy-on-write buisness works;
