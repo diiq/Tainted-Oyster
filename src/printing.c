@@ -111,6 +111,7 @@ void list_print(oyster * o)
 
         decref(c);
     }
+    decref(o);
 }
 
 void oyster_print(oyster * o)
