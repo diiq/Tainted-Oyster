@@ -306,6 +306,17 @@ void unget_token(token *token, token_stream *stream)
     stream->pulled = t;
 }
 
+void free_token_stream(token_stream *t){
+    void free_tokens(token_chain *chain){
+        if(chain){
+            free_tokens(chain->next);
+            free_token(chain->it);
+            free(chain);
+        }
+    }
+    free_tokens(t->pulled);
+    free(t);
+}
 
 
 // ---------------------------- Parsing --------------------------------//

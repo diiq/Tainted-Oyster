@@ -91,7 +91,7 @@ _test(token_stream){
     b = get_token(a);
     assert(b->type == INFIX_TOKEN);
     free(b);
-    free(a);
+    free_token_stream(a);
 }_tset;
 
 _test(read_one){
@@ -107,7 +107,7 @@ _test(read_one){
     oyster_print(parse_expression(a));printf("\n");
     free(get_token(a));
     oyster_print(parse_expression(a));
-    free(a);
+    free_token_stream(a);
 
 }_tset;
 
