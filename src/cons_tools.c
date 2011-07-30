@@ -170,7 +170,6 @@ oyster *append(oyster * a, oyster * b)
 
 oyster *reverse(oyster * xs)
 {
-    incref(xs);
     oyster *ret = nil();
     oyster *cur, *a;
     for (cur = xs, incref(cur); 
