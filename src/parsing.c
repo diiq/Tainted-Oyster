@@ -377,12 +377,16 @@ oyster *parse_infix(token_stream *stream){
 }
 
 #define handle_singleton(expression)                  \
-    if(nilp(cdr(expression))){                        \
-        oyster *temp = car(expression);               \
-        incref(temp);                                 \
-        decref(expression);                           \
-        expression = temp;                            \
-    }                                                 \
+    do{                                               \
+        oyster * TEMP = cdr(expression);              \
+        if(nilp(TEMP)){                               \
+            oyster *temp = car(expression);           \
+            incref(temp);                             \
+            decref(expression);                       \
+            expression = temp;                        \
+        }                                             \
+        decref(TEMP);                                 \
+    }while(0);                                        \
 
 // todo break into parse_colon and parse_colon_newline
 oyster *parse_colon(token_stream *stream){

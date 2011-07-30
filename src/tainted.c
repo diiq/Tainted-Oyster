@@ -24,20 +24,19 @@ int main(int argc, char *argv[])
 {
     init_oyster();
 
-    char *filename;
+    FILE *file;
     int print;
     if (argc == 1) {
-        filename = NULL;
+        file = stdin;
         print = 1;
     } else {
-        filename = argv[1];
+        file = fopen(argv[1], "r");
         print = 0;
     }
 
     /// g'damn g_scanner won't return a token until EOF is reached.
     /// all my trickery is for naught.
-
-    oyster *ret = evaluate_file(fopen(filename, "r"), print);
+    oyster *ret = evaluate_file(file, print);
     decref(ret);
 
 

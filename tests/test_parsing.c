@@ -107,6 +107,8 @@ _test(read_one){
     oyster_print(parse_expression(a));printf("\n");
     free(get_token(a));
     oyster_print(parse_expression(a));
+    free(a);
+
 }_tset;
 
 

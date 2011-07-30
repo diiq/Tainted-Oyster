@@ -23,13 +23,13 @@ int tests_run = 0;
 int main()
 {
     init_oyster();
-    run_test(table);
-    run_test(bindings);
-    run_test(oyster);
+    //    run_test(table);
+    //run_test(bindings);
+    //run_test(oyster);
     run_test(parsing);
-    run_test(machine);
-    run_test(builtins);
-    run_test(continuations);
+    //run_test(machine);
+    //run_test(builtins);
+    //run_test(continuations);
     clean_up_oyster();
     printf("\nPASSED!\n");
     return 0;
