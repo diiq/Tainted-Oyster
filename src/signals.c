@@ -25,10 +25,10 @@ oyster *make_signal(oyster * message, machine * m)
 
 void toss_signal(oyster * signal, machine * m)
 {
-    frame *now = machine_active_frame(m);
     while (!machine_paused(m) && 
-           frame_flag(now) != HANDLE_SIGNALS)
+           frame_flag(machine_active_frame(m)) != HANDLE_SIGNALS)
         machine_pop_stack(m);
+    frame *now = machine_active_frame(m);
     if (machine_paused(m) && 
         frame_flag(now) != HANDLE_SIGNALS) {
         no_signal_handler(signal);
