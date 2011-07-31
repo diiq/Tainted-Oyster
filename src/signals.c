@@ -1,5 +1,4 @@
 #include "oyster.h"
-#include "machine.h"
 #include "frame.h"
 #include <error.h>
 
@@ -27,15 +26,18 @@ oyster *make_signal(oyster * message, machine * m)
 
 void toss_signal(oyster * signal, machine * m)
 {
-    while (!m->paused && m->now->flag != HANDLE_SIGNALS)
+    while (!machine_paused(m) && 
+           machine_active_frame(m)->flag != HANDLE_SIGNALS)
         machine_pop_stack(m);
-    if (m->paused && m->now->flag != HANDLE_SIGNALS) {
+    if (machine_paused(m) && 
+        machine_active_frame(m)->flag != HANDLE_SIGNALS) {
         no_signal_handler(signal);
         return;
     }
-    if (m->paused)
-        m->paused = 0;          //hax
-    oyster *eval = list(2, m->now->instruction, list(2, make_symbol(CLEAR), signal));
+    if (machine_paused(m)) machine_unpause(m); //hax
+
+    oyster *eval = list(2, machine_active_frame(m)->instruction, 
+                        list(2, make_symbol(CLEAR), signal));
     incref(eval);
     push_new_instruction(m, eval, EVALUATE);
     decref(eval);
