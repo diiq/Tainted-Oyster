@@ -1,5 +1,7 @@
 #include "oyster.h"
 #include "machine.h"
+#include "frame.h"
+#include <stdlib.h>
 
 frame *make_frame(frame * below,
                   table * scope,
@@ -65,6 +67,27 @@ void push_instruction_list(machine * m,
     m->current_frame = top;
 }
 
+//--------------------------- Memory -----------------------------//
+
+void frame_ref(frame * x)
+{
+    x->ref++;
+}
+
+void frame_unref(frame * x)
+{
+    x->ref--;
+    if (x->ref <= 0) {
+        decref(x->below);
+
+        decref(x->scope);
+        decref(x->scope_to_be);
+        decref(x->scope_below);
+
+        decref(x->instruction);
+        free(x);
+    }
+}
 
 //-------------------------- Printing ----------------------------//
 

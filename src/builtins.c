@@ -4,6 +4,7 @@
 #include "oyster.h"
 #include "parsing.h"
 #include "machine.h"
+#include "frame.h"
 
 // ------------------ The Apparatus -------------------//
 

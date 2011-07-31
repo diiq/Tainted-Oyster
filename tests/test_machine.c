@@ -3,7 +3,7 @@
 #include "testing.h"
 #include "oyster.h"
 #include "machine.h"
-
+#include "frame.h"
 
 
 _test(make_machine)

@@ -4,6 +4,7 @@
 
 #include "oyster.h"
 #include "machine.h"
+#include "frame.h"
 
 table_entry *look_up_entry(int sym, frame * cur)
 {

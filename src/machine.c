@@ -2,6 +2,7 @@
 
 #include "oyster.h"
 #include "machine.h"
+#include "frame.h"
 #include <stdlib.h>
 
 machine *make_machine()

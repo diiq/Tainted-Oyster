@@ -3,6 +3,7 @@
 
 #include "oyster.h"
 #include "machine.h"
+#include "frame.h"
 
 int DEBUG = 0;
 

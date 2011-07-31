@@ -4,6 +4,7 @@
 #include "oyster.h"
 #include "testing.h"
 #include "machine.h"
+#include "frame.h"
 
 _test(look_up)
 {

@@ -69,35 +69,15 @@ enum instruction_flags {
 
 machine *make_machine();
 frame *machine_pop_stack(machine * m);
+void push_new_instruction(machine * m, oyster * instruction, int flag);
+
+//-------------------------------- Frames ------------------------------------//
+
 frame *machine_pop_stack(machine * m);
 oyster *machine_accumulator(machine *m);
 int machine_paused(machine *m);
 void machine_unpause(machine *m);
 frame *machine_active_frame(machine *m);
-
-
-//-------------------------------- Frames ------------------------------------//
-
-struct frame {
-    void (*incref) (frame * x);
-    void (*decref) (frame * x);
-    int ref;
-
-    frame *below;
-
-    table *scope;
-    table *scope_to_be;
-    table *scope_below;
-
-    oyster *instruction;
-    int flag;
-};
-
-frame *make_frame(frame * below,
-                  table * scope,
-                  table * scope_to_be,
-                  table * scope_below, oyster * instruction, int flag);
-void push_new_instruction(machine * m, oyster * instruction, int flag);
 
 //------------------------ lists and how to use them -------------------------//
 oyster *make_cons(oyster * car, oyster * cdr);
