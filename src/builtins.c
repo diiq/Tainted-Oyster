@@ -4,7 +4,6 @@
 #include "oyster.h"
 #include "parsing.h"
 #include "machine.h"
-#include "frame.h"
 
 // ------------------ The Apparatus -------------------//
 
@@ -85,18 +84,20 @@ oyster *builtin_leak(machine * m)
     // Gross.
     ARG(symbol);
     ARG(closure);
+    frame *current = m->current_frame;
+
     int id = symbol->in->symbol_id;
     if (nilp(closure)) {
         int i = 0;
         table_entry *a =
-            table_get_entry(id, m->current_frame->scope_below, &i);
+            table_get_entry(id, frame_scope_below(current), &i);
 
         if (i) {
-            table_put_entry(id, a, m->current_frame->scope);
+            table_put_entry(id, a, frame_scope(current));
         } else {
             a = make_table_entry(NULL);
-            table_put_entry(id, a, m->current_frame->scope);
-            table_put_entry(id, a, m->current_frame->scope_below);
+            table_put_entry(id, a, frame_scope(current));
+            table_put_entry(id, a, frame_scope_below(current));
         }
 
     } else {
@@ -113,7 +114,7 @@ oyster *builtin_leak(machine * m)
 oyster *builtin_quote(machine * m)
 {
     ARG(x);
-    return oyster_copy(x, m->now->scope_below);
+    return oyster_copy(x, frame_scope_below(machine_active_frame(m)));
 }
 
 oyster *builtin_atom_p(machine * m)
@@ -186,7 +187,7 @@ oyster *builtin_with_signal_handler(machine * m)
 oyster *builtin_current_scope(machine * m)
 {
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    ret->in->value = m->current_frame->scope;
+    ret->in->value = frame_scope(m->current_frame);
     incref(ret->in->value);
     return ret;
 }
