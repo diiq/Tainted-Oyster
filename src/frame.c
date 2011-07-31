@@ -30,6 +30,29 @@ frame *make_frame(frame * below,
     return ret;
 }
 
+
+frame *frame_below(frame *f){
+    return f->below;
+}
+
+table *frame_scope(frame *f){
+    return f->scope;
+}
+
+table *frame_scope_below(frame *f){
+    return f->scope_below;
+}
+
+oyster *frame_instruction(frame *f){
+    return f->instruction;
+}
+
+int frame_flag(frame *f){
+    return f->flag;
+}
+
+
+
 void push_new_instruction(machine * m, oyster * instruction, int flag)
 {
     frame *t = m->current_frame;

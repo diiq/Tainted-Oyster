@@ -52,6 +52,12 @@ void elipsis_argument(oyster *arg_list, oyster * lambda,
 
 //-------------------------------- The Machine ------------------------------//
 
+machine *make_machine();
+frame *machine_pop_stack(machine * m);
+void push_new_instruction(machine * m, oyster * instruction, int flag);
+
+//-------------------------------- Frames ------------------------------------//
+
 enum instruction_flags { 
     ASTERPEND_CONTINUE,
     ATPEND_CONTINUE,
@@ -67,17 +73,21 @@ enum instruction_flags {
     HANDLE_SIGNALS
 };
 
-machine *make_machine();
-frame *machine_pop_stack(machine * m);
-void push_new_instruction(machine * m, oyster * instruction, int flag);
-
-//-------------------------------- Frames ------------------------------------//
-
+frame *make_frame(frame * below,
+                  table * scope,
+                  table * scope_to_be,
+                  table * scope_below, oyster * instruction, int flag);
 frame *machine_pop_stack(machine * m);
 oyster *machine_accumulator(machine *m);
 int machine_paused(machine *m);
 void machine_unpause(machine *m);
 frame *machine_active_frame(machine *m);
+
+frame *frame_below(frame *f);
+table *frame_scope(frame *f);
+table *frame_scope_below(frame *f);
+oyster *frame_instruction(frame *f);
+int frame_flag(frame *f);
 
 //------------------------ lists and how to use them -------------------------//
 oyster *make_cons(oyster * car, oyster * cdr);
