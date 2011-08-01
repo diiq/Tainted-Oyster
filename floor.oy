@@ -1,0 +1,62 @@
+quoted <- '((... 'args) args)
+
+list <- '((... args) args)
+
+unary-\ <- quoted:
+    ('args)
+    oif (atom-p args):
+        set! args: list args
+    quoted:
+        (... 'code)
+        list args @code
+
+do <- \(... 'code):
+    ((\(): *code))
+
+eval <- \(code):
+    do: really code
+
+unary-, <- eval
+
+then <- do
+else <- do
+if <- oif
+
+map <- \(f list):
+    if list:
+        f (car list) :: map f (cdr list)
+
+foreach <- \('member alist ... 'code):
+    map: 
+        \(really member): *code
+        alist
+
+while <- \('test ... 'code):
+    if ,test:
+        then:
+            map unary-, code
+            while (really test) *code
+
+
+
+
+#-------------------------------------------------------------#
+# Tests
+
+foreach q '(a b c d e f):
+    print q
+
+a <- '(a b c d e)
+while a: 
+      print: car a
+      a <- cdr a
+
+print: if () () 't
+
+print: if 't 't ()
+
+if ():
+    then:
+        print 'hello
+    else:
+        print 'there
