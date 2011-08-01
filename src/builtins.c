@@ -114,7 +114,9 @@ oyster *builtin_leak(machine * m)
 oyster *builtin_quote(machine * m)
 {
     ARG(x);
-    return oyster_copy(x, frame_scope_below(machine_active_frame(m)));
+    if(!x->bindings || table_empty(x->bindings))
+        return oyster_copy(x, frame_scope_below(machine_active_frame(m)));
+    return oyster_copy(x, x->bindings);
 }
 
 oyster *builtin_atom_p(machine * m)
