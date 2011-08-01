@@ -1,41 +1,40 @@
-set! quoted: '((... 'args) args)
+quoted <- '((... 'args) args)
 
-set! list: '((... args) args)
+list <- '((... args) args)
 
-set! unary-\:
+unary-\ <- quoted:
+    ('args)
+    oif (atom-p args):
+        set! args: list args
     quoted:
-        ('args)
-        oif (atom-p args):
-            set! args: list args
-        quoted:
-            (... 'code)
-            list args @code
+        (... 'code)
+        list args @code
 
 #--------------------------------------------------------------#
 print: quoted Cons car cdr and fn tests.
 
-print: car: 't <<cons>> ()
+print: car: 't :: ()
 
 print: car: 
-    (\b: 't <<cons>> b <<cons>> ()) 'a
+    (\b: 't :: b :: ()) 'a
 
 print: car: cdr:
-    ((\b: \a: a <<cons>> b <<cons>> ()) 't) 'b
+    ((\b: \a: a :: b :: ()) 't) 'b
 
 
 #--------------------------------------------------------------#
 print: quoted Scope and leaking tests.
 
-print: set! a 't
+print: a <- 't
 
 print: a
 print: (\('b) b) t
 print: (\('b) b): really a
 
-set! b 'b
+b <- 'b
 print: (\b b) 't
 
-print: *((\a: leak a 'a) 'b <<cons>> ())
+print: *((\a: leak a 'a) 'b :: ())
 
 #--------------------------------------------------------------#
 print: quoted oif tests.
@@ -47,7 +46,7 @@ print: oif () 'a 't
 print: quoted Elipsis argument tests.
 
 print: car: (\(... 'b) b) t e a q
-print: car: car: (\(... 'b) b): really: 't <<cons>> 'a <<cons>> ()
+print: car: car: (\(... 'b) b): really: 't :: 'a :: ()
 
 #--------------------------------------------------------------#
 print: quoted Signal handling tests.
@@ -55,4 +54,5 @@ print: quoted Signal handling tests.
 print: with-signal-handler:
     \x: car x
     signal 't
+
 

@@ -199,6 +199,37 @@ int read_comment(FILE *stream){
     return 1;
 }
 
+void push_string(char *string, FILE *stream){
+    int a = strlen(string);
+    for(a--; a>=0; a--){
+        ungetc(string[a], stream);
+    }
+}
+
+int read_replace(FILE *stream){
+    char *replace2[] = {
+        "::", "<<cons>>",
+        "<-", "<<set!>>",
+        "else:\n", " else:\n",
+    };
+    int replace2_len = 2;
+    char a[3];
+    a[0] = fgetc(stream);
+    a[1] = fgetc(stream);
+    a[2] = '\0';
+    int i;
+    for(i=0; i<replace2_len*2; i += 2){
+        if(strcmp(a, replace2[i]) == 0){
+            push_string(replace2[i+1], stream);
+            return 1;
+        }
+    }
+    ungetc(a[1], stream);
+    ungetc(a[0], stream);
+    return 0;
+}
+
+
 token *read_newline(FILE *stream){
     int c = fgetc(stream);
     if(c != '\n'){
@@ -238,6 +269,7 @@ token *next_token(FILE *stream)
         i += read_backslash(stream);
         i += read_space(stream);
         i += read_comment(stream);
+        i += read_replace(stream);
     }
 
     ret = read_newline(stream);
