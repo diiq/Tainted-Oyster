@@ -210,7 +210,6 @@ int read_replace(FILE *stream){
     char *replace2[] = {
         "::", "<<cons>>",
         "<-", "<<set!>>",
-        "else:\n", " else:\n",
     };
     int replace2_len = 2;
     char a[3];
