@@ -57,6 +57,4 @@ print: with-signal-handler:
     \x: car x
     signal 't
 
-Y ← λf: (λx: f: x x): λx: f: x x
-print Y
-        
+
