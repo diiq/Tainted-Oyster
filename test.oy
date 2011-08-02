@@ -13,7 +13,7 @@ unary-λ ← quoted:
 unary-\ ← unary-λ
 
 #--------------------------------------------------------------#
-print: quoted Cons car cdr and fn tests.
+print: quoted Cons car cdr and fn tests
 
 print: car: 't :: ()
 
@@ -25,7 +25,7 @@ print: car: cdr:
 
 
 #--------------------------------------------------------------#
-print: quoted Scope and leaking tests.
+print: quoted Scope and leaking tests
 
 print: a ← 't
 
@@ -39,22 +39,28 @@ print: (λb b) 't
 print: *((λa: leak a 'a) 'b :: ())
 
 #--------------------------------------------------------------#
-print: quoted oif tests.
+print: quoted oif tests
 
 print: oif 'a 't 'a
 print: oif () 'a 't
 
 #--------------------------------------------------------------#
-print: quoted Elipsis argument tests.
+print: quoted Elipsis argument tests
 
 print: car: (λ(... 'b) b) t e a q
 print: car: car: (λ(... 'b) b): really: 't :: 'a :: ()
 
 #--------------------------------------------------------------#
-print: quoted Signal handling tests.
+print: quoted Signal handling tests
 
 print: with-signal-handler:
     \x: car x
     signal 't
+
+#--------------------------------------------------------------#
+print: quoted Info table tests
+
+print: '(alice.betty)
+
 
 

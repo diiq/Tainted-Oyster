@@ -12,6 +12,7 @@ enum {
     CLOSE_TOKEN,
     COLON_TOKEN,
     NEWLINE_TOKEN,
+    INFO_ACCESS_TOKEN,
     NOTHING_TOKEN
 };
 

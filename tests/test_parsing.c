@@ -55,7 +55,7 @@ _test(token_stream){
 }_tset;
 
 _test(read_one){
-    char *str = ("this '(is <<(antioch)>> ,unweildy a) feild:\n"
+    char *str = ("this ... '(is <<(antioch)>> ,unweildy a) feild:\n"
                  "    of dust and peat\n"
                  "    (single sauce)\n"
                  "    soop:\n"

@@ -87,7 +87,7 @@ token *read_symbol(FILE *stream){
     a[0] = c;
     int i = 1;
     c = fgetc(stream);
-    while(!delimiter(c)){
+    while(!delimiter(c) && (c != '.' || a[i-1] == '.')){
         a[i] = c;
         c = fgetc(stream);
         i++;
@@ -101,6 +101,21 @@ token *read_symbol(FILE *stream){
     return ret;
 }
 
+token *read_info_access(FILE *stream){
+    int c = fgetc(stream);
+    if(c != '.'){
+        ungetc(c, stream);
+        return NULL;
+    }
+    int d = fgetc(stream);
+    if(d == '.'){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return NULL;
+    }
+    ungetc(d, stream);
+    return make_token(INFO_ACCESS_TOKEN);
+}
 
 token *read_prefix(FILE *stream){
     int c = fgetc(stream);
@@ -288,6 +303,9 @@ token *next_token(FILE *stream)
     ret = read_newline(stream);
     if (ret) return ret;
 
+    ret = read_info_access(stream);
+    if (ret) return ret;
+
     ret = read_symbol(stream);
     if (ret) return ret;
 
@@ -406,19 +424,31 @@ oyster *parse_prefix(token_stream *stream){
     return NULL;
 }
 
+int info_access(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type != INFO_ACCESS_TOKEN){
+        unget_token(next, stream);
+        return 0;
+    }
+    return 1;
+}
+
 oyster *parse_one(token_stream *stream)
 {
     oyster *ret;
-    ret = parse_symbol(stream);
-    if (ret) return ret;
-    
-    ret = parse_parens(stream);
-    if (ret) return ret;
+    if ((ret = parse_symbol(stream)));
+    else if ((ret = parse_parens(stream)));
+    else if ((ret = parse_prefix(stream)));
+    else ret = NULL;
 
-    ret = parse_prefix(stream);
-    if (ret) return ret;
+    if(ret && info_access(stream)){
+        ret = list(3, 
+                   make_symbol(sym_id_from_string("table-get")),
+                   parse_one(stream),
+                   list(2, make_symbol(sym_id_from_string("info-table")), ret));
+    }
 
-    return NULL;
+    return ret;
 }
 
 oyster *parse_infix(token_stream *stream){
