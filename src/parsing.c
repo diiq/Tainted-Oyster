@@ -11,7 +11,7 @@
 #include <glib.h>
 #include <ctype.h>
 #include <error.h>
-
+#include <wchar.h>
 // ------------------------ psychotic bastard ------------------------- //
 // -------------------------- tokenizer ------------------------------- //
 // All of this needs EOF validation somewhere.
@@ -26,6 +26,23 @@ int delimiter(char c){
         c == EOF)
         return 1;
     return 0;
+}
+
+void read_word(FILE *stream, char *place){
+    int c;
+    int i;
+    for(c = fgetc(stream), i=0; c != EOF && c != ' '; c = fgetc(stream), i++){
+        place[i] = c;
+    }
+    ungetc(c, stream);
+    place[i] = '\0';
+}
+
+void push_word(char *string, FILE *stream){
+    int a = strlen(string);
+    for(a--; a>=0; a--){
+        ungetc(string[a], stream);
+    }
 }
 
 token *make_token(int type){
@@ -98,9 +115,15 @@ token *read_prefix(FILE *stream){
         return NULL;
     }
     ungetc(d, stream);
+    ungetc(c, stream);
+    char a[100];
+    read_word(stream, a);
+    int len = mblen(a, 100);
+    push_word(&(a[len]), stream);
+    a[len] = '\0';
     token *ret = make_token(PREFIX_TOKEN);
-    ret->string = malloc(sizeof(char)*8); 
-    sprintf(ret->string, "unary-%c", c);
+    ret->string = malloc(sizeof(char)*(8+len)); 
+    sprintf(ret->string, "unary-%s", a);
     return ret;
 }
 
@@ -199,32 +222,23 @@ int read_comment(FILE *stream){
     return 1;
 }
 
-void push_string(char *string, FILE *stream){
-    int a = strlen(string);
-    for(a--; a>=0; a--){
-        ungetc(string[a], stream);
-    }
-}
-
 int read_replace(FILE *stream){
-    char *replace2[] = {
+    char *replace[] = {
         "::", "<<cons>>",
         "<-", "<<set!>>",
+        "←", "<<set!>>",
     };
-    int replace2_len = 2;
-    char a[3];
-    a[0] = fgetc(stream);
-    a[1] = fgetc(stream);
-    a[2] = '\0';
+    int replace_len = 3;
+    char a[1000];
+    read_word(stream, a);
     int i;
-    for(i=0; i<replace2_len*2; i += 2){
-        if(strcmp(a, replace2[i]) == 0){
-            push_string(replace2[i+1], stream);
+    for(i=0; i<replace_len*2; i += 2){
+        if(strcmp(a, replace[i]) == 0){
+            push_word(replace[i+1], stream);
             return 1;
         }
     }
-    ungetc(a[1], stream);
-    ungetc(a[0], stream);
+    push_word(a, stream);
     return 0;
 }
 

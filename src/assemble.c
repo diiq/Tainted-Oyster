@@ -2,9 +2,11 @@
 #include "parsing.h"
 #include <string.h>
 #include <stdio.h>
+#include <locale.h>
 
 void init_oyster()              // Where does this belong? Quo vadis, init?
 {
+    setlocale(LC_CTYPE, "en_US.UTF-8"); // OH NO FAILS ON WINDOWS
     // This is the first call that should ever occur.
     static int a = 0;
     if (!a) {

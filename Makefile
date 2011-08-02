@@ -11,7 +11,7 @@ all:
 	gcc $(CFLAGS) $(TARGET).c $(MODULES) -o $(TARGET)  
 
 debug:
-	gcc $(CFLAGS) src/$(TARGET).c $(MODULES)  -o $(TARGET) $(DEBUG_FLAGS)
+	gcc $(CFLAGS) $(TARGET).c $(MODULES)  -o $(TARGET) $(DEBUG_FLAGS)
 
 profile:
 	gcc $(CFLAGS)  $(MODULES) src/$(TARGET).c -o $(TARGET) $(PROFILE_FLAGS) 
