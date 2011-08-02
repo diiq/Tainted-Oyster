@@ -240,8 +240,8 @@ int read_comment(FILE *stream){
 int read_replace(FILE *stream){
     char *replace[] = {
         "::", "<<cons>>",
-        "<-", "<<set!>>",
-        "←", "<<set!>>",
+        "<-", "<<set>>",
+        "←", "<<set>>",
     };
     int replace_len = 3;
     char a[1000];

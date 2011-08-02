@@ -121,7 +121,7 @@ void print_stack_trace(machine * m)
 
     frame *f = m->current_frame;
     while (f) {
-        frame_print(f, 1);
+        frame_print(f, 0);
         f = f->below;
     }
     if (m->accumulator) {

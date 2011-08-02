@@ -4,7 +4,7 @@ list ← '((... args) args)
 
 unary-λ ← quoted:
     ('args)
-    oif (atom-p args):
+    oif (atom args):
         args ← list args
     quoted:
         (... 'code)
@@ -12,6 +12,8 @@ unary-λ ← quoted:
 
 unary-\ ← unary-λ
 
+not ← λx: oif x () 't
+ 
 #--------------------------------------------------------------#
 print: quoted Cons car cdr and fn tests
 
@@ -60,7 +62,13 @@ print: with-signal-handler:
 #--------------------------------------------------------------#
 print: quoted Info table tests
 
-print: '(alice.betty)
+alice ← 'foo
+print: not alice.betty
 
+table-set:
+    betty
+    't
+    info-table alice
 
+print: alice.betty
 

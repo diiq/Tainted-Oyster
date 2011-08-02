@@ -1,47 +1,65 @@
-quoted <- '((... 'args) args)
+quoted ← '((... 'args) args)
 
-list <- '((... args) args)
+list ← '((... args) args)
 
-unary-\ <- quoted:
+unary-λ ← quoted:
     ('args)
-    oif (atom-p args):
-        set! args: list args
+    oif (atom args):
+        args ← list args
     quoted:
         (... 'code)
         list args @code
 
-do <- \(... 'code):
-    ((\(): *code))
+do ← λ(... 'code):
+    ((λ(): *code))
 
-eval <- \(code):
+eval ← λ(code):
     do: really code
 
-unary-, <- eval
+unary-, ← eval
 
-then <- do
-else <- do
-if <- oif
+then ← do
+else ← do
+if ← oif
 
-map <- \(f list):
+not ← λx: if x () 't
+
+map ← λ(f list):
     if list:
         f (car list) :: map f (cdr list)
 
-foreach <- \('member alist ... 'code):
+foreach ← λ('member alist ... 'code):
     map: 
-        \(really member): *code
+        λ(really member): *code
         alist
 
-while <- \('test ... 'code):
+while ← λ('test ... 'code):
     if ,test:
         then:
             map unary-, code
             while (really test) *code
 
+set! ← set
 
+set ← λ('thing value):
+    if (not: atom thing):
+        then:
+            call ← ,(car thing)
+            setter ← call.set
+            if setter: 
+                setter *(cdr thing) value
+                signal: list 'no-known-setter-for thing
+        else:
+            leak (really thing)
+            set! (really thing) value
 
+table-set:
+    set
+    info-table table-get
+    table-set
 
 #-------------------------------------------------------------#
-# Tests
+# Playground
 
 foreach q '(a b c d e f):
     print q
@@ -60,3 +78,9 @@ if ():
         print 'hello
     else:
         print 'there
+
+
+baby ← 'foo
+print baby.fee
+baby.fee ← 'one-hundred-dollars
+print baby.fee

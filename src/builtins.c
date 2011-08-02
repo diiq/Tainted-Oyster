@@ -194,15 +194,33 @@ oyster *builtin_current_scope(machine * m)
     return ret;
 }
 
+oyster *builtin_info_table(machine * m)
+{
+    ARG(obj);
+    oyster *ret = make_oyster(sym_id_from_string("table"));
+    ret->in->value = obj->in->info;
+    incref(ret->in->value);
+    return ret;
+}
+
 oyster *builtin_table_get(machine * m)
 {
-    sARG(tab, "table");
     ARG(symbol);
+    sARG(tab, "table");
     int i = 0;
     oyster *ret = table_get(symbol->in->symbol_id, tab->in->value, &i);
     if (!i)
         return nil();
-    return list(1, ret);
+    return ret;
+}
+
+oyster *builtin_table_set(machine * m)
+{
+    ARG(symbol);
+    ARG(value);
+    sARG(tab, "table");
+    table_put(symbol->in->symbol_id, value, tab->in->value);
+    return value;
 }
 
 oyster *print_bindings(machine * m)
@@ -218,7 +236,7 @@ void add_builtins(machine * m)
     add_builtin("car", list(1, arg("cons")), builtin_car, m);
     add_builtin("cdr", list(1, arg("cons")), builtin_cdr, m);
 
-    add_builtin("set!", list(2, unev("symbol"), arg("value")), builtin_set,
+    add_builtin("set", list(2, unev("symbol"), arg("value")), builtin_set,
                 m);
     add_builtin("leak", list(2, unev("symbol"), arg("closure")),
                 builtin_leak, m);
@@ -226,7 +244,7 @@ void add_builtins(machine * m)
     add_builtin("'", list(1, unev("x")), builtin_quote, m);
     add_builtin("unary-'", list(1, unev("x")), builtin_quote, m);
 
-    add_builtin("atom-p", list(1, arg("x")), builtin_atom_p, m);
+    add_builtin("atom", list(1, arg("x")), builtin_atom_p, m);
     add_builtin("is", list(2, arg("a"), arg("b")), builtin_is, m);
     add_builtin("oif", list(3, arg("test"), quot("then"), quot("else")),
                 builtin_oif, m);
@@ -239,8 +257,14 @@ void add_builtins(machine * m)
                      quot("code")), builtin_with_signal_handler, m);
 
     add_builtin("current-scope", nil(), builtin_current_scope, m);
-    add_builtin("table-get", list(2, arg("table"), unev("symbol")),
+
+    add_builtin("info-table", list(1, arg("obj")), builtin_info_table, m);
+
+    add_builtin("table-get", list(2, quot("symbol"), arg("table")),
                 builtin_table_get, m);
+
+    add_builtin("table-set", list(3, quot("symbol"), arg("table"), arg("value")),
+                builtin_table_set, m);
 
     add_builtin("print-bindings", list(1, arg("x")), print_bindings, m);
 }

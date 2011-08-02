@@ -25,6 +25,7 @@ oyster *make_untyped_oyster()
     ret->in->value = NULL;
     ret->bindings = NULL;
     ret->in->info = make_table();
+    incref(ret->in->info);
     return ret;
 }
 
