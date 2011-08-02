@@ -116,8 +116,8 @@ void frame_unref(frame * x)
 
 void print_stack_trace(machine * m)
 {
-    printf("Now: ");
-    frame_print(m->now, 1);
+    printf("\n\n\nNow: ");
+    frame_print(m->now, 0);
 
     frame *f = m->current_frame;
     while (f) {
@@ -129,7 +129,7 @@ void print_stack_trace(machine * m)
         oyster_print(m->accumulator);
     }
     printf
-        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n\n");
+        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n");
 }
 
 void frame_print(frame * i, int print_scope)

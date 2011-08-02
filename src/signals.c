@@ -8,11 +8,11 @@ void no_signal_handler(oyster * signal)
                                 car(cdr(signal))->bindings,
                                 &i)->in->value);
     printf
-        ("\nthe trees shake in a strong wind\nbut the leaves have already fallen\n\n"
+        ("    trees shake in a strong wind\n    but the leaves have already fallen\n\n\n"
          "Error: Signal received but no signal handler is available.\n"
-         "Error message follows:\n");
+         "Error message follows:\n\n\n    ");
     oyster_print(car(signal));
-    printf("\n");
+    printf("\n\n\n");
     error(314, 0, "Exited with unhandled signal.");
     //    m->paused = 1;
 }
