@@ -43,7 +43,7 @@ _tset;
 
 _test(builtin_set)
 {
-    oyster *ret = evaluate_string("(set! a (clear b))\n"
+    oyster *ret = evaluate_string("(set a (clear b))\n"
                                   "a");
     assert(ret->in->symbol_id == sym_id_from_string("b"));
     decref(ret);
@@ -63,8 +63,8 @@ _test(builtin_current_scope)
 
 _test(builtin_table_get)
 {
-    oyster *ret = evaluate_string("(table-get (current-scope) cons)");
-    oyster *m = car(car(car(ret)));
+    oyster *ret = evaluate_string("(table-get cons (current-scope))");
+    oyster *m = car(car(ret));
     assert(m->in->symbol_id == sym_id_from_string("car"));
     decref(m);
     decref(ret);

@@ -67,8 +67,8 @@ print: not alice.betty
 
 table-set:
     betty
-    't
     info-table alice
+    't
 
 print: alice.betty
 

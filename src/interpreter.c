@@ -25,6 +25,7 @@ void step_machine(machine * m)
     case PREPARE_ARGUMENTS:
         {
             table *t = m->now->scope_to_be;
+            // eventually this must become copy-on-write
             m->now->scope_to_be = (m->accumulator->bindings ?
                                    table_copy(m->accumulator->bindings) :
                                    make_table());

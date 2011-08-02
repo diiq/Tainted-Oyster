@@ -75,7 +75,23 @@ oyster *builtin_set(machine * m)
 {
     ARG(symbol);
     ARG(value);
-    set(symbol->in->symbol_id, value, m->current_frame);
+    if(symbol->bindings){
+        int i;
+        table_entry *ret = table_get_entry(symbol->in->symbol_id, 
+                                           symbol->bindings, 
+                                           &i);
+        if (ret) {
+            oyster *t = ret->it;
+            ret->it = value;
+            incref(value);
+            decref(t);
+        } else {
+            table_put(symbol->in->symbol_id, value, symbol->bindings);
+        }
+
+    } else {
+        set(symbol->in->symbol_id, value, m->current_frame);
+    }
     return value;
 }
 
