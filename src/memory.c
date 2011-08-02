@@ -58,41 +58,9 @@ void table_unref(table * x)
 
 //
 
-void oyster_ref(oyster * x)
-{
-    x->ref++;
-}
-
-void oyster_unref(oyster * x)
-{
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->bindings);
-        decref(x->in);
-        free(x);
-    }
-}
 
 //
 
-void inner_ref(inner * x)
-{
-    x->ref++;
-}
-
-void inner_unref(inner * x)
-{
-    x->ref--;
-    if (x->ref <= 0) {
-        if (x->type != SYMBOL &&
-            x->type != NIL &&
-            x->type != BUILT_IN_FUNCTION && x->type != -1) {
-            decref(x->value);
-        }
-        //        decref(x->info);
-        free(x);
-    }
-}
 
 //
 
