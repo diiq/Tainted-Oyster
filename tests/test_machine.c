@@ -3,6 +3,7 @@
 #include "testing.h"
 #include "oyster.h"
 #include "machine.h"
+#include "interpreter.h"
 #include "frame.h"
 
 

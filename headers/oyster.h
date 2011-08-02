@@ -34,27 +34,17 @@ oyster *evaluate_string(char *str);
 //------------------------------- Interpreter --------------------------------//
 // These functions control individual steps of the oyster machine. 
 void step_machine(machine * m);
-void evaluate_oyster(frame * instruct, machine * m);
-
-void push_argument(oyster * argument,
-                   oyster * name, int flag, oyster * continu, machine * m);
-void push_normal_argument(oyster * arg,
-                          oyster * lambda_list,
-                          oyster * arg_list, machine * m);
-void argument_chain_link(oyster * lambda_list,
-                         oyster * arg_list, machine * m);
-int car_is_sym(oyster * x, int sym);
-oyster *unevaluate_list(oyster * xs);
-void push_bindings_to_scope(machine * m, oyster * o);
-
-void elipsis_argument(oyster *arg_list, oyster * lambda,
-                      oyster *so_far, machine * m);
 
 //-------------------------------- The Machine ------------------------------//
 
 machine *make_machine();
 frame *machine_pop_stack(machine * m);
 void push_new_instruction(machine * m, oyster * instruction, int flag);
+frame *machine_pop_stack(machine * m);
+oyster *machine_accumulator(machine *m);
+int machine_paused(machine *m);
+void machine_unpause(machine *m);
+frame *machine_active_frame(machine *m);
 
 //-------------------------------- Frames ------------------------------------//
 
@@ -77,11 +67,6 @@ frame *make_frame(frame * below,
                   table * scope,
                   table * scope_to_be,
                   table * scope_below, oyster * instruction, int flag);
-frame *machine_pop_stack(machine * m);
-oyster *machine_accumulator(machine *m);
-int machine_paused(machine *m);
-void machine_unpause(machine *m);
-frame *machine_active_frame(machine *m);
 
 frame *frame_below(frame *f);
 table *frame_scope(frame *f);

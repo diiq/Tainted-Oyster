@@ -2,6 +2,7 @@
 #define INTERPRETER
 
 #include "oyster.h"
+#include "interpreter.h"
 #include "machine.h"
 #include "frame.h"
 
