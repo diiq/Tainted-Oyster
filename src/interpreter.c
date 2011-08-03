@@ -46,13 +46,13 @@ void step_machine(machine * m)
 
     case ATPEND_CONTINUE:
         argument_chain_link(car(instruct->instruction),
-                            append(unevaluate_list(m->accumulator),
+                            append(unevaluate_list(ensure_list(m->accumulator)),
                                    car(cdr(instruct->instruction))), m);
         break;
 
     case ASTERPEND_CONTINUE:
         argument_chain_link(car(instruct->instruction),
-                            append(m->accumulator,
+                            append(ensure_list(m->accumulator),
                                    car(cdr(instruct->instruction))), m);
         break;
 
@@ -70,7 +70,7 @@ void step_machine(machine * m)
         break;
 
     case ELIPSIS_ATPEND_CONTINUE:
-        elipsis_argument(append(unevaluate_list(m->accumulator),
+        elipsis_argument(append(unevaluate_list(ensure_list(m->accumulator)),
                                 car(cdr(instruct->instruction))),
                          car(instruct->instruction),
                          car(cdr(cdr(instruct->instruction))),
@@ -78,7 +78,7 @@ void step_machine(machine * m)
         break;
 
     case ELIPSIS_ASTERPEND_CONTINUE:
-        elipsis_argument(append(m->accumulator,
+        elipsis_argument(append(ensure_list(m->accumulator),
                                 car(cdr(instruct->instruction))),
                          car(instruct->instruction),
                          car(cdr(cdr(instruct->instruction))),
@@ -92,6 +92,7 @@ void step_machine(machine * m)
                               instruct->scope_to_be, m->now->scope);
     }
 }
+
 
 void evaluate_oyster(frame * instruct, machine * m)
 {
@@ -123,6 +124,9 @@ void evaluate_oyster(frame * instruct, machine * m)
         case CONS:
             if (car_is_sym(object, CLEAR)) {
                 set_accumulator(m, car(cdr(object)));
+                //while(car_is_sym(m->accumulator, CLEAR)){
+                //    set_accumulator(m, car(cdr(m->accumulator)));
+                //}
 
             } else {
                 push_new_instruction(m, cdr(object), PREPARE_ARGUMENTS);

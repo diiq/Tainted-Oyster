@@ -88,10 +88,11 @@ oyster *builtin_set(machine * m)
         } else {
             table_put(symbol->in->symbol_id, value, symbol->bindings);
         }
-
     } else {
-        set(symbol->in->symbol_id, value, m->current_frame);
-    }
+        oyster *signal = list(2, arg("There is no scope!"), cons);
+        toss_signal(make_signal(signal, m), m);
+        return NULL;
+    }        
     return value;
 }
 
@@ -100,6 +101,7 @@ oyster *builtin_leak(machine * m)
     // Gross.
     ARG(symbol);
     ARG(closure);
+    ARG(value);
     frame *current = m->current_frame;
 
     int id = symbol->in->symbol_id;
@@ -116,15 +118,43 @@ oyster *builtin_leak(machine * m)
             table_put_entry(id, a, frame_scope_below(current));
         }
 
-    } else {
+    } else if (nilp(value)){
         if (!closure->bindings) {
             closure->bindings = make_table();
             incref(closure->bindings);
         }
         leak(id, closure->bindings);
+
+    } else {
+        table_put(symbol->in->symbol_id, value, closure->bindings);
     }
 
     return closure;
+
+}
+
+oyster *builtin_leak_all(machine *m)
+{
+    ARG(obj);
+    return oyster_copy(obj, NULL);
+}
+
+oyster *builtin_bindings(machine *m)
+{
+    ARG(obj);
+    oyster *ret = make_oyster(sym_id_from_string("table"));
+    ret->in->value = obj->bindings;
+    incref(ret->in->value);
+    return ret;
+}
+
+oyster *builtin_set_bindings(machine *m)
+{
+    ARG(obj);
+    ARG(bindings);
+    obj->bindings = bindings->in->value;
+    incref(obj->bindings);
+    return obj;
 }
 
 oyster *builtin_quote(machine * m)
@@ -239,23 +269,23 @@ oyster *builtin_table_set(machine * m)
     return value;
 }
 
-oyster *print_bindings(machine * m)
-{
-    ARG(x);
-    table_print(x->bindings);
-    return x;
-}
-
 void add_builtins(machine * m)
 {
     add_builtin("cons", list(2, arg("car"), arg("cdr")), builtin_cons, m);
     add_builtin("car", list(1, arg("cons")), builtin_car, m);
     add_builtin("cdr", list(1, arg("cons")), builtin_cdr, m);
 
-    add_builtin("set", list(2, unev("symbol"), arg("value")), builtin_set,
+    add_builtin("set", list(2, quot("symbol"), arg("value")), builtin_set,
                 m);
-    add_builtin("leak", list(2, unev("symbol"), arg("closure")),
+    add_builtin("leak", list(3, unev("symbol"), arg("closure"), arg("value")),
                 builtin_leak, m);
+    add_builtin("leak-all", list(1, arg("obj")),
+                builtin_leak_all, m);
+    add_builtin("bindings", list(1, arg("obj")),
+                builtin_bindings, m);
+    add_builtin("set-bindings", list(2, arg("obj"), arg("bindings")),
+                builtin_set_bindings, m);
+
 
     add_builtin("'", list(1, unev("x")), builtin_quote, m);
     add_builtin("unary-'", list(1, unev("x")), builtin_quote, m);
@@ -282,6 +312,5 @@ void add_builtins(machine * m)
     add_builtin("table-set", list(3, quot("symbol"), arg("table"), arg("value")),
                 builtin_table_set, m);
 
-    add_builtin("print-bindings", list(1, arg("x")), print_bindings, m);
 }
 

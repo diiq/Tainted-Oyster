@@ -192,4 +192,10 @@ int oyster_length(oyster *xs)
     return i;
 }
 
+oyster *ensure_list(oyster *xs)
+{
+    if(xs->in->type == CONS || nilp(xs))
+        return xs;
+    return list(1, xs);
+}
 #endif

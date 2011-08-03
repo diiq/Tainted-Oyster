@@ -8,7 +8,9 @@ unary-λ ← quoted:
         args ← list args
     quoted:
         (... 'code)
+        set-bindings args (bindings code)    
         list args @code
+           
 
 unary-\ ← unary-λ
 
@@ -25,20 +27,40 @@ else ← do
 if ← oif
 
 not ← λx: if x () 't
+unary-! ← not
 
-map ← λ(f list):
+
+map1 ← λ(f list):
     if list:
-        f (car list) :: map f (cdr list)
+        f (car list) :: map1 f: cdr list
 
+and ← λ(... 'xs):
+    if !xs:
+        't
+        if ,(car xs):
+            and *(cdr xs)
+
+fold ← λ(f list start):
+    if !list:
+        start
+        fold: 
+            f 
+            cdr list 
+            f (car list) start
+ 
+map ← λ(f ... lists):
+    if (fold and lists 't): 
+        f @(map1 car lists) :: map f @(map1 cdr lists)
+        
 foreach ← λ('member alist ... 'code):
     map: 
         λ(really member): *code
         alist
 
 while ← λ('test ... 'code):
-    if ,test:
+    if ,test: 
         then:
-            map unary-, code
+            do *code
             while (really test) *code
 
 set! ← set
@@ -59,91 +81,102 @@ table-set:
     info-table table-get
     table-set
 
-
 #-------------------------------------------------------------#
 # Playground
 
-foreach q '(a b c d e f):
-    print q
+# foreach q '(a b c d e f):
+#     print q
+
+# print 'this 'far
 
 a ← '(a b c d e)
 while a: 
-      print: car a
-      a ← cdr a
-
-print: if () () 't
-
-print: if 't 't ()
-
-if ():
-    then:
-        print 'hello
-    else:
-        print 'there
+    a ← cdr a
 
 
-baby ← 'foo
-print baby.fee
-baby.fee ← 'one-hundred-dollars
-print baby.fee
+# print: if () () 't
+
+# print: if 't 't ()
+
+# if ():
+#     then:
+#         print 'hello
+#     else:
+#         print 'there
 
 
-make-account ← λbalance:
-    account ← 'account
-    account.type ← 'account
+# baby ← 'foo
+# print baby.fee
+# baby.fee ← 'one-hundred-dollars
+# print baby.fee
 
-    account.withdraw ← λamount:
-        if (not balance):
-            then:
-                'Insufficient-funds
-            else:
-                balance ← amount
 
-    account.deposit ← λ():
-        balance
-    
-    balance ← 'amount
-    account
+# make-account ← λbalance:
+#     account ← 'account
+#     account.type ← 'account
 
-acc ← make-account 'loo
-print (acc.deposit)
-acc.withdraw 'poo
-print (acc.deposit)
-acc.withdraw ()
+#     account.withdraw ← λamount:
+#         if (not balance):
+#             then:
+#                 'Insufficient-funds
+#             else:
+#                 balance ← amount
 
-print: quoted final answer
-
-# class ← λ('name 'args ... 'members):
-#     leak: really name
-#     really name ← λ(really args):
-#         return ← name
-#         #        return.type ← name
-#         print return
-#         map:
-#             λm:
-#                 print return
-#                 # print return.(really: car m)
-#                 print: λ(really: car: cdr m): *(cdr: cdr m)
-#             members
-#         return
-
-# class maccount (balance):
-#     withdrawl amount:
-#         if balance:
-#             balance ← amount
-#             'insufficient-funds
-
-#     deposit amount:
+#     account.deposit ← λ():
 #         balance
+    
+#     balance ← 'amount
+#     account
 
-# macc ← maccount 'see
+# acc ← make-account 'loo
+# print (acc.deposit)
+# acc.withdraw 'poo
+# print (acc.deposit)
+# acc.withdraw ()
 
-# print macc
-
-# print macc.deposit 
-# macc.withdraw 'poo 
-# print macc.deposit 
-# macc.withdraw ()
-# print: macc.withdraw ()
+# print: quoted final answer
 
 
+# binding-of ← λ('symbol obj):
+#     table-get symbol (bindings obj)
+# #can compose pull this stunt for me?
+# binding-of.set ← λ('symbol obj value):
+#     (table-get symbol (bindings obj)) ← value
+
+
+class ← λ('name 'init ... 'members):
+    leak: really name
+    really name ← λ(really: car: cdr init):
+        self ← '(really name)
+        members ← init :: members 
+        map:
+            λm: set self.(really: car m): 
+                leak: 
+                    self
+                    λ(really: car: cdr m): *(cdr: cdr m)
+                    self
+            members
+        self.init *(leak-all: car: cdr init)
+        self
+
+class maccount:
+    init balance:
+        self.balance ← balance
+
+    withdraw amount:
+        if self.balance:
+            self.balance ← amount
+            'insufficient-funds
+            
+    deposit amount:
+        self.balance
+
+macc ← maccount 'see
+
+print 'macc macc
+print 'deposit: macc.deposit ()
+print: macc.withdraw 'pop 
+print:  macc.deposit 'p
+macc.withdraw ()
+print (macc.deposit 't)
+print: macc.withdraw 'poo

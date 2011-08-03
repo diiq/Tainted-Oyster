@@ -48,7 +48,14 @@ frame *machine_active_frame(machine *m);
 
 //-------------------------------- Frames ------------------------------------//
 
-enum instruction_flags { 
+enum instruction_flags {
+    // This flag is set when a function call has been found.
+    // The instruction will be a list of arguments; the accumulator
+    // will be the function being applied.
+    PREPARE_ARGUMENTS, 
+    // This flag is set when an @ argument has been evaluated.
+    // The instruction will be (arg-list lambda-list); the
+    // accumulator will be the @ argument.
     ASTERPEND_CONTINUE,
     ATPEND_CONTINUE,
     ARGUMENT,
@@ -58,7 +65,6 @@ enum instruction_flags {
     EVALUATE,
     CONTINUE,
     APPLY_FUNCTION,
-    PREPARE_ARGUMENTS,
     PAUSE,
     HANDLE_SIGNALS
 };
@@ -88,7 +94,7 @@ oyster *list(int count, ...);
 oyster *append(oyster * a, oyster * b);
 oyster *reverse(oyster * xs);
 int oyster_length(oyster *xs);
-
+oyster *ensure_list(oyster *xs);
 
 //--------------------------------- Oysters ----------------------------------// 
 // An oyster is a little shell that pearls hide inside when they are scared.

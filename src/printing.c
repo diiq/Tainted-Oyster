@@ -63,8 +63,13 @@ void oyster_print(oyster * o)
         printf("[builtin]");
         break;
     default:
-        printf("?(%d)", o->in->type);
-        break;
+
+        if(type == sym_id_from_string("table")){
+            table_print(o->in->value);
+
+        } else {
+            printf("?(%d)", o->in->type);
+        }
     }
     decref(o);
 }
