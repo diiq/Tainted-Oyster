@@ -101,6 +101,21 @@ token *read_symbol(FILE *stream){
     return ret;
 }
 
+token *read_number(FILE *stream){
+    int c = fgetc(stream);
+    ungetc(c, stream);
+    
+    if(!isdigit(c)){
+        return NULL;
+    } 
+
+    int a;
+    fscanf(stream, "%d", a);
+    token *ret = make_token(NUMBER_TOKEN);
+    ret->count = a;
+    return ret;
+}
+
 token *read_info_access(FILE *stream){
     int c = fgetc(stream);
     if(c != '.'){
@@ -307,6 +322,9 @@ token *next_token(FILE *stream)
     if (ret) return ret;
 
     ret = read_symbol(stream);
+    if (ret) return ret;
+
+    ret = read_number(stream);
     if (ret) return ret;
 
     ret = read_open(stream);

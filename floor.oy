@@ -41,15 +41,13 @@ and ← λ(... 'xs):
             and *(cdr xs)
 
 fold ← λ(f list start):
-    if !list:
-        start
-        fold: 
-            f 
+    if !list start:
+        fold f: 
             cdr list 
             f (car list) start
  
 map ← λ(f ... lists):
-    if (fold and lists 't): 
+    if (and @lists): 
         f @(map1 car lists) :: map f @(map1 cdr lists)
         
 foreach ← λ('member alist ... 'code):
@@ -60,7 +58,7 @@ foreach ← λ('member alist ... 'code):
 while ← λ('test ... 'code):
     if ,test: 
         then:
-            do *code
+            map eval code
             while (really test) *code
 
 set! ← set
@@ -84,7 +82,7 @@ table-set:
 #-------------------------------------------------------------#
 # Playground
 
-# foreach q '(a b c d e f):
+#foreach q '(a b c d e f):
 #     print q
 
 # print 'this 'far
@@ -93,7 +91,7 @@ a ← '(a b c d e)
 while a: 
     a ← cdr a
 
-
+#map print '(a b c d e)
 # print: if () () 't
 
 # print: if 't 't ()
@@ -159,24 +157,26 @@ class ← λ('name 'init ... 'members):
         self.init *(leak-all: car: cdr init)
         self
 
-class maccount:
-    init balance:
-        self.balance ← balance
+# class maccount:
+#     init balance:
+#         self.balance ← balance
 
-    withdraw amount:
-        if self.balance:
-            self.balance ← amount
-            'insufficient-funds
+#     withdraw amount:
+#         if self.balance:
+#             self.balance ← amount
+#             'insufficient-funds
             
-    deposit amount:
-        self.balance
+#     deposit amount:
+#         self.balance
 
-macc ← maccount 'see
+# macc ← maccount 'see
 
-print 'macc macc
-print 'deposit: macc.deposit ()
-print: macc.withdraw 'pop 
-print:  macc.deposit 'p
-macc.withdraw ()
-print (macc.deposit 't)
-print: macc.withdraw 'poo
+# print 'macc macc
+# print 'deposit: macc.deposit ()
+# print: macc.withdraw 'pop 
+# print:  macc.deposit 'p
+# macc.withdraw ()
+# print (macc.deposit 't)
+# print: macc.withdraw 'poo
+
+
