@@ -76,4 +76,4 @@ print: alice.betty
 #--------------------------------------------------------------#
 print: quoted Maths quiz
 
-print: 25 <<binary-+>> 50
+print: 25 <<binary-+>> 50 <<binary-*>> 10
