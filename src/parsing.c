@@ -257,8 +257,12 @@ int read_replace(FILE *stream){
         "::", "<<cons>>",
         "<-", "<<set>>",
         "←", "<<set>>",
+        "+", "<<binary-+>>",
+        "-", "<<binary-->>",
+        "*", "<<binary-*>>",
+        "/", "<<binary-/>>",
     };
-    int replace_len = 3;
+    int replace_len = 7;
     char a[1000];
     read_word(stream, a);
     int i;
