@@ -110,7 +110,7 @@ token *read_number(FILE *stream){
     } 
 
     int a;
-    fscanf(stream, "%d", a);
+    fscanf(stream, "%d", &a);
     token *ret = make_token(NUMBER_TOKEN);
     ret->count = a;
     return ret;
