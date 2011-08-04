@@ -76,7 +76,7 @@ print: alice.betty
 #--------------------------------------------------------------#
 print: quoted Maths quiz
 
-# look ma no precedence!
+# look ma, no precedence!
 print: (25 * 50 + 10)
 
 
