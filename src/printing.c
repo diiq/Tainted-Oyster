@@ -64,11 +64,13 @@ void oyster_print(oyster * o)
         break;
     default:
 
+        // Eventually this will, instead, test the info table for a print
+        // function, or the table of the type-symbol, or sommat. Dunno yet. 
         if(type == sym_id_from_string("table")){
             table_print(o->in->value);
 
         } else if(type == sym_id_from_string("number")){
-            printf("%d", ((number *)o->in->value)->num);
+            printf("%d", ((number *)oyster_value(o))->num);
 
         } else {
             printf("?(%d)", o->in->type);

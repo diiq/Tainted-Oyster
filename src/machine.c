@@ -23,6 +23,7 @@ machine *make_machine()
     ret->paused = 0;
 
     add_builtins(ret);
+    add_builtin_numbers(ret);
 
     return ret;
 }

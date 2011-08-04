@@ -155,6 +155,7 @@ enum {
 oyster *make_untyped_oyster();
 oyster *make_oyster(int type);
 int oyster_type(oyster * x);
+void *oyster_value(oyster * x);
 oyster *make_symbol(int symbol_id);
 oyster *oyster_copy(oyster * x, table * new_bindings);
 void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x);
@@ -225,8 +226,8 @@ int leaked_p(int sym, table * tab);
 //------------------------------ built in functions --------------------------//
 // These are functions that push the core functions in the beginning.
 
-#define ARG(a) oyster *a = look_up(sym_id_from_string(#a), m->now)
-#define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), m->now)
+#define ARG(a) oyster *a = look_up(sym_id_from_string(#a), machine_active_frame(m))
+#define sARG(a, an) oyster *a = look_up(sym_id_from_string(an), machine_active_frame(m))
 
 oyster *make_builtin(oyster * (*func) (machine * m));
 oyster *arg(char *name);
@@ -326,5 +327,7 @@ typedef struct {
 oyster *make_number(int num);
 void number_ref(number *num);
 void number_unref(number *num);
+int number_of(oyster *o);
+void add_builtin_numbers(machine *m);
 
 #endif

@@ -60,6 +60,11 @@ int oyster_type(oyster * x)
     return x->in->type;
 }
 
+void *oyster_value(oyster * x)
+{
+    return x->in->value;
+}
+
 void oyster_ref(oyster * x)
 {
     x->ref++;

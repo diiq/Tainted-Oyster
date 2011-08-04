@@ -72,3 +72,8 @@ table-set:
 
 print: alice.betty
 
+
+#--------------------------------------------------------------#
+print: quoted Maths quiz
+
+print: 25 <<binary-+>> 50
