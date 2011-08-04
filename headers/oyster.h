@@ -324,5 +324,7 @@ typedef struct {
 } number;
 
 oyster *make_number(int num);
+void number_ref(number *num);
+void number_unref(number *num);
 
 #endif

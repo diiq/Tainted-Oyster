@@ -78,26 +78,3 @@ void cons_cell_unref(cons_cell * x)
         free(x);
     }
 }
-
-//
-
-//
-
-
-//
-
-void number_ref(number * n)
-{
-    n->ref++;
-}
-
-void number_unref(number * n)
-{
-    n->ref--;
-    if (n->ref <= 0) {
-        free(n);
-    }
-}
-
-//
-
