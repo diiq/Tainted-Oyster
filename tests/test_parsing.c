@@ -57,7 +57,7 @@ _test(token_stream){
 _test(read_one){
     char *str = ("this ... '(is <<(antioch)>> ,unweildy a) feild:\n"
                  "    of dust and peat\n"
-                 "    (single sauce)\n"
+                 "    (single 23 59)\n"
                  "    soop:\n"
                  "        (poop)\n"
                  "this is another expression here");

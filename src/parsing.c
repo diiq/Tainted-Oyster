@@ -414,6 +414,17 @@ oyster *parse_symbol(token_stream *stream){
     return NULL;
 }
 
+oyster *parse_number(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == NUMBER_TOKEN){
+        oyster *ret = make_number(next->count);
+        free_token(next);
+        return ret;
+    }
+    unget_token(next, stream);
+    return NULL;
+}
+
 oyster *parse_parens(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == OPEN_TOKEN){
@@ -455,6 +466,7 @@ oyster *parse_one(token_stream *stream)
 {
     oyster *ret;
     if ((ret = parse_symbol(stream)));
+    else if ((ret = parse_number(stream)));
     else if ((ret = parse_parens(stream)));
     else if ((ret = parse_prefix(stream)));
     else ret = NULL;
