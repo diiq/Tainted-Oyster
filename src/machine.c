@@ -119,14 +119,11 @@ void machine_print(machine * m)
 
 //------------------------- Memory -------------------------------//
 
-void machine_unref(machine * x)
+void machine_free(machine * x)
 {
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->base_frame);
-        decref(x->current_frame);
-        decref(x->now);
-        decref(x->accumulator);
-        free(x);
-    }
+    decref(x->base_frame);
+    decref(x->current_frame);
+    decref(x->now);
+    decref(x->accumulator);
+    free(x);
 }

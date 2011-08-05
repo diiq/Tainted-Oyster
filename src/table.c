@@ -8,7 +8,7 @@
 
 #include "oyster.h"
 #include <glib.h>
-
+#include <stdlib.h>
 
 
 table_entry *make_table_entry(oyster * it)
@@ -19,8 +19,6 @@ table_entry *make_table_entry(oyster * it)
     return ret;
 }
 
-
-
 table *make_table()
 {
     table *ret = NEW(table);
@@ -28,7 +26,7 @@ table *make_table()
                                     g_direct_equal, NULL, decref);
 
     ret->leaked = g_hash_table_new_full(g_direct_hash,
-                                        g_direct_equal, NULL, NULL);
+                                         g_direct_equal, NULL, NULL);
     return ret;
 }
 
@@ -116,6 +114,21 @@ int leaked_p(int sym, table * tab)
                         (tab->leaked, GINT_TO_POINTER(sym)));
 }
 
+//------------------- Memory -----------------------//
+
+void table_entry_free(table_entry * x)
+{
+    decref(x->it);
+    free(x);
+}
+
+
+void table_free(table * x)
+{
+    g_hash_table_unref(x->it);
+    g_hash_table_unref(x->leaked);
+    free(x);
+}
 
 
 #endif

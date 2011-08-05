@@ -23,12 +23,9 @@ int number_of(oyster *o)
 }
 
 
-void number_unref(number *num)
+void number_free(number *num)
 {
-    num->ref--;
-    if(num->ref <= 0){
-        free(num);
-    }
+    free(num);
 }
 
 oyster *builtin_plus(machine *m)

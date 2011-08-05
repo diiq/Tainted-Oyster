@@ -4,7 +4,7 @@
 #define UNTO_DUST 0
 
 #define NEW(type) initialize_memory_object(sizeof(type),    \
-                                           &type ## _unref)
+                                           &type ## _free)
 
 #include <glib.h>
 #include <stdio.h>
@@ -44,6 +44,7 @@ oyster *machine_accumulator(machine *m);
 int machine_paused(machine *m);
 void machine_unpause(machine *m);
 frame *machine_active_frame(machine *m);
+void machine_free(machine *m);
 
 //-------------------------------- Frames ------------------------------------//
 
@@ -78,6 +79,7 @@ table *frame_scope(frame *f);
 table *frame_scope_below(frame *f);
 oyster *frame_instruction(frame *f);
 int frame_flag(frame *f);
+void frame_free(frame *f);
 
 //------------------------ lists and how to use them -------------------------//
 oyster *make_cons(oyster * car, oyster * cdr);
@@ -87,6 +89,7 @@ oyster *cons(oyster * car, oyster * cdr);
 oyster *car(oyster * cons);
 oyster *cdr(oyster * cons);
 
+
 oyster *nil();
 int nilp(oyster * x);
 oyster *list(int count, ...);
@@ -94,6 +97,8 @@ oyster *append(oyster * a, oyster * b);
 oyster *reverse(oyster * xs);
 int oyster_length(oyster *xs);
 oyster *ensure_list(oyster *xs);
+
+void cons_cell_free(cons_cell *c);
 
 //--------------------------------- Oysters ----------------------------------// 
 // An oyster is a little shell that pearls hide inside when they are scared.
@@ -155,8 +160,8 @@ void *oyster_value(oyster * x);
 oyster *make_symbol(int symbol_id);
 oyster *oyster_copy(oyster * x, table * new_bindings);
 void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x);
-
-
+void oyster_free(oyster *o);
+void inner_free(inner *i);
 
 //--------------------------------- Scopes -----------------------------------//
 // Looking up, leaking, setting, and packaging scopes, so that the right 
@@ -215,7 +220,8 @@ int leaked_p(int sym, table * tab);
 
 #define table_end_loop }} do{}while(0)
 
-
+void table_free(table *t);
+void table_entry_free(table_entry *e);
 
 //------------------------------ built in functions --------------------------//
 // These are functions that push the core functions in the beginning.
@@ -246,20 +252,13 @@ oyster *make_continuation(machine * m);
 // Functions that handle memory management. These are gonna hafta change, as 
 // the reference counting is a necessarily temporary arrangement.
 struct memorable {
-    void (*dec) (void *);
+    void (*free) (void *);
     int ref;
 };
 
 void *initialize_memory_object(size_t size, void *dec);
 void incref(void *x);
 void decref(void *x);
-void table_entry_unref(table_entry * x);
-void table_unref(table * x);
-void oyster_unref(oyster * x);
-void inner_unref(inner * x);
-void cons_cell_unref(cons_cell * x);
-void machine_unref(machine * x);
-void frame_unref(frame * x);
 /* void number_ref(number * n); */
 /* void number_unref(number * n); */
 
@@ -304,16 +303,14 @@ void toss_signal(oyster * signal, machine * m);
 //------------------------------- Numbers ------------------------------//
 
 typedef struct {
-    void (*inc) (void *);
     void (*dec) (void *);
     int ref;
     int num;
 } number;
 
 oyster *make_number(int num);
-void number_ref(number *num);
-void number_unref(number *num);
 int number_of(oyster *o);
 void add_builtin_numbers(machine *m);
+void number_free(number *n);
 
 #endif

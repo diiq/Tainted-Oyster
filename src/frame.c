@@ -92,19 +92,16 @@ void push_instruction_list(machine * m,
 
 //--------------------------- Memory -----------------------------//
 
-void frame_unref(frame * x)
+void frame_free(frame * x)
 {
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->below);
-
-        decref(x->scope);
-        decref(x->scope_to_be);
-        decref(x->scope_below);
-
-        decref(x->instruction);
-        free(x);
-    }
+    decref(x->below);
+    
+    decref(x->scope);
+    decref(x->scope_to_be);
+    decref(x->scope_below);
+    
+    decref(x->instruction);
+    free(x);
 }
 
 //-------------------------- Printing ----------------------------//

@@ -198,4 +198,17 @@ oyster *ensure_list(oyster *xs)
         return xs;
     return list(1, xs);
 }
+
+
+
+//------------------------------- Memory --------------------------//
+
+void cons_cell_free(cons_cell * x)
+{
+    decref(x->car);
+    decref(x->cdr);
+    free(x);
+}
+
+
 #endif

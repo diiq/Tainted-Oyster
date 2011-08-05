@@ -29,18 +29,15 @@ oyster *make_untyped_oyster()
     return ret;
 }
 
-void inner_unref(inner * x)
+void inner_free(inner * x)
 {
-    x->ref--;
-    if (x->ref <= 0) {
-        if (x->type != SYMBOL &&
-            x->type != NIL &&
-            x->type != BUILT_IN_FUNCTION && x->type != -1) {
-            decref(x->value);
-        }
-        decref(x->info);
-        free(x);
+    if (x->type != SYMBOL &&
+        x->type != NIL &&
+        x->type != BUILT_IN_FUNCTION && x->type != -1) {
+        decref(x->value);
     }
+    decref(x->info);
+    free(x);
 }
 
 oyster *make_oyster(int type)
@@ -60,14 +57,11 @@ void *oyster_value(oyster * x)
     return x->in->value;
 }
 
-void oyster_unref(oyster * x)
+void oyster_free(oyster * x)
 {
-    x->ref--;
-    if (x->ref <= 0) {
-        decref(x->bindings);
-        decref(x->in);
-        free(x);
-    }
+    decref(x->bindings);
+    decref(x->in);
+    free(x);
 }
 
 
