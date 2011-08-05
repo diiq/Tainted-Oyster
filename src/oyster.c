@@ -33,10 +33,7 @@ oyster *make_untyped_oyster()
 void inner_free(inner * x)
 {
     if (x->gc_type == 1)
-        //x->type != SYMBOL &&
-        //x->type != NIL &&
-        //#x->type != BUILT_IN_FUNCTION && x->type != -1) {
-        decref(x->value);
+         decref(x->value);
     
     decref(x->info);
     free(x);

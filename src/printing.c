@@ -70,7 +70,7 @@ void oyster_print(oyster * o)
             table_print(o->in->value);
 
         } else if(type == sym_id_from_string("number")){
-            printf("%d", ((number *)oyster_value(o))->num);
+            printf("%d", number_of(o));
 
         } else {
             printf("?(%d)", o->in->type);

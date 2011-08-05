@@ -12,21 +12,13 @@
 oyster *make_number(int num)
 {
     oyster *ret = make_oyster(sym_id_from_string("number"));
-    ret->in->value = NEW(number);
-    incref(ret->in->value);
-    ((number *)ret->in->value)->num = num;
+    ret->in->symbol_id = num;
+    ret->in->gc_type = 0;
     return ret;
 }
 
-int number_of(oyster *o)
-{
-    return ((number *)oyster_value(o))->num;
-}
-
-
-void number_free(number *num)
-{
-    free(num);
+int number_of(oyster *num){
+    return num->in->symbol_id;
 }
 
 oyster *builtin_plus(machine *m)
