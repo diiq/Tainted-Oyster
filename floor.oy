@@ -110,7 +110,7 @@ find-if ← λ(f xs):
 
 class ← λ('name 'inheritance ... 'members):
     leak: really name
-    init ← find-if (λx: first x <<is>> 'init) members
+    init ← find-if (λx: first x == 'init) members
     init-args ← if init (second init) ()
 
     it ← really name ← λ(really init-args):

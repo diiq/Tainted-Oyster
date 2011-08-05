@@ -34,6 +34,9 @@ void inner_free(inner * x)
 {
     if (x->gc_type == 1)
          decref(x->value);
+
+    if (x->gc_type == 2)
+        free(x->value);
     
     decref(x->info);
     free(x);
