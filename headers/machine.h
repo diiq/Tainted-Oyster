@@ -19,7 +19,6 @@
 // and so on.
 
 struct machine {
-    void (*incref) (machine * x);
     void (*decref) (machine * x);
     int ref;
 

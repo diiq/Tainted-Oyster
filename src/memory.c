@@ -6,7 +6,6 @@
 void *initialize_memory_object(size_t size, void *inc, void *dec)
 {
     struct memorable *obj = malloc(size);
-    obj->inc = inc;
     obj->dec = dec;
     obj->ref = 0;
     return obj;
@@ -15,7 +14,7 @@ void *initialize_memory_object(size_t size, void *inc, void *dec)
 void incref(void *x)
 {
     if (x)
-        ((struct memorable *) x)->inc(x);
+        ((struct memorable *) x)->ref++;
 }
 
 void decref(void *x)

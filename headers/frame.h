@@ -2,7 +2,6 @@
 #define FRAMEH
 
 struct frame {
-    void (*incref) (frame * x);
     void (*decref) (frame * x);
     int ref;
 

@@ -104,7 +104,6 @@ oyster *ensure_list(oyster *xs);
 // bilbo bagginses. This allows the same hobbit to have a different binding 
 // in different circumstances -- the clothes fit the occasion.
 struct cons_cell {
-    void (*incref) (cons_cell * x);
     void (*decref) (cons_cell * x);
     int ref;
 
@@ -113,7 +112,6 @@ struct cons_cell {
 };
 
 struct inner {
-    void (*incref) (inner * x);
     void (*decref) (inner * x);
     int ref;
 
@@ -128,7 +126,6 @@ struct inner {
 };
 
 struct oyster {
-    void (*incref) (oyster * x);
     void (*decref) (oyster * x);
     int ref;
 
@@ -186,14 +183,12 @@ enum {
 };
 
 struct table_entry {
-    void (*incref) (table_entry * x);
     void (*decref) (table_entry * x);
     int ref;
     oyster *it;
 };
 
 struct table {
-    void (*incref) (table * x);
     void (*decref) (table * x);
     int ref;
     GHashTable *it;
@@ -252,7 +247,6 @@ oyster *make_continuation(machine * m);
 // Functions that handle memory management. These are gonna hafta change, as 
 // the reference counting is a necessarily temporary arrangement.
 struct memorable {
-    void (*inc) (void *);
     void (*dec) (void *);
     int ref;
 };
