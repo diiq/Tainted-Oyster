@@ -15,7 +15,6 @@ unary-λ ← quoted:
         set-bindings args (bindings code)    
         list args @code
            
-
 unary-\ ← unary-λ
 
 do ← λ(... 'code):
@@ -39,7 +38,6 @@ and ← λ(... 'xs):
         if ,(car xs):
             and *(cdr xs)
 
-# Will fail if () gets a .first!
 first ← λx:
     if x.first:
         x.first x
@@ -136,6 +134,21 @@ table-set:
     info-table table-get
     table-set
 
+
+cond ← λ(... 'cases):
+    if cases:
+        then:
+            case ← first cases
+            if ,(first case): 
+                then: *(rest case)
+                else: cond *(rest cases)
+
+unary-- ← λx: 0 - x
+
+or ← λ(test ... 'xs):
+    if test:
+        test
+        or *xs
 
 #-------------------------------------------------------------#
 # Playground

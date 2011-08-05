@@ -49,10 +49,32 @@ oyster *builtin_divide(machine *m)
     return make_number(number_of(a) / number_of(b));
 }
 
+oyster *builtin_greater(machine *m)
+{
+    ARG(a);
+    ARG(b);
+    if (number_of(a) > number_of(b)){
+        return arg("t");
+    }
+    return nil();
+}
+
+oyster *builtin_less(machine *m)
+{
+    ARG(a);
+    ARG(b);
+    if (number_of(a) < number_of(b)){
+        return arg("t");
+    }
+    return nil();
+}
+
 void add_builtin_numbers(machine *m)
 {
     add_builtin("binary-+", list(2, arg("a"), arg("b")), builtin_plus, m);
     add_builtin("binary--", list(2, arg("a"), arg("b")), builtin_minus, m);
     add_builtin("binary-*", list(2, arg("a"), arg("b")), builtin_multiply, m);
     add_builtin("binary-/", list(2, arg("a"), arg("b")), builtin_divide, m);
+    add_builtin("binary-greater", list(2, arg("a"), arg("b")), builtin_greater, m);
+    add_builtin("binary-less", list(2, arg("a"), arg("b")), builtin_less, m);
 }
