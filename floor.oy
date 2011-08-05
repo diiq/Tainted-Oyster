@@ -1,3 +1,7 @@
+join ← cons
+first ← car
+rest ← cdr
+
 quoted ← '((... 'args) args)
 
 list ← '((... args) args)
@@ -33,14 +37,14 @@ and ← λ(... 'xs):
     if !xs:
         't
         if ,(car xs):
-            and *(cdr xs)
+            and *(rest xs)
 
-# These will look better with cons.
+# Will fail if () gets a .first!
 first ← λx:
     if x.first:
         x.first x
-        if (x.type <<and>> x.type.first):
-            x.type.first x
+        if (x.type).first: 
+            (x.type).first x
             if !(atom x):
                 car x
                 signal: list 'no-way-to-first x
@@ -54,20 +58,22 @@ rest ← λx:
                 cdr x
                 signal: list 'no-way-to-rest x
 
+
 map1 ← λ(f list):
     if list:
-        f (car list) :: map1 f: cdr list
+        f (first list) :: map1 f: rest list
 
 
 fold ← λ(f list start):
-    if !list start:
+    if !list:
+        start
         fold f: 
-            cdr list 
-            f (car list) start
+            rest list 
+            f (first list) start
  
 map ← λ(f ... lists):
     if (and @lists): 
-        f @(map1 car lists) :: map f @(map1 cdr lists)
+        f @(map1 first lists) :: map f @(map1 rest lists)
         
 foreach ← λ('member alist ... 'code):
     map: 
@@ -85,33 +91,51 @@ set! ← set
 set ← λ('thing value):
     if (not: atom thing):
         then:
-            call ← ,(car thing)
+            call ← ,(first thing)
             if call.set: 
-                call.set *(cdr thing) value
+                call.set *(rest thing) value
                 signal: list 'no-known-setter-for thing
         else:
             leak (really thing)
             set! (really thing) value
 
-class ← λ('name 'init ... 'members):
+second ← λx: first: rest x
+
+find-if ← λ(f xs):
+    if xs:
+        if (f: first xs):
+            first xs
+            find-if: rest xs
+
+
+class ← λ('name 'inheritance ... 'members):
     leak: really name
-    really name ← λ(really: car: cdr init):
+    init ← find-if (λx: first x <<is>> 'init) members
+    init-args ← if init (second init) ()
+
+    it ← really name ← λ(really init-args):
         self ← '(really name)
-        members ← init :: members 
+        it.subclass self
+        if init: self.init *(leak-all: init-args)
+        self
+
+    it.subclass ← λself:
+        map (λ(,class): class.subclass self) inheritance
         map:
-            λm: set self.(really: car m): 
+            λm: set self.(really: first m): 
                 leak: 
                     self
-                    λ(really: car: cdr m): *(cdr: cdr m)
+                    λ(really: second m): *(rest: rest m)
                     self
             members
-        self.init *(leak-all: car: cdr init)
         self
+         
 
 table-set:
     set
     info-table table-get
     table-set
+
 
 #-------------------------------------------------------------#
 # Playground
@@ -124,7 +148,6 @@ table-set:
 a ← '(a b c d e)
 while a: 
     a ← cdr a
-
 #map print '(a b c d e)
 # print: if () () 't
 
@@ -176,31 +199,37 @@ while a:
 #     (table-get symbol (bindings obj)) ← value
 
 
-
-# class maccount:
-#     init balance:
-#         self.balance ← balance
-
-#     withdraw amount:
-#         if self.balance:
-#             self.balance ← amount
-#             'insufficient-funds
+class account ():
+    withdraw amount:
+        if self.balance:
+            self.balance ← amount
+            'insufficient-funds
             
-#     deposit amount:
-#         self.balance
+    deposit amount:
+        self.balance
 
-# macc ← maccount 'see
+class maccount (account):
+    fee afee:
+        self.balance ← afee
 
-# print 'macc macc
-# print 'deposit: macc.deposit ()
-# print: macc.withdraw 'pop 
-# print:  macc.deposit 'p
-# macc.withdraw ()
-# print (macc.deposit 't)
-# print: macc.withdraw 'poo
+    sin ():
+        print 'SINNER
+
+macc ← maccount 'afee
+
+print 'EXISTS
+print 'macc macc
+print: macc.fee 'peope
+
+print 'deposit: macc.deposit ()
+print: macc.withdraw 'pop 
+print:  macc.deposit 'p
+macc.withdraw ()
+print (macc.deposit 't)
+print: macc.withdraw 'poo
 
 
-foo ← '(t a b o)
-print: first foo
-foo.first ← λx: 'poop
-print: first foo
+# foo ← '(t a b o)
+# print: first foo
+# foo.first ← λx: 'poop
+# print: first foo

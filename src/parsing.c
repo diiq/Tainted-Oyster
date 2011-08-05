@@ -254,7 +254,7 @@ int read_comment(FILE *stream){
 
 int read_replace(FILE *stream){
     char *replace[] = {
-        "::", "<<cons>>",
+        "::", "<<join>>",
         "<-", "<<set>>",
         "←", "<<set>>",
         "+", "<<binary-+>>",

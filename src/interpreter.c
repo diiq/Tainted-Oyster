@@ -33,10 +33,11 @@ void step_machine(machine * m)
             decref(t);
         }
 
-        set_accumulator(m, oyster_copy(m->accumulator, make_table()));
+            set_accumulator(m, oyster_copy(m->accumulator, make_table()));
+            
+            push_new_instruction(m, cdr(m->accumulator), APPLY_FUNCTION);
+            argument_chain_link(car(m->accumulator), instruct->instruction, m);
 
-        push_new_instruction(m, cdr(m->accumulator), APPLY_FUNCTION);
-        argument_chain_link(car(m->accumulator), instruct->instruction, m);
         break;
 
     case CONTINUE:

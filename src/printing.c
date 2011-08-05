@@ -57,7 +57,7 @@ void oyster_print(oyster * o)
         printf("%s", string_from_sym_id(o->in->symbol_id));
         break;
     case NIL:
-        printf("()");
+        printf("nil");
         break;
     case BUILT_IN_FUNCTION:
         printf("[builtin]");
