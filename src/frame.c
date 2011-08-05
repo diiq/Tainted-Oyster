@@ -92,11 +92,6 @@ void push_instruction_list(machine * m,
 
 //--------------------------- Memory -----------------------------//
 
-void frame_ref(frame * x)
-{
-    x->ref++;
-}
-
 void frame_unref(frame * x)
 {
     x->ref--;

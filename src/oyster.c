@@ -29,11 +29,6 @@ oyster *make_untyped_oyster()
     return ret;
 }
 
-void inner_ref(inner * x)
-{
-    x->ref++;
-}
-
 void inner_unref(inner * x)
 {
     x->ref--;
@@ -63,11 +58,6 @@ int oyster_type(oyster * x)
 void *oyster_value(oyster * x)
 {
     return x->in->value;
-}
-
-void oyster_ref(oyster * x)
-{
-    x->ref++;
 }
 
 void oyster_unref(oyster * x)

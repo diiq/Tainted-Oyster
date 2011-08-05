@@ -3,7 +3,7 @@
 
 #include "oyster.h"
 
-void *initialize_memory_object(size_t size, void *inc, void *dec)
+void *initialize_memory_object(size_t size, void *dec)
 {
     struct memorable *obj = malloc(size);
     obj->dec = dec;
@@ -25,11 +25,6 @@ void decref(void *x)
 
 //
 
-void table_entry_ref(table_entry * x)
-{
-    x->ref++;
-}
-
 void table_entry_unref(table_entry * x)
 {
     x->ref--;
@@ -39,11 +34,6 @@ void table_entry_unref(table_entry * x)
     }
 }
 
-
-void table_ref(table * x)
-{
-    x->ref++;
-}
 
 void table_unref(table * x)
 {

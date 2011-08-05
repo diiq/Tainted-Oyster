@@ -119,11 +119,6 @@ void machine_print(machine * m)
 
 //------------------------- Memory -------------------------------//
 
-void machine_ref(machine * x)
-{
-    x->ref++;
-}
-
 void machine_unref(machine * x)
 {
     x->ref--;

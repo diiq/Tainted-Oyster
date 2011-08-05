@@ -22,10 +22,6 @@ int number_of(oyster *o)
     return ((number *)oyster_value(o))->num;
 }
 
-void number_ref(number *num)
-{
-    num->ref++;
-}
 
 void number_unref(number *num)
 {

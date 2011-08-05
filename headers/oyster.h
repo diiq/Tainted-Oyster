@@ -3,9 +3,8 @@
 
 #define UNTO_DUST 0
 
-#define NEW(type) initialize_memory_object(sizeof(type),            \
-                                            &type ## _ref,          \
-                                            &type ## _unref)
+#define NEW(type) initialize_memory_object(sizeof(type),    \
+                                           &type ## _unref)
 
 #include <glib.h>
 #include <stdio.h>
@@ -251,22 +250,15 @@ struct memorable {
     int ref;
 };
 
-void *initialize_memory_object(size_t size, void *inc, void *dec);
+void *initialize_memory_object(size_t size, void *dec);
 void incref(void *x);
 void decref(void *x);
-void table_entry_ref(table_entry * x);
 void table_entry_unref(table_entry * x);
-void table_ref(table * x);
 void table_unref(table * x);
-void oyster_ref(oyster * x);
 void oyster_unref(oyster * x);
-void inner_ref(inner * x);
 void inner_unref(inner * x);
-void cons_cell_ref(cons_cell * x);
 void cons_cell_unref(cons_cell * x);
-void machine_ref(machine * x);
 void machine_unref(machine * x);
-void frame_ref(frame * x);
 void frame_unref(frame * x);
 /* void number_ref(number * n); */
 /* void number_unref(number * n); */
