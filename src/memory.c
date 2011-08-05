@@ -21,7 +21,7 @@ void decref(void *x)
 {
     if (x) {
         ((struct memorable *) x)->ref--;
-        if (((struct memorable *) x)->ref == 0)
+        if (((struct memorable *) x)->ref <= 0)
             ((struct memorable *) x)->free(x);
     }
 }

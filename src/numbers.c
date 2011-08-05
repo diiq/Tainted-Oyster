@@ -13,6 +13,7 @@ oyster *make_number(int num)
 {
     oyster *ret = make_oyster(sym_id_from_string("number"));
     ret->in->value = NEW(number);
+    incref(ret->in->value);
     ((number *)ret->in->value)->num = num;
     return ret;
 }
