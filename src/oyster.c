@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 #include "oyster.h"
-#include "parsing.h"            // Not sure if this needs be here.
 
 
 oyster *make_untyped_oyster()
@@ -20,7 +19,7 @@ oyster *make_untyped_oyster()
     ret->in = NEW(inner);
     incref(ret->in);
 
-    ret->in->type = -1;
+    ret->in->type = NULL;
     ret->in->gc_type = 0;
 
     ret->in->value = NULL;
@@ -38,6 +37,7 @@ void inner_free(inner * x)
     if (x->gc_type == 2)
         free(x->value);
     
+    decref(x->type);
     decref(x->info);
     free(x);
 }
@@ -45,14 +45,30 @@ void inner_free(inner * x)
 oyster *make_oyster(int type)
 {
     oyster *ret = make_untyped_oyster();
-    ret->in->type = type;
+    oyster_set_type(ret, type);
     ret->in->gc_type = 1;
     return ret;
 }
 
 int oyster_type(oyster * x)
 {
-    return x->in->type;
+    return x->in->type->it->in->symbol_id; // FOOLISH MORTALS
+}
+
+void oyster_set_type_o(oyster *o, oyster *type)
+{
+    table_entry *e = NEW(table_entry);
+    e->it = type;
+    incref(type);
+    table_put_entry(TYPE, e, o->in->info);
+    o->in->type = e;
+    incref(e);
+}
+
+void oyster_set_type(oyster *o, int type)
+{
+    oyster *otype = make_symbol(type);
+    oyster_set_type_o(o, otype);
 }
 
 void *oyster_value(oyster * x)
@@ -67,11 +83,21 @@ void oyster_free(oyster * x)
     free(x);
 }
 
+oyster* symbol_type_symbol(){
+    static oyster *ret = NULL;
+    if (!ret){
+        ret = make_untyped_oyster();
+        ret->in->symbol_id = SYMBOL;
+        oyster_set_type_o(ret, ret);
+        incref(ret);
+    }
+    return ret;
+}
 
 oyster *make_symbol(int symbol_id)
 {
     oyster *ret = make_untyped_oyster();
-    ret->in->type = SYMBOL;
+    oyster_set_type_o(ret, symbol_type_symbol());
     ret->in->symbol_id = symbol_id;
     ret->in->gc_type = 0;
     return ret;

@@ -121,7 +121,7 @@ struct inner {
     int gc_type;
 
     table *info;
-    int type;
+    table_entry *type;
     union {
         int symbol_id;
         cons_cell *cons;
@@ -157,6 +157,7 @@ enum {
 oyster *make_untyped_oyster();
 oyster *make_oyster(int type);
 int oyster_type(oyster * x);
+void oyster_set_type(oyster *o, int type);
 void *oyster_value(oyster * x);
 oyster *make_symbol(int symbol_id);
 oyster *oyster_copy(oyster * x, table * new_bindings);

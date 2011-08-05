@@ -37,13 +37,13 @@ and ← λ(... 'xs):
     if !xs:
         't
         if ,(car xs):
-            and *(rest xs)
+            and *(cdr xs)
 
 # Will fail if () gets a .first!
 first ← λx:
     if x.first:
         x.first x
-        if (x.type).first: 
+        if (x.type <<and>> (clear x.type).first): 
             (x.type).first x
             if !(atom x):
                 car x
@@ -52,7 +52,7 @@ first ← λx:
 rest ← λx:
     if x.rest:
         x.rest x
-        if (x.type <<and>> x.type.rest):
+        if (x.type <<and>> (clear x.type).first):
             x.type.rest x
             if !(atom x):
                 cdr x
@@ -145,6 +145,9 @@ table-set:
 
 # print 'this 'far
 
-a ← '(a b c d e)
+
+a ← '(a b c d e f g h i a b c d e f g h i a b c d e f g h i)
+
 while a: 
     a ← cdr a
+

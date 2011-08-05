@@ -3,12 +3,12 @@
 GLIBFLAGS=`pkg-config --cflags --libs  glib-2.0`
 CFLAGS=-Wall $(GLIBFLAGS) -Itests -Iheaders -Isrc
 DEBUG_FLAGS=-g3
-PROFILE_FLAGS= -fprofile-arcs -pg
+PROFILE_FLAGS= -fprofile-arcs -pg -O3
 TARGET=tainted
 MODULES=src/*.c
 
 all:
-	gcc $(CFLAGS) $(TARGET).c $(MODULES)  -o $(TARGET)  
+	gcc $(CFLAGS) $(TARGET).c $(MODULES)  -o $(TARGET)  -O3
 
 debug:
 	gcc $(CFLAGS) $(TARGET).c $(MODULES)  -o $(TARGET) $(DEBUG_FLAGS)

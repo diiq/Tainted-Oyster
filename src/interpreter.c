@@ -154,11 +154,11 @@ int car_is_sym(oyster * x, int sym)
     // Sometimes reference counting makes a simple thing so complicated.
     incref(x);
     int ret;
-    if (x->in->type != CONS) {
+    if (oyster_type(x) != CONS) {
         ret = 0;
     } else {
         oyster *c = cheap_car(x);
-        ret = (c->in->type == SYMBOL && c->in->symbol_id == sym);
+        ret = (oyster_type(c) == SYMBOL && c->in->symbol_id == sym);
     }
     decref(x);
     return ret;
@@ -194,7 +194,7 @@ void elipsis_argument(oyster *arg_list, oyster * lambda,
 
     if(nilp(arg_list)){
         oyster *name = lambda;
-        if (lambda->in->type == CONS) {
+        if (oyster_type(lambda) == CONS) {
             name = car(cdr(lambda));
         } 
         push_new_instruction(m, name, ARGUMENT);
@@ -224,7 +224,7 @@ void elipsis_argument(oyster *arg_list, oyster * lambda,
     } else {
 
         oyster *func = arg;
-        if (lambda->in->type == CONS) {
+        if (oyster_type(lambda) == CONS) {
             if (car_is_sym(arg, REALLY)) {
                 func = car(cdr(arg));
             } else {
@@ -250,7 +250,7 @@ void push_normal_argument(oyster * arg, oyster * lambda_list,
     
     incref(lambda);
     
-    if (lambda->in->type == CONS) {
+    if (oyster_type(lambda) == CONS) {
             // The argument name is wrapped in a function call
         name = car(cdr(lambda));
         
@@ -281,7 +281,7 @@ void argument_chain_link(oyster * lambda_list,
     incref(lambda_list);
     incref(arg_list);
 
-    if(!nilp(lambda_list) && lambda_list->in->type != CONS){
+    if(!nilp(lambda_list) && oyster_type(lambda_list) != CONS){
         oyster *signal = list(2, make_symbol(sym_id_from_string
                                              ("Bad lambda list?")),
                               lambda_list);

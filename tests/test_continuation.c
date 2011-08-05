@@ -5,7 +5,7 @@ _test(make_continuation)
     // Probably should test this more thouroghly, but I AM A WILD MAN!
     // I sing to you the Ubermench, cutting values from the raw fabric.
     oyster *cont = make_continuation(make_machine());
-    assert(cont->in->type == CONS);
+    assert(oyster_type(cont) == CONS);
     decref(cont);
 }
 

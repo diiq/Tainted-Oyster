@@ -16,7 +16,7 @@ _test(make_untyped_oyster)
 _test(make_oyster)
 {
     oyster *f = make_oyster(SYMBOL);
-    assert(f->in->type == SYMBOL, "wrong type");
+    assert(oyster_type(f) == SYMBOL, "wrong type");
     decref(f);
 
 } _tset;
@@ -24,7 +24,7 @@ _test(make_oyster)
 _test(make_symbol)
 {
     oyster *f = make_symbol(5);
-    assert(f->in->type == SYMBOL);
+    assert(oyster_type(f) == SYMBOL);
     assert(f->in->symbol_id == 5);
 
     decref(f);
@@ -34,7 +34,7 @@ _test(make_symbol)
 _test(make_cons)
 {
     oyster *c = make_cons(make_symbol(5), make_symbol(2));
-    assert(c->in->type == CONS);
+    assert(oyster_type(c) == CONS);
     assert(c->in->cons->car->in->symbol_id == 5);
     assert(c->in->cons->cdr->in->symbol_id == 2);
     decref(c);
@@ -49,7 +49,7 @@ _test(cons_car_cdr)
 
     oyster *y = car(c);
 
-    assert(y->in->type == SYMBOL);
+    assert(oyster_type(y) == SYMBOL);
     assert(y->in->symbol_id == 55);
     assert(x->in->symbol_id == 22);
 

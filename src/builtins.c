@@ -53,7 +53,7 @@ oyster *builtin_cons(machine * m)
 oyster *builtin_car(machine * m)
 {
     ARG(cons);
-    if (cons->in->type != CONS) {
+    if (oyster_type(cons) != CONS) {
         oyster *signal = list(2, arg("car-of-wrong-type"), cons);
         toss_signal(make_signal(signal, m), m);
         return NULL;
@@ -64,7 +64,7 @@ oyster *builtin_car(machine * m)
 oyster *builtin_cdr(machine * m)
 {
     ARG(cons);
-    if (cons->in->type != CONS) {
+    if (oyster_type(cons) != CONS) {
         oyster *signal = list(2, arg("cdr-of-wrong-type"), cons);
         toss_signal(make_signal(signal, m), m);
         return NULL;
@@ -169,7 +169,7 @@ oyster *builtin_quote(machine * m)
 oyster *builtin_atom_p(machine * m)
 {
     ARG(x);
-    if (x->in->type == CONS)
+    if (oyster_type(x) == CONS)
         return nil();
     return x;
 }
@@ -178,7 +178,7 @@ oyster *builtin_is(machine * m)
 {
     ARG(a);
     ARG(b);
-    if (a->in->type == b->in->type && a->in->value == b->in->value)
+    if (oyster_type(a) == oyster_type(b) && a->in->value == b->in->value)
         return make_symbol(sym_id_from_string("t"));
     return nil();
 }

@@ -131,7 +131,7 @@ oyster *nil()
 
 int nilp(oyster * x)
 {
-    return x->in->type == NIL;
+    return oyster_type(x) == NIL;
 }
 
 oyster *list(int count, ...)
@@ -196,7 +196,7 @@ int oyster_length(oyster *xs)
 
 oyster *ensure_list(oyster *xs)
 {
-    if(xs->in->type == CONS || nilp(xs))
+    if(oyster_type(xs) == CONS || nilp(xs))
         return xs;
     return list(1, xs);
 }

@@ -66,7 +66,7 @@ _test(argument_chain_link_atpend)
     assert(m->current_frame->instruction->in->symbol_id == 60);
 
     assert(m->current_frame->below->flag == ATPEND_CONTINUE);
-    assert(m->current_frame->below->instruction->in->type == CONS);
+    assert(oyster_type(m->current_frame->below->instruction) == CONS);
 
     decref(m);
 }
@@ -89,7 +89,7 @@ _test(argument_chain_link_asterpend)
     assert(m->current_frame->instruction->in->symbol_id == 30);
 
     assert(m->current_frame->below->flag == ASTERPEND_CONTINUE);
-    assert(m->current_frame->below->instruction->in->type == CONS);
+    assert(oyster_type(m->current_frame->below->instruction) == CONS);
 
     decref(m);
 }
@@ -109,7 +109,7 @@ _test(argument_chain_link_elipsis)
     argument_chain_link(lambda_list, arg_list, m);
 
     assert(m->current_frame->flag == EVALUATE, "flag");
-    assert(m->current_frame->instruction->in->type == CONS, "fcall");
+    assert(oyster_type(m->current_frame->instruction) == CONS, "fcall");
     assert(m->current_frame->instruction->in->cons->car->in->symbol_id ==
            5, "function");
 
@@ -140,7 +140,7 @@ _test(basic_step)
         step_machine(m);
     }
     assert(m->accumulator, "no answer");
-    assert(m->accumulator->in->type == SYMBOL, "Wrong answer type");
+    assert(oyster_type(m->accumulator) == SYMBOL, "Wrong answer type");
     assert(m->accumulator->in->symbol_id == BUILT_IN_FUNCTION,
            "Wrong answer, %d", m->accumulator->in->symbol_id);
 
@@ -153,7 +153,7 @@ _test(elipsis)
     oyster *ret = evaluate_string("((clear ((... foo) foo))"
                                   "    (clear foo) (clear (sipp))"
                                   "    (clear bar) (clear bash))\n");
-    assert(ret->in->type == CONS);
+    assert(oyster_type(ret) == CONS);
     decref(ret);
 }_tset;
 
@@ -161,7 +161,7 @@ _test(atpend)
 {
     oyster *ret = evaluate_string("((clear ((... foo) foo))"
                                   "    (unary-@ (clear (bar bash))))");
-    assert(ret->in->type == CONS);
+    assert(oyster_type(ret) == CONS);
     decref(ret);
 }_tset;
 
@@ -169,7 +169,7 @@ _test(asterpend)
 {
     oyster *ret = evaluate_string("((clear ((... foo) foo))"
                                   "    (unary-* (clear ((clear bar) (clear bash)))))");
-    assert(ret->in->type == CONS);
+    assert(oyster_type(ret) == CONS);
     decref(ret);
 }
 
@@ -179,7 +179,7 @@ _test(frame_stack)
 {
     oyster *ret = evaluate_string("(((clear ((foo) (clear ((quiz) quiz))))"
                                   "    (clear bar)) (clear baz))");
-    assert(ret->in->type == SYMBOL &&
+    assert(oyster_type(ret) == SYMBOL &&
            ret->in->symbol_id == sym_id_from_string("baz"));
     decref(ret);
 }
@@ -189,7 +189,7 @@ _tset;
 _test(fun_arg)
 {
     oyster *ret = evaluate_string("((clear (((clear foo)) foo)) bar)");
-    assert(ret->in->type == SYMBOL &&
+    assert(oyster_type(ret) == SYMBOL &&
            ret->in->symbol_id == sym_id_from_string("bar"));
     decref(ret);
 }
@@ -199,7 +199,7 @@ _tset;
 _test(no_arg)
 {
     oyster *ret = evaluate_string("((clear (() (clear foo))))");
-    assert(ret->in->type == SYMBOL &&
+    assert(oyster_type(ret) == SYMBOL &&
            ret->in->symbol_id == sym_id_from_string("foo"));
     decref(ret);
 }
