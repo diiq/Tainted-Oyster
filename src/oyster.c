@@ -21,6 +21,7 @@ oyster *make_untyped_oyster()
     incref(ret->in);
 
     ret->in->type = -1;
+    ret->in->gc_type = 0;
 
     ret->in->value = NULL;
     ret->bindings = NULL;
@@ -31,11 +32,12 @@ oyster *make_untyped_oyster()
 
 void inner_free(inner * x)
 {
-    if (x->type != SYMBOL &&
-        x->type != NIL &&
-        x->type != BUILT_IN_FUNCTION && x->type != -1) {
+    if (x->gc_type == 1)
+        //x->type != SYMBOL &&
+        //x->type != NIL &&
+        //#x->type != BUILT_IN_FUNCTION && x->type != -1) {
         decref(x->value);
-    }
+    
     decref(x->info);
     free(x);
 }
@@ -44,6 +46,7 @@ oyster *make_oyster(int type)
 {
     oyster *ret = make_untyped_oyster();
     ret->in->type = type;
+    ret->in->gc_type = 1;
     return ret;
 }
 
@@ -70,6 +73,7 @@ oyster *make_symbol(int symbol_id)
     oyster *ret = make_untyped_oyster();
     ret->in->type = SYMBOL;
     ret->in->symbol_id = symbol_id;
+    ret->in->gc_type = 0;
     return ret;
 }
 

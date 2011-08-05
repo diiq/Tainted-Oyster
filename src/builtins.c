@@ -11,6 +11,7 @@ oyster *make_builtin(oyster * (*func) (machine * m))
 {
     oyster *ret = make_oyster(BUILT_IN_FUNCTION);
     ret->in->built_in = func;
+    ret->in->gc_type = 0;
     return ret;
 }
 

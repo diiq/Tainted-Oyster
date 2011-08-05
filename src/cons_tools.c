@@ -124,7 +124,9 @@ oyster *cdr(oyster * cons)
 
 oyster *nil()
 {
-    return make_oyster(NIL);
+    oyster *ret = make_oyster(NIL);
+    ret->in->gc_type = 0;
+    return ret;
 }
 
 int nilp(oyster * x)

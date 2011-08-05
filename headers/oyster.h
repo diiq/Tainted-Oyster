@@ -118,6 +118,7 @@ struct cons_cell {
 struct inner {
     void (*decref) (inner * x);
     int ref;
+    int gc_type;
 
     table *info;
     int type;
