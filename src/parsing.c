@@ -110,7 +110,8 @@ token *read_number(FILE *stream){
     } 
 
     int a;
-    fscanf(stream, "%d", &a);
+    int e = fscanf(stream, "%d", &a);
+    if (!e) error(314, 0, "What. There is a digit but fscanf finds no number.");
     token *ret = make_token(NUMBER_TOKEN);
     ret->count = a;
     return ret;
