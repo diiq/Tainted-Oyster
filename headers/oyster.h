@@ -18,7 +18,7 @@ typedef struct inner inner;
 
 typedef struct frame frame;
 typedef struct machine machine;
-
+typedef struct stack_trace stack_trace;
 
 //------------------------------- Assemble -----------------------------------//
 // These function bring all the rest together into a few simple calls.

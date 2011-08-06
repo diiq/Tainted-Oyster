@@ -1,4 +1,4 @@
-# Preamble
+### Preamble
 
 join ← cons
 first ← car
@@ -53,16 +53,15 @@ is ← λ(a b):
         a <<is_old>> b
         a <<binary-number-=>> b
 
-# Chapter 1
-# 1.1.4
+
+### Chapter 1
+
+## 1.1.4
 square ← λx: x * x
 sum-of-squares ← λ(x y): square x + square y
 f ← λa: sum-of-squares (a + 1) (a * 2)
 
-# 1.1.5
-
-
-# 1.1.6
+## 1.1.6
 abs ← λx: cond:
     (x > 0) x
     (x == 0) 0
@@ -73,7 +72,7 @@ abs ← λx:
 
 
 
-# 1.1.7
+## 1.1.7
 sqrt-iter ← λ(guess x):
     if (good-enough? guess x):
         guess
@@ -92,7 +91,7 @@ sqrt ← λx:
     sqrt-iter 1 x
 
 
-# 1.1.8
+## 1.1.8
 
 # Block
 sqrt ← λx: 
@@ -124,7 +123,7 @@ sqrt ← λx:
 
     sqrt-iter 1
 
-# 1.2.1
+## 1.2.1
 
 # Recursive
 factorial ← λn:
@@ -142,7 +141,7 @@ factorial ← λn:
                 counter + 1
     iter 1 1
 
-# 1.2.2
+## 1.2.2
 
 # Recursive
 fibonacci ← λn: cond:
@@ -185,7 +184,7 @@ count-change ← λamount:
 
     cc amount 5
 
-# 1.2.4
+## 1.2.4
 
 # Linear recursion
 expt ← λ(b n):
@@ -210,6 +209,8 @@ fast-expt ← λ(b n): cond:
     't: b * fast-expt b (n - 1)
 
 even? ← λx: (x % 2) == 0
+
+## 1.2.5
 
 
 print 'hello

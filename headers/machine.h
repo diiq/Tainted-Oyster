@@ -47,5 +47,21 @@ void push_instruction_list(machine * m,
 //m->base_frame
 //m->copy_frame
 
+//------------------------- Stack Traces -----------------------------//
+
+
+struct stack_trace {
+    oyster *function;
+    int count;
+    frame *remove_when;
+    stack_trace *below;
+};
+
+void make_stack_trace();
+void stack_trace_free();
+
+void push_stack_trace(oyster *function, frame *remove_when, stack_trace *trace);
+void stack_trace_update(frame *f, stack_trace *trace);
+
 
 #endif
