@@ -10,7 +10,7 @@ void no_signal_handler(oyster * signal)
     printf
         ("    trees shake in a strong wind\n    but the leaves have already fallen\n\n\n"
          "Error: Signal received but no signal handler is available.\n"
-         "Error message follows:\n\n\n    ");
+         "Message follows:\n\n\n    ");
     oyster_print(car(signal));
     printf("\n\n\n");
     error(314, 0, "Exited with unhandled signal.");

@@ -88,6 +88,9 @@ machine *machine_copy(machine * m)
     ret->now = m->now;
     incref(ret->now);
 
+    ret->trace= m->trace;
+    incref(ret->trace);
+
     return ret;
 }
 
@@ -164,20 +167,50 @@ void stack_trace_free(stack_trace *t)
 
 void push_stack_trace(oyster *function, frame *remove_when, machine *m)
 {
-    if (function == m->trace->function && remove_when == m->trace->remove_when)
-        m->trace->count++;
-    else {
+    if (remove_when == m->trace->remove_when){
         stack_trace *t = m->trace;
-        m->trace = make_stack_trace(function, remove_when, m->trace);
-        incref(m->trace);
-        decref(t);
+        while(remove_when == t->remove_when){
+            if (t->function->in->value == function->in->value){
+                t->count++;
+                return;
+            }
+            t = t->below;
+        }
     }
+    stack_trace *t = m->trace;
+    m->trace = make_stack_trace(function, remove_when, m->trace);
+    incref(m->trace);
+    decref(t);
+
 }
 
 void stack_trace_update(machine *m){
     while(machine_active_frame(m) == m->trace->remove_when){
         stack_trace *t = m->trace;
         m->trace = m->trace->below;
+        incref(m->trace);
         decref(t);
     }
+}
+
+
+void print_stack_trace(machine * m)
+{
+    printf("\n\n\nNow: ");
+    frame_print(m->now, 0);
+
+    stack_trace *t = m->trace;
+    while (t) {
+        oyster_print(t->function); 
+        if (t->count > 1)
+            printf(" (recursed %d times)", t->count);
+        printf("\n");
+        t = t->below;
+    }
+    if (m->accumulator) {
+        printf("value: ");
+        oyster_print(m->accumulator);
+    }
+    printf
+        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n");
 }

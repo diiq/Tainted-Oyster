@@ -106,23 +106,6 @@ void frame_free(frame * x)
 
 //-------------------------- Printing ----------------------------//
 
-void print_stack_trace(machine * m)
-{
-    printf("\n\n\nNow: ");
-    frame_print(m->now, 0);
-
-    frame *f = m->current_frame;
-    while (f) {
-        frame_print(f, 0);
-        f = f->below;
-    }
-    if (m->accumulator) {
-        printf("accum: ");
-        oyster_print(m->accumulator);
-    }
-    printf
-        ("\n--- --- --- --- --- --- --- --- --- --- --- --- --- --- ---\n\n\n");
-}
 
 void frame_print(frame * i, int print_scope)
 {

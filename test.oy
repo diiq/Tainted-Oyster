@@ -17,6 +17,17 @@ unary-λ ← quoted:
 unary-\ ← unary-λ
 
 not ← λx: oif x () 't
+
+or ← λ(test ... 'xs):
+    oif test:
+        test
+        oif xs: or *xs
+
+is_old ← is
+is ← λ(a b):
+    or:
+        a <<is_old>> b
+        a <<binary-number-=>> b
  
 #--------------------------------------------------------------#
 print: quoted Cons car cdr and fn tests

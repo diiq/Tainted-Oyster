@@ -135,8 +135,8 @@ factorial ← λn:
 factorial ← λn:
     iter ← λ(product counter):
         if (counter > n):
-            product
-            fact-iter:
+            signal product
+            iter:
                 counter * product
                 counter + 1
     iter 1 1
@@ -214,4 +214,4 @@ even? ← λx: (x % 2) == 0
 
 
 print 'hello
-print: fast-expt 10 5
+print: factorial 10

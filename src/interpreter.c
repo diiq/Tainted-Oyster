@@ -7,12 +7,17 @@
 #include "frame.h"
 
 int DEBUG = 0;
+int TRACE = 1;
 
 void step_machine(machine * m)
 {
     frame *instruct = machine_pop_stack(m);
     if (DEBUG)
         machine_print(m);     
+
+    if (TRACE)
+        stack_trace_update(m);
+
     if (!instruct)
         return;
 
@@ -130,6 +135,8 @@ void evaluate_oyster(frame * instruct, machine * m)
                 //}
 
             } else {
+                if(TRACE)
+                    push_stack_trace(car(object), m->current_frame, m);
                 push_new_instruction(m, cdr(object), PREPARE_ARGUMENTS);
                 push_new_instruction(m, car(object), EVALUATE);
             }
