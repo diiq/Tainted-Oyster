@@ -265,8 +265,9 @@ int read_replace(FILE *stream){
         "==", "<<is>>",
         ">", "<<binary-greater>>",
         "<", "<<binary-less>>",
+        "%", "<<binary-%>>",
     };
-    int replace_len = 10;
+    int replace_len = 11;
     char a[1000];
     read_word(stream, a);
     int i;

@@ -1,0 +1,216 @@
+# Preamble
+
+join ← cons
+first ← car
+rest ← cdr
+
+quoted ← '((... 'args) args)
+
+list ← '((... args) args)
+
+unary-λ ← quoted:
+    ('args)
+    oif (atom args):
+        args ← list args
+    quoted:
+        (... 'code)
+        set-bindings args (bindings code)    
+        list args @code
+
+do ← λ(... 'code):
+    ((λ(): *code))
+
+eval ← λ(code):
+    do: really code
+
+unary-, ← eval
+
+then ← do
+else ← do
+if ← oif
+
+cond ← λ(... 'cases):
+    if cases:
+        then:
+            case ← first cases
+            if ,(first case): 
+                then: *(rest case)
+                else: cond *(rest cases)
+
+unary-- ← λx: 0 - x
+
+or ← λ(test ... 'xs):
+    if test:
+        test
+        if xs: or *xs
+
+inc ← λa: a + 1
+dec ← λa: a - 1
+
+is_old ← is
+is ← λ(a b):
+    or:
+        a <<is_old>> b
+        a <<binary-number-=>> b
+
+# Chapter 1
+# 1.1.4
+square ← λx: x * x
+sum-of-squares ← λ(x y): square x + square y
+f ← λa: sum-of-squares (a + 1) (a * 2)
+
+# 1.1.5
+
+
+# 1.1.6
+abs ← λx: cond:
+    (x > 0) x
+    (x == 0) 0
+    (x < 0) -x
+
+abs ← λx:
+    if (x < 0) -x x
+
+
+
+# 1.1.7
+sqrt-iter ← λ(guess x):
+    if (good-enough? guess x):
+        guess
+        sqrt-iter (improve guess x) x
+
+average ← λ(x y):
+    (x + y) / 2
+
+improve ← λ(guess x):
+    average guess (x / guess)
+
+good-enough? ← λ(guess x):
+    abs (square guess - x) < 0.001
+
+sqrt ← λx: 
+    sqrt-iter 1 x
+
+
+# 1.1.8
+
+# Block
+sqrt ← λx: 
+    sqrt-iter ← λ(guess x):
+        if (good-enough? guess x):
+            guess
+            sqrt-iter (improve guess x) x
+
+    improve ← λ(guess x):
+        average guess (x / guess)
+
+    good-enough? ← λ(guess x):
+        abs (square guess - x) < 0.001
+
+    sqrt-iter 1 x
+
+# Scoped
+sqrt ← λx: 
+    sqrt-iter ← λ(guess):
+        if (good-enough? guess x):
+            guess
+            sqrt-iter (improve guess)
+
+    improve ← λ(guess):
+        average guess (x / guess)
+
+    good-enough? ← λ(guess):
+        abs (square guess - x) < 0.001
+
+    sqrt-iter 1
+
+# 1.2.1
+
+# Recursive
+factorial ← λn:
+    if (n == 1):
+        1
+        n * factorial (n - 1)
+
+# Iterative
+factorial ← λn:
+    iter ← λ(product counter):
+        if (counter > n):
+            product
+            fact-iter:
+                counter * product
+                counter + 1
+    iter 1 1
+
+# 1.2.2
+
+# Recursive
+fibonacci ← λn: cond:
+    (n == 0) 0
+    (n == 1) 1
+    't: fibonacci (n - 1) + fibonacci (n - 1)
+
+
+# Iterative
+fibonacci ← λn:
+    iter ← λ(a b count):
+        if (count == 0):
+            b
+            iter (a + b) a (count - 1)
+
+# Change counting
+
+# This is very slow and intense because it is tree recursive.
+
+count-change ← λamount:
+    cc ← λ(amount kinds-of-coins):
+        #print 'amount amount 'kinds kinds-of-coins
+        cond:
+            (amount == 0) 1
+            (or:
+                amount < 0
+                kinds-of-coins == 0) 0
+            't: binary-+:
+                cc amount (kinds-of-coins - 1)
+                cc:
+                    amount - first-denomination kinds-of-coins
+                    kinds-of-coins
+
+    first-denomination ← λkinds-of-coins: cond:
+        (kinds-of-coins == 1) 1
+        (kinds-of-coins == 2) 5
+        (kinds-of-coins == 3) 10
+        (kinds-of-coins == 4) 25
+        (kinds-of-coins == 5) 50
+
+    cc amount 5
+
+# 1.2.4
+
+# Linear recursion
+expt ← λ(b n):
+    if (n == 0):
+        1
+        b * expt b (n - 1)
+
+# Linear iteration
+expt ← λ(b n):
+    iter ← λ(counter product):
+        if (counter == 0):
+            product
+            iter b:
+                counter - 1
+                b * product
+    iter n 1
+
+# Log iteration
+fast-expt ← λ(b n): cond:
+    (n == 0) 1
+    (even? n): square: fast-expt b (n / 2)
+    't: b * fast-expt b (n - 1)
+
+even? ← λx: (x % 2) == 0
+
+
+print 'hello
+print: fast-expt 10 5

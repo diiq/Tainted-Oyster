@@ -71,6 +71,23 @@ oyster *builtin_less(machine *m)
     return nil();
 }
 
+oyster *builtin_number_equal(machine *m)
+{
+    ARG(a);
+    ARG(b);
+    if (abs(number_of(a) - number_of(b)) < .000000000000005){
+        return arg("t");
+    }
+    return nil();
+}
+
+oyster *builtin_mod(machine *m)
+{
+    ARG(a);
+    ARG(b);
+    return make_number((int)number_of(a) % (int)number_of(b));
+}
+
 void add_builtin_numbers(machine *m)
 {
     add_builtin("binary-+", list(2, arg("a"), arg("b")), builtin_plus, m);
@@ -79,4 +96,6 @@ void add_builtin_numbers(machine *m)
     add_builtin("binary-/", list(2, arg("a"), arg("b")), builtin_divide, m);
     add_builtin("binary-greater", list(2, arg("a"), arg("b")), builtin_greater, m);
     add_builtin("binary-less", list(2, arg("a"), arg("b")), builtin_less, m);
+    add_builtin("binary-number-=", list(2, arg("a"), arg("b")), builtin_number_equal, m);
+    add_builtin("binary-%", list(2, arg("a"), arg("b")), builtin_mod, m);
 }
