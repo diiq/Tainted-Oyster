@@ -20,7 +20,10 @@ enum {
 typedef struct {
     char *string;
     int type;
-    int count;
+    union {
+        int count;
+        double num;
+    };
 } token;
 
 typedef struct token_chain_struct token_chain;

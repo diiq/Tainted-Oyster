@@ -304,15 +304,8 @@ void toss_signal(oyster * signal, machine * m);
 
 //------------------------------- Numbers ------------------------------//
 
-typedef struct {
-    void (*dec) (void *);
-    int ref;
-    int num;
-} number;
-
-oyster *make_number(int num);
-int number_of(oyster *o);
+oyster *make_number(double num);
+double number_of(oyster *o);
 void add_builtin_numbers(machine *m);
-void number_free(number *n);
 
 #endif

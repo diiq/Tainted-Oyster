@@ -9,16 +9,18 @@
 //    the initializing-function for the machine --- this is what will 
 // have to be magicked away
 
-oyster *make_number(int num)
+oyster *make_number(double num)
 {
     oyster *ret = make_oyster(sym_id_from_string("number"));
-    ret->in->symbol_id = num;
-    ret->in->gc_type = 0;
+    double *anum = malloc(sizeof(double));
+    *anum = num;
+    ret->in->value = anum;
+    ret->in->gc_type = 2;
     return ret;
 }
 
-int number_of(oyster *num){
-    return num->in->symbol_id;
+double number_of(oyster *num){
+    return *(double *)num->in->value;
 }
 
 oyster *builtin_plus(machine *m)

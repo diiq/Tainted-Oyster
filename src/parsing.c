@@ -109,11 +109,11 @@ token *read_number(FILE *stream){
         return NULL;
     } 
 
-    int a;
-    int e = fscanf(stream, "%d", &a);
+    double a;
+    int e = fscanf(stream, "%lf", &a);
     if (!e) error(314, 0, "What. There is a digit but fscanf finds no number.");
     token *ret = make_token(NUMBER_TOKEN);
-    ret->count = a;
+    ret->num = a;
     return ret;
 }
 
@@ -425,7 +425,7 @@ oyster *parse_symbol(token_stream *stream){
 oyster *parse_number(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == NUMBER_TOKEN){
-        oyster *ret = make_number(next->count);
+        oyster *ret = make_number(next->num);
         free_token(next);
         return ret;
     }

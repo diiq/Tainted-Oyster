@@ -17,6 +17,10 @@ unary-λ ← quoted:
            
 unary-\ ← unary-λ
 
+def ← λ('name 'args ... 'code):
+    leak: really name
+    really name ← λ(really args): *code
+
 do ← λ(... 'code):
     ((λ(): *code))
 
