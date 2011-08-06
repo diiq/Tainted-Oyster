@@ -26,6 +26,7 @@ struct machine {
     frame *current_frame;
     frame *base_frame;
     oyster *accumulator;
+    stack_trace *trace;
     int paused;
 };
 
@@ -51,17 +52,20 @@ void push_instruction_list(machine * m,
 
 
 struct stack_trace {
+    void (*decref) (stack_trace * t);
+    int ref;
+    
     oyster *function;
     int count;
     frame *remove_when;
     stack_trace *below;
 };
 
-void make_stack_trace();
-void stack_trace_free();
+stack_trace *make_stack_trace(oyster *function, frame *remove_when, stack_trace *below);
+void stack_trace_free(stack_trace *t);
 
-void push_stack_trace(oyster *function, frame *remove_when, stack_trace *trace);
-void stack_trace_update(frame *f, stack_trace *trace);
+void push_stack_trace(oyster *function, frame *remove_when, machine *m);
+void stack_trace_update(machine *m);
 
 
 #endif

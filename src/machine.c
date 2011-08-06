@@ -22,6 +22,12 @@ machine *make_machine()
     ret->accumulator = NULL;
     ret->paused = 0;
 
+    ret->trace = make_stack_trace(arg("bottom-of-the-barrel"),
+                                        NULL, 
+                                        NULL);
+    incref(ret->trace);
+
+
     add_builtins(ret);
     add_builtin_numbers(ret);
 
@@ -126,4 +132,52 @@ void machine_free(machine * x)
     decref(x->now);
     decref(x->accumulator);
     free(x);
+}
+
+//------------------------------ Stack traces ------------------------//
+
+stack_trace *make_stack_trace(oyster *function, frame *remove_when, stack_trace *below)
+{
+    stack_trace *ret = NEW(stack_trace);
+
+    ret->function = function;
+    incref(ret->function);
+
+    ret->count = 1;
+
+    ret->remove_when = remove_when;
+    incref(ret->remove_when);
+
+    ret->below = below;
+    incref(ret->below);
+
+    return ret;
+}
+
+void stack_trace_free(stack_trace *t)
+{
+    decref(t->function);
+    decref(t->remove_when);
+    decref(t->below);
+    free(t);
+}
+
+void push_stack_trace(oyster *function, frame *remove_when, machine *m)
+{
+    if (function == m->trace->function && remove_when == m->trace->remove_when)
+        m->trace->count++;
+    else {
+        stack_trace *t = m->trace;
+        m->trace = make_stack_trace(function, remove_when, m->trace);
+        incref(m->trace);
+        decref(t);
+    }
+}
+
+void stack_trace_update(machine *m){
+    while(machine_active_frame(m) == m->trace->remove_when){
+        stack_trace *t = m->trace;
+        m->trace = m->trace->below;
+        decref(t);
+    }
 }
