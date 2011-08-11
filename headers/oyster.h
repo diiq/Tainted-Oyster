@@ -163,11 +163,9 @@ void inner_free(inner *i);
 //--------------------------------- Scopes -----------------------------------//
 // Looking up, leaking, setting, and packaging scopes, so that the right 
 // symbol is bound to the right variable at the right time.
-table_entry *look_up_entry(int sym, frame * cur);
 oyster *look_up(int sym, frame * cur);
 void set(int sym, oyster * val, frame * f);
 table *reify_scope(table * t, frame * f);
-
 
 
 //--------------------------------- Tables -----------------------------------//
@@ -177,7 +175,6 @@ table *reify_scope(table * t, frame * f);
 // Tables also track leaks, which allows the use of symbol bindings from 
 // higher scopes.
 
-table_entry *make_table_entry(oyster * it);
 table *make_table();
 table *table_copy(table * t);
 void table_put_entry(int key, table_entry * entry, table * tab);

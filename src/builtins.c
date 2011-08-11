@@ -115,9 +115,8 @@ oyster *builtin_leak(machine * m)
         if (i) {
             table_put_entry(id, a, frame_scope(current));
         } else {
-            a = make_table_entry(NULL);
-            table_put_entry(id, a, frame_scope(current));
-            table_put_entry(id, a, frame_scope_below(current));
+            table_put(id, NULL, frame_scope(current));
+            table_put_entry(id, table_get_entry(id, frame_scope(current), &i), frame_scope_below(current));
         }
 
     } else if (nilp(value)){

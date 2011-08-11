@@ -34,8 +34,6 @@ void set(int sym, oyster * val, frame * f)
     }
 }
 
-
-
 table *reify_scope(table * t, frame * f)
 {
     table *ret = table_copy(t);

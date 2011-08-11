@@ -43,7 +43,6 @@ table *table_copy(table * t)
     return ret;
 }
 
-
 void table_put_entry(int key, table_entry * entry, table * tab)
 {
     g_hash_table_insert(tab->it, GINT_TO_POINTER(key), entry);
@@ -90,13 +89,10 @@ oyster *table_get(int key, table * tab, int *flag)
     return NULL;
 }
 
-
-
 int table_empty(table * tab)
 {
     return tab && g_hash_table_size(tab->it) == 0;
 }
-
 
 void table_insert_or_replace(int sym_id, oyster *value, table *table)
 {
