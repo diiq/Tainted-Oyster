@@ -196,8 +196,6 @@ int leaked_p(int sym, table * tab);
 
 #define table_end_loop }} do{}while(0)
 
-void table_free(table *t);
-void table_entry_free(table_entry *e);
 
 //------------------------------ built in functions --------------------------//
 // These are functions that push the core functions in the beginning.
