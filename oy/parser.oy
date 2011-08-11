@@ -144,19 +144,23 @@ def make-file-er file:
 def open filename:
     make-file-er: file-open filename
     
-
-
+def reverse xs:
+    def in (xs accum):
+        if xs:
+            in (rest xs) (first xs :: accum) 
+            accum
+    in xs ()
 
 
 #--------- Real parser ----------
 
-def parse-success (value stream):
+def parse-success (value stream state):
     ret ← 'parsed-success
     ret.stream ← stream
     ret.value ← value 
     ret
 
-def thing-match char:
+def thing-match thing:
     λstream:
         if (first stream == thing):
             parse-success thing (rest stream)
@@ -174,7 +178,9 @@ def and-match (... parsers):
         with-signal-handler:
             λx: 
                 if (first x == 'fail): ()
-            parse-success: map attempt parsers
+            parse-success: 
+                map attempt parsers
+                success-stream
 
 def or-match (... parsers):
     λstream:
@@ -186,24 +192,40 @@ def or-match (... parsers):
             map attempt parsers
             ()
 
-def many-match (parser):
+def many-match parser:
     λstream:
         ret ← ()
+        cur ← ()
         while (cur ← parser stream):
-            ret ← cur :: ret
-        parse-success: reverse ret
+            stream ← cur.stream
+            ret ← cur.value :: ret
+        parse-success: 
+            reverse ret
+            stream
 
-#not-parse
-#list-match
+def anything stream:
+    parse-success:
+        first stream
+        rest stream
 
-def not-match 
+def not-match parser:
+    λstream:
+        if (parser stream):
+            ()
+            anything stream
+    
+def list-match parser:
+    λstream:
+        parser: first stream
+
+
 stream ← open "afile"
 
-parser ← and-match:
-    character-match \#a
-    character-match \#b
+parser ← many-match: and-match:
+    thing-match \#a
+    anything
 
-parsed ← parser stream
+parsed ← parser (list \#a \#b \#a \#c \#a \#d \#a \#e)
 print parsed.value
 
 # def apply-rule (rule stream recursion-list stack):
