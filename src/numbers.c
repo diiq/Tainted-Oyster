@@ -15,7 +15,7 @@ oyster *make_number(double num)
     double *anum = malloc(sizeof(double));
     *anum = num;
     oyster_set_value(ret, anum);
-    ret->in->gc_type = 2;
+    oyster_set_gc(ret, 2);
     return ret;
 }
 

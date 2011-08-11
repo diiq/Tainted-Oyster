@@ -45,6 +45,8 @@ void machine_unpause(machine *m);
 frame *machine_active_frame(machine *m);
 void machine_free(machine *m);
 
+
+
 //-------------------------------- Frames ------------------------------------//
 
 enum instruction_flags {
@@ -52,10 +54,12 @@ enum instruction_flags {
     // The instruction will be a list of arguments; the accumulator
     // will be the function being applied.
     PREPARE_ARGUMENTS, 
+
     // This flag is set when an @ argument has been evaluated.
     // The instruction will be (arg-list lambda-list); the
     // accumulator will be the @ argument.
     ASTERPEND_CONTINUE,
+
     ATPEND_CONTINUE,
     ARGUMENT,
     ELIPSIS_ARGUMENT,
@@ -109,28 +113,6 @@ void cons_cell_free(cons_cell *c);
 // bilbo bagginses. This allows the same hobbit to have a different binding 
 // in different circumstances -- the clothes fit the occasion.
 
-struct inner {
-    void (*decref) (inner * x);
-    int ref;
-    int gc_type;
-
-    table *info;
-    int type;
-    union {
-        int symbol_id;
-        cons_cell *cons;
-        oyster *(*built_in) (machine * m);
-        void *value;
-    };
-};
-
-struct oyster {
-    void (*decref) (oyster * x);
-    int ref;
-
-    table *bindings;
-    inner *in;
-};
 
 // type/symbols:
 enum {
@@ -150,11 +132,18 @@ enum {
 
 oyster *make_untyped_oyster();
 oyster *make_oyster(int type);
+table *oyster_info(oyster *o);
+
+oyster * (*oyster_built_in(oyster *o)) (machine * m);
+table *oyster_bindings(oyster * x);
+void oyster_set_bindings(oyster * x, table *value);
 int oyster_type(oyster * x);
 void oyster_set_type(oyster *o, int type);
 void *oyster_value(oyster * x);
 void oyster_set_value(oyster * x, void *value);
+void oyster_set_gc(oyster *o, int type);
 oyster *make_symbol(int symbol_id);
+int symbol_id(oyster *sym);
 oyster *oyster_copy(oyster * x, table * new_bindings);
 void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x);
 void oyster_free(oyster *o);

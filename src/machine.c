@@ -108,9 +108,9 @@ void machine_print(machine * m)
     frame *f = m->current_frame;
     printf("Now: ");
     frame_print(m->now, 0);
-    if (m->now->instruction && !table_empty(m->now->instruction->bindings)) {
+    if (m->now->instruction && !table_empty(oyster_bindings(m->now->instruction))) {
         printf(" with the bindings: \n");
-        table_print(m->now->instruction->bindings);
+        table_print(oyster_bindings(m->now->instruction));
     }
     while (f) {
         printf("frame: ");

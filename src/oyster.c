@@ -12,6 +12,29 @@
 
 #include "oyster.h"
 
+struct oyster {
+    void (*decref) (oyster * x);
+    int ref;
+
+    table *bindings;
+    inner *in;
+};
+
+
+struct inner {
+    void (*decref) (inner * x);
+    int ref;
+    int gc_type;
+
+    table *info;
+    int type;
+    union {
+        int symbol_id;
+        oyster *(*built_in) (machine * m);
+        void *value;
+    };
+};
+
 
 oyster *make_untyped_oyster()
 {
@@ -50,6 +73,11 @@ oyster *make_oyster(int type)
     return ret;
 }
 
+table *oyster_info(oyster *o)
+{
+    return o->in->info;
+}
+
 int oyster_type(oyster * x)
 {
     return x->in->type;//->it->in->symbol_id; // FOOLISH MORTALS
@@ -70,16 +98,37 @@ void oyster_set_type(oyster *o, int type)
 {
     o->in->type = type;
 }
+ 
+table *oyster_bindings(oyster * x)
+{
+    return x->bindings;
+}
+
+void oyster_set_bindings(oyster * x, table *value)
+{
+    // fix memory
+    x->bindings = value;
+}
 
 void *oyster_value(oyster * x)
 {
     return x->in->value;
 }
 
+void oyster_set_gc(oyster *o, int type)
+{
+    o->in->gc_type = type;
+}
 
 void oyster_set_value(oyster * x, void *value)
 {
+    // fix memory
     x->in->value = value;
+}
+
+oyster * (*oyster_built_in(oyster *o)) (machine * m)
+{
+    return o->in->built_in;
 }
 
 void oyster_free(oyster * x)
@@ -107,6 +156,10 @@ oyster *make_symbol(int symbol_id)
     ret->in->symbol_id = symbol_id;
     ret->in->gc_type = 0;
     return ret;
+}
+
+int symbol_id(oyster *sym){
+    return sym->in->symbol_id;
 }
 
 oyster *oyster_copy(oyster * x, table * new_bindings)

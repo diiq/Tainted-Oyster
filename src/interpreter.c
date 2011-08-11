@@ -31,8 +31,8 @@ void step_machine(machine * m)
         {
             table *t = m->now->scope_to_be;
             // eventually this must become copy-on-write
-            m->now->scope_to_be = (m->accumulator->bindings ?
-                                   table_copy(m->accumulator->bindings) :
+            m->now->scope_to_be = (oyster_bindings(m->accumulator) ?
+                                   table_copy(oyster_bindings(m->accumulator)) :
                                    make_table());
             incref(m->now->scope_to_be);
             decref(t);
@@ -63,7 +63,7 @@ void step_machine(machine * m)
         break;
 
     case ARGUMENT:
-        table_put(instruct->instruction->in->symbol_id,
+        table_put(symbol_id(instruct->instruction),
                   m->accumulator, m->current_frame->scope_to_be);
         break;
 
@@ -105,7 +105,7 @@ void evaluate_oyster(frame * instruct, machine * m)
     oyster *object = instruct->instruction;
     incref(object);
 
-    if (object->bindings && !table_empty(object->bindings)) {
+    if (oyster_bindings(object) && !table_empty(oyster_bindings(object))) {
         push_bindings_to_scope(m, object);
 
     } else {
@@ -113,11 +113,11 @@ void evaluate_oyster(frame * instruct, machine * m)
         switch (oyster_type(object)) {
 
         case BUILT_IN_FUNCTION:
-            set_accumulator(m, object->in->built_in(m));
+            set_accumulator(m, oyster_built_in(object)(m));
             break;
 
         case SYMBOL:
-            set_accumulator(m, look_up(object->in->symbol_id, instruct));
+            set_accumulator(m, look_up(symbol_id(object), instruct));
             if (!m->accumulator) {
                 oyster *signal = list(2,
                                       make_symbol(sym_id_from_string
@@ -165,7 +165,7 @@ int car_is_sym(oyster * x, int sym)
         ret = 0;
     } else {
         oyster *c = cheap_car(x);
-        ret = (oyster_type(c) == SYMBOL && c->in->symbol_id == sym);
+        ret = (oyster_type(c) == SYMBOL && symbol_id(c) == sym);
     }
     decref(x);
     return ret;
@@ -359,7 +359,7 @@ void push_bindings_to_scope(machine * m, oyster * o)
     frame *t = m->current_frame;
     oyster *next = oyster_copy(o, make_table());
     m->current_frame = make_frame(t,
-                                  reify_scope(o->bindings, m->now),
+                                  reify_scope(oyster_bindings(o), m->now),
                                   m->now->scope_to_be,
                                   m->now->scope, next, EVALUATE);
     decref(t);

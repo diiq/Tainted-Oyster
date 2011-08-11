@@ -10,8 +10,8 @@
 oyster *make_builtin(oyster * (*func) (machine * m))
 {
     oyster *ret = make_oyster(BUILT_IN_FUNCTION);
-    ret->in->built_in = func;
-    ret->in->gc_type = 0;
+    oyster_set_value(ret, func);
+    oyster_set_gc(ret, 0);
     return ret;
 }
 
@@ -88,8 +88,8 @@ oyster *builtin_set(machine * m)
 {
     ARG(symbol);
     ARG(value);
-    if(symbol->bindings){
-        table_insert_or_replace(symbol->in->symbol_id, value, symbol->bindings);
+    if(oyster_bindings(symbol)){
+        table_insert_or_replace(symbol_id(symbol), value, oyster_bindings(symbol));
     } else {
         oyster *signal = list(2, arg("There is no scope!"), cons);
         toss_signal(make_signal(signal, m), m);
@@ -106,7 +106,7 @@ oyster *builtin_leak(machine * m)
     ARG(value);
     frame *current = m->current_frame;
 
-    int id = symbol->in->symbol_id;
+    int id = symbol_id(symbol);
     if (nilp(closure)) {
         int i = 0;
         table_entry *a =
@@ -120,14 +120,14 @@ oyster *builtin_leak(machine * m)
         }
 
     } else if (nilp(value)){
-        if (!closure->bindings) {
-            closure->bindings = make_table();
-            incref(closure->bindings);
+        if (!oyster_bindings(closure)) {
+            oyster_set_bindings(closure, make_table());
+            incref(oyster_bindings(closure));
         }
-        leak(id, closure->bindings);
+        leak(id, oyster_bindings(closure));
 
     } else {
-        table_put(symbol->in->symbol_id, value, closure->bindings);
+        table_put(symbol_id(symbol), value, oyster_bindings(closure));
     }
 
     return closure;
@@ -144,8 +144,8 @@ oyster *builtin_bindings(machine *m)
 {
     ARG(obj);
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    oyster_set_value(ret, obj->bindings);
-    incref(obj->bindings);
+    oyster_set_value(ret, oyster_bindings(obj));
+    incref(oyster_bindings(obj));
     return ret;
 }
 
@@ -153,17 +153,17 @@ oyster *builtin_set_bindings(machine *m)
 {
     ARG(obj);
     ARG(bindings);
-    obj->bindings = oyster_value(bindings);
-    incref(obj->bindings);
+    oyster_set_bindings(obj, oyster_value(bindings));
+    incref(oyster_bindings(obj));
     return obj;
 }
 
 oyster *builtin_quote(machine * m)
 {
     ARG(x);
-    if(!x->bindings || table_empty(x->bindings))
+    if(!oyster_bindings(x) || table_empty(oyster_bindings(x)))
         return oyster_copy(x, frame_scope_below(machine_active_frame(m)));
-    return oyster_copy(x, x->bindings);
+    return oyster_copy(x, oyster_bindings(x));
 }
 
 oyster *builtin_atom_p(machine * m)
@@ -245,7 +245,7 @@ oyster *builtin_info_table(machine * m)
 {
     ARG(obj);
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    oyster_set_value(ret, obj->in->info);
+    oyster_set_value(ret, oyster_info(obj));
     incref(oyster_value(ret));
     return ret;
 }
@@ -255,7 +255,7 @@ oyster *builtin_table_get(machine * m)
     ARG(symbol);
     sARG(tab, "table");
     int i = 0;
-    oyster *ret = table_get(symbol->in->symbol_id, oyster_value(tab), &i);
+    oyster *ret = table_get(symbol_id(symbol), oyster_value(tab), &i);
     if (!i)
         return nil();
     return ret;
@@ -266,7 +266,7 @@ oyster *builtin_table_set(machine * m)
     ARG(symbol);
     ARG(value);
     sARG(tab, "table");
-    table_put(symbol->in->symbol_id, value, oyster_value(tab));
+    table_put(symbol_id(symbol), value, oyster_value(tab));
     return value;
 }
 

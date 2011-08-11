@@ -18,16 +18,21 @@ struct cons_cell {
 oyster *make_cons(oyster * car, oyster * cdr)
 {
     oyster *ret = make_oyster(CONS);
-    ret->in->cons = NEW(cons_cell);
-    incref(ret->in->cons);
+    cons_cell *in = NEW(cons_cell);
+    oyster_set_value(ret, in);
+    incref(in);
 
+    in->car = car;
     incref(car);
-    ret->in->cons->car = car;
 
+    in->cdr = cdr;
     incref(cdr);
-    ret->in->cons->cdr = cdr;
 
     return ret;
+}
+
+cons_cell *cons_of(oyster *o){
+    return (cons_cell *)oyster_value(o);
 }
 
 oyster *cheap_car(oyster * cons)
@@ -35,7 +40,7 @@ oyster *cheap_car(oyster * cons)
     incref(cons);
     if (nilp(cons))
         return cons;
-    oyster *ret = cons->in->cons->car;
+    oyster *ret = cons_of(cons)->car;
     decref(cons);
     return ret;
 }
@@ -45,23 +50,23 @@ oyster *cheap_cdr(oyster * cons)
     incref(cons);
     if (nilp(cons))
         return cons;
-    oyster *ret = cons->in->cons->cdr;
+    oyster *ret = cons_of(cons)->cdr;
     decref(cons);
     return ret;
 }
 
 void set_car(oyster *cons, oyster *value)
 {
-    oyster * t = cons->in->cons->car;
-    cons->in->cons->car = value;
+    oyster * t = cons_of(cons)->car;
+    cons_of(cons)->car = value;
     incref(value);
     decref(t);
 }
 
 void set_cdr(oyster *cons, oyster *value)
 {
-    oyster * t = cons->in->cons->cdr;
-    cons->in->cons->cdr = value;
+    oyster * t = cons_of(cons)->cdr;
+    cons_of(cons)->cdr = value;
     incref(value);
     decref(t);
 }
@@ -77,27 +82,27 @@ oyster *cons(oyster * car, oyster * cdr)
         oyster *new_cdr = oyster_copy(cdr, make_table());
         ret = make_cons(nil(), new_cdr);
 
-        decref(ret->bindings);
-        ret->bindings = cdr->bindings;
-        incref(ret->bindings);
+        decref(oyster_bindings(ret));
+        oyster_set_bindings(ret, oyster_bindings(cdr));
+        incref(oyster_bindings(ret));
 
     } else if (nilp(cdr)) {
         oyster *new_car = oyster_copy(car, make_table());
         ret = make_cons(new_car, nil());
 
-        decref(ret->bindings);
-        ret->bindings = car->bindings;
-        incref(ret->bindings);
+        decref(oyster_bindings(ret));
+        oyster_set_bindings(ret, oyster_bindings(car));
+        incref(oyster_bindings(ret));
 
-    } else if (car->bindings == cdr->bindings) {
+    } else if (oyster_bindings(car) == oyster_bindings(cdr)) {
         oyster *new_car = oyster_copy(car, make_table());
         oyster *new_cdr = oyster_copy(cdr, make_table());
 
         ret = make_cons(new_car, new_cdr);
 
-        decref(ret->bindings);
-        ret->bindings = car->bindings;
-        incref(ret->bindings);
+        decref(oyster_bindings(ret));
+        oyster_set_bindings(ret, oyster_bindings(car));
+        incref(oyster_bindings(ret));
     } else {
         // I do believe that this copy-on-write buisness works;
         // but not copying car and cdr is a culprit in future snafu
@@ -118,10 +123,10 @@ oyster *car(oyster * cons)
         ret = nil();
     } else {
         oyster *c = cheap_car(cons);
-        if (c->bindings && !table_empty(c->bindings)) {
-            return oyster_copy(c, c->bindings);
+        if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
+            return oyster_copy(c, oyster_bindings(c));
         } else {
-            ret = oyster_copy(c, cons->bindings);
+            ret = oyster_copy(c, oyster_bindings(cons));
         }
     }
     decref(cons);
@@ -137,10 +142,10 @@ oyster *cdr(oyster * cons)
         ret = nil();
     } else {
         oyster *c = cheap_cdr(cons);
-        if (c->bindings && !table_empty(c->bindings)) {
-            return oyster_copy(c, c->bindings);
+        if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
+            return oyster_copy(c, oyster_bindings(c));
         } else {
-            ret = oyster_copy(c, cons->bindings);
+            ret = oyster_copy(c, oyster_bindings(cons));
         }
     }
     decref(cons);
@@ -152,7 +157,7 @@ oyster *cdr(oyster * cons)
 oyster *nil()
 {
     oyster *ret = make_oyster(NIL);
-    ret->in->gc_type = 0;
+    oyster_set_gc(ret, 0);
     return ret;
 }
 
@@ -190,7 +195,7 @@ oyster *append(oyster * a, oyster * b)
     if (!nilp(a)) {
         ret = cons(car(a), append(cdr(a), b));
     } else {
-        ret = oyster_copy(b, b->bindings);
+        ret = oyster_copy(b, oyster_bindings(b));
     }
 
     decref(a);
