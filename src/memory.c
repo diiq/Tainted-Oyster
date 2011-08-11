@@ -3,6 +3,11 @@
 
 #include "oyster.h"
 
+struct memorable {
+    void (*free) (void *);
+    int ref;
+};
+
 void *initialize_memory_object(size_t size, void *freer)
 {
     struct memorable *obj = malloc(size);

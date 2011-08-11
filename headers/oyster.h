@@ -3,9 +3,6 @@
 
 #define UNTO_DUST 0
 
-#define NEW(type) initialize_memory_object(sizeof(type),    \
-                                           &type ## _free)
-
 #include <glib.h>
 #include <stdio.h>
 
@@ -33,6 +30,8 @@ oyster *evaluate_string(char *str);
 //------------------------------- Interpreter --------------------------------//
 // These functions control individual steps of the oyster machine. 
 void step_machine(machine * m);
+
+
 
 //-------------------------------- The Machine ------------------------------//
 
@@ -154,6 +153,7 @@ oyster *make_oyster(int type);
 int oyster_type(oyster * x);
 void oyster_set_type(oyster *o, int type);
 void *oyster_value(oyster * x);
+void oyster_set_value(oyster * x, void *value);
 oyster *make_symbol(int symbol_id);
 oyster *oyster_copy(oyster * x, table * new_bindings);
 void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x);
@@ -216,6 +216,7 @@ void add_builtins(machine * m);
 
 //--------------------------- Continuations ----------------------------------//
 // Man, nobody likes continuations. Who asked for these suckers?
+
 machine *machine_copy(machine * m);
 oyster *call_continuation(machine * m);
 oyster *make_continuation(machine * m);
@@ -225,16 +226,13 @@ oyster *make_continuation(machine * m);
 //--------------------------------- Memory -----------------------------------//
 // Functions that handle memory management. These are gonna hafta change, as 
 // the reference counting is a necessarily temporary arrangement.
-struct memorable {
-    void (*free) (void *);
-    int ref;
-};
+
+#define NEW(type) initialize_memory_object(sizeof(type),    \
+                                           &type ## _free)
 
 void *initialize_memory_object(size_t size, void *dec);
 void incref(void *x);
 void decref(void *x);
-/* void number_ref(number * n); */
-/* void number_unref(number * n); */
 
 
 

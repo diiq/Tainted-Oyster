@@ -144,8 +144,8 @@ oyster *builtin_bindings(machine *m)
 {
     ARG(obj);
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    ret->in->value = obj->bindings;
-    incref(ret->in->value);
+    oyster_set_value(ret, obj->bindings);
+    incref(obj->bindings);
     return ret;
 }
 
@@ -153,7 +153,7 @@ oyster *builtin_set_bindings(machine *m)
 {
     ARG(obj);
     ARG(bindings);
-    obj->bindings = bindings->in->value;
+    obj->bindings = oyster_value(bindings);
     incref(obj->bindings);
     return obj;
 }
@@ -178,7 +178,7 @@ oyster *builtin_is(machine * m)
 {
     ARG(a);
     ARG(b);
-    if (oyster_type(a) == oyster_type(b) && a->in->value == b->in->value)
+    if (oyster_type(a) == oyster_type(b) && oyster_value(a) == oyster_value(b))
         return make_symbol(sym_id_from_string("t"));
     return nil();
 }
@@ -236,8 +236,8 @@ oyster *builtin_with_signal_handler(machine * m)
 oyster *builtin_current_scope(machine * m)
 {
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    ret->in->value = frame_scope(m->current_frame);
-    incref(ret->in->value);
+    oyster_set_value(ret, frame_scope(m->current_frame));
+    incref(oyster_value(ret));
     return ret;
 }
 
@@ -245,8 +245,8 @@ oyster *builtin_info_table(machine * m)
 {
     ARG(obj);
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    ret->in->value = obj->in->info;
-    incref(ret->in->value);
+    oyster_set_value(ret, obj->in->info);
+    incref(oyster_value(ret));
     return ret;
 }
 
@@ -255,7 +255,7 @@ oyster *builtin_table_get(machine * m)
     ARG(symbol);
     sARG(tab, "table");
     int i = 0;
-    oyster *ret = table_get(symbol->in->symbol_id, tab->in->value, &i);
+    oyster *ret = table_get(symbol->in->symbol_id, oyster_value(tab), &i);
     if (!i)
         return nil();
     return ret;
@@ -266,7 +266,7 @@ oyster *builtin_table_set(machine * m)
     ARG(symbol);
     ARG(value);
     sARG(tab, "table");
-    table_put(symbol->in->symbol_id, value, tab->in->value);
+    table_put(symbol->in->symbol_id, value, oyster_value(tab));
     return value;
 }
 

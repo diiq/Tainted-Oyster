@@ -4,9 +4,9 @@
 void no_signal_handler(oyster * signal)
 {
     int i = 0;
-    print_stack_trace(table_get(sym_id_from_string("continuation"),
-                                car(cdr(signal))->bindings,
-                                &i)->in->value);
+    print_stack_trace(oyster_value(table_get(sym_id_from_string("continuation"),
+                                             car(cdr(signal))->bindings,
+                                             &i)));
     printf
         ("    trees shake in a strong wind\n    but the leaves have already fallen\n\n\n"
          "Error: Signal received but no signal handler is available.\n"

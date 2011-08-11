@@ -76,6 +76,12 @@ void *oyster_value(oyster * x)
     return x->in->value;
 }
 
+
+void oyster_set_value(oyster * x, void *value)
+{
+    x->in->value = value;
+}
+
 void oyster_free(oyster * x)
 {
     decref(x->bindings);

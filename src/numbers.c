@@ -14,13 +14,13 @@ oyster *make_number(double num)
     oyster *ret = make_oyster(sym_id_from_string("number"));
     double *anum = malloc(sizeof(double));
     *anum = num;
-    ret->in->value = anum;
+    oyster_set_value(ret, anum);
     ret->in->gc_type = 2;
     return ret;
 }
 
 double number_of(oyster *num){
-    return *(double *)num->in->value;
+    return *(double *)oyster_value(num);
 }
 
 oyster *builtin_plus(machine *m)

@@ -169,7 +169,7 @@ void push_stack_trace(oyster *function, frame *remove_when, machine *m)
     if (remove_when == m->trace->remove_when){
         stack_trace *t = m->trace;
         while(remove_when == t->remove_when){
-            if (t->function->in->value == function->in->value){
+            if (oyster_value(t->function) == oyster_value(function)){
                 t->count++;
                 return;
             }
