@@ -8,7 +8,7 @@ struct memorable {
     int ref;
 };
 
-void *initialize_memory_object(size_t size, void *freer)
+inline void * initialize_memory_object(size_t size, void *freer)
 {
     struct memorable *obj = malloc(size);
     obj->free = freer;
@@ -16,13 +16,13 @@ void *initialize_memory_object(size_t size, void *freer)
     return obj;
 }
 
-void incref(void *x)
+inline void incref(void *x)
 {
     if (x)
         ((struct memorable *) x)->ref++;
 }
 
-void decref(void *x)
+inline void decref(void *x)
 {
     if (x) {
         ((struct memorable *) x)->ref--;

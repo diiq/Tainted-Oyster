@@ -22,10 +22,8 @@ enum {
 typedef struct {
     char *string;
     int type;
-    union {
-        int count;
-        double num;
-    };
+    int count;
+    double num;
 } token;
 
 typedef struct token_chain_struct token_chain;

@@ -163,8 +163,10 @@ or ← λ(test ... 'xs):
 # print 'this 'far
 
 
-a ← '(a b c d e f g h i a b c d e f g h i a b c d e f g h i)
+a ← '(a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i)
 
 while a: 
+    print a
+    q ← \p: (a p)
     a ← cdr a
 

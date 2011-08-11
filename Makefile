@@ -1,7 +1,7 @@
 # OK, you should modify these line so that they reflect 
 # the directories of glib.h and glibconfig.h
 GLIBFLAGS=`pkg-config --cflags --libs  glib-2.0`
-CFLAGS=-Wall $(GLIBFLAGS) -Itests -Iheaders -Isrc
+CFLAGS=-Wall $(GLIBFLAGS) -Itests -Iheaders -Isrc -std=gnu99
 DEBUG_FLAGS=-g3
 PROFILE_FLAGS= -fprofile-arcs -pg -O3
 TARGET=tainted

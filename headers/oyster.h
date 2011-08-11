@@ -11,7 +11,7 @@ typedef struct table_entry table_entry;
 
 typedef struct oyster oyster;
 typedef struct cons_cell cons_cell;
-typedef struct inner inner;
+
 
 typedef struct frame frame;
 typedef struct machine machine;
@@ -146,7 +146,7 @@ int symbol_id(oyster *sym);
 oyster *oyster_copy(oyster * x, table * new_bindings);
 void oyster_add_to_bindings(int sym_id, oyster * val, oyster * x);
 void oyster_free(oyster *o);
-void inner_free(inner *i);
+
 
 //--------------------------------- Scopes -----------------------------------//
 // Looking up, leaking, setting, and packaging scopes, so that the right 
@@ -162,6 +162,12 @@ table *reify_scope(table * t, frame * f);
 //
 // Tables also track leaks, which allows the use of symbol bindings from 
 // higher scopes.
+enum {
+    TABLE_ENTRY_NOT_FOUND,
+    TABLE_ENTRY_FOUND,
+    TABLE_ENTRY_LEAKED,
+};
+
 
 table *make_table();
 table *table_copy(table * t);

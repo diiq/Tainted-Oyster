@@ -4,9 +4,13 @@
 void no_signal_handler(oyster * signal)
 {
     int i = 0;
-    print_stack_trace(oyster_value(table_get(sym_id_from_string("continuation"),
-                                             oyster_bindings(car(cdr(signal))),
-                                             &i)));
+    oyster *ma = table_get(sym_id_from_string("continuation"),
+                           oyster_bindings(car(cdr(signal))),
+                           &i);
+    if(i != TABLE_ENTRY_FOUND)
+        printf("CONTINUATION NOT FOUND?!?");
+        
+    print_stack_trace(oyster_value(ma));
     printf
         ("    trees shake in a strong wind\n    but the leaves have already fallen\n\n\n"
          "Error: Signal received but no signal handler is available.\n"

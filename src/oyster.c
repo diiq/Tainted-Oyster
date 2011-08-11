@@ -12,6 +12,8 @@
 
 #include "oyster.h"
 
+typedef struct inner inner;
+
 struct oyster {
     void (*decref) (oyster * x);
     int ref;
@@ -34,6 +36,10 @@ struct inner {
         void *value;
     };
 };
+
+void inner_free(inner * x);
+
+
 
 
 oyster *make_untyped_oyster()
@@ -78,7 +84,7 @@ table *oyster_info(oyster *o)
     return o->in->info;
 }
 
-int oyster_type(oyster * x)
+inline int oyster_type(oyster * x)
 {
     return x->in->type;//->it->in->symbol_id; // FOOLISH MORTALS
 }
