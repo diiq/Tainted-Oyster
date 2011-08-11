@@ -83,21 +83,21 @@ def while ('test ... 'code):
             map eval code
             while (really test) *code
 
-set! ← set
+assign! ← assign
 
-def set ('thing value):
+def assign ('thing value):
     if (not: atom thing):
         then:
             call ← ,(first thing)
-            if call.set: 
-                call.set *(rest thing) value
+            if call.assign: 
+                call.assign *(rest thing) value
                 signal: list 'no-known-setter-for thing
         else:
             leak (really thing)
-            set! (really thing) value
+            assign! (really thing) value
 
 table-set:
-    set
+    assign
     info-table table-get
     table-set
 

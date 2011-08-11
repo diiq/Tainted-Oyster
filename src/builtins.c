@@ -84,7 +84,7 @@ oyster *builtin_set_cdr(machine *m){
     return value;
 }
 
-oyster *builtin_set(machine * m)
+oyster *builtin_assign(machine * m)
 {
     ARG(symbol);
     ARG(value);
@@ -278,7 +278,7 @@ void add_builtins(machine * m)
 
     add_builtin("set-cdr", list(2, arg("cons"), arg("value")), builtin_set_cdr, m);
 
-    add_builtin("set", list(2, quot("symbol"), arg("value")), builtin_set,
+    add_builtin("assign", list(2, quot("symbol"), arg("value")), builtin_assign,
                 m);
     add_builtin("leak", list(3, unev("symbol"), arg("closure"), arg("value")),
                 builtin_leak, m);

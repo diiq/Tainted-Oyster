@@ -88,18 +88,18 @@ while ← λ('test ... 'code):
             map eval code
             while (really test) *code
 
-set! ← set
+assign! ← assign
 
-set ← λ('thing value):
+assign ← λ('thing value):
     if (not: atom thing):
         then:
             call ← ,(first thing)
-            if call.set: 
-                call.set *(rest thing) value
+            if call.assign: 
+                call.assign *(rest thing) value
                 signal: list 'no-known-setter-for thing
         else:
             leak (really thing)
-            set! (really thing) value
+            assign! (really thing) value
 
 second ← λx: first: rest x
 
@@ -124,7 +124,7 @@ class ← λ('name 'inheritance ... 'members):
     it.subclass ← λself:
         map (λ(,class): class.subclass self) inheritance
         map:
-            λm: set self.(really: first m): 
+            λm: assign self.(really: first m): 
                 leak: 
                     self
                     λ(really: second m): *(rest: rest m)
@@ -134,7 +134,7 @@ class ← λ('name 'inheritance ... 'members):
          
 
 table-set:
-    set
+    assign
     info-table table-get
     table-set
 
