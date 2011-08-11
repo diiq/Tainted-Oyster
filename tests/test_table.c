@@ -1,5 +1,6 @@
 #include "testing.h"
 #include "oyster.h"
+#include "table.h"
 #include "stdio.h"
 
 _test(new_table)

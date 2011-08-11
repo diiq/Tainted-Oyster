@@ -116,7 +116,7 @@ struct inner {
     int gc_type;
 
     table *info;
-    table_entry *type;
+    int type;
     union {
         int symbol_id;
         cons_cell *cons;
@@ -177,25 +177,6 @@ table *reify_scope(table * t, frame * f);
 // Tables also track leaks, which allows the use of symbol bindings from 
 // higher scopes.
 
-enum {
-    TABLE_ENTRY_NOT_FOUND,
-    TABLE_ENTRY_FOUND,
-    TABLE_ENTRY_LEAKED,
-};
-
-struct table_entry {
-    void (*decref) (table_entry * x);
-    int ref;
-    oyster *it;
-};
-
-struct table {
-    void (*decref) (table * x);
-    int ref;
-    GHashTable *it;
-    GHashTable *leaked;
-};
-
 table_entry *make_table_entry(oyster * it);
 table *make_table();
 table *table_copy(table * t);
@@ -204,6 +185,7 @@ table_entry *table_get_entry(int key, table * tab, int *flag);
 void table_put(int key, oyster * entry, table * tab);
 oyster *table_get(int key, table * tab, int *flag);
 int table_empty(table * tab);
+void table_insert_or_replace(int sym_id, oyster *value, table *table);
 
 void leak(int sym, table * tab);
 int leaked_p(int sym, table * tab);

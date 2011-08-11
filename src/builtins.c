@@ -89,18 +89,7 @@ oyster *builtin_set(machine * m)
     ARG(symbol);
     ARG(value);
     if(symbol->bindings){
-        int i;
-        table_entry *ret = table_get_entry(symbol->in->symbol_id, 
-                                           symbol->bindings, 
-                                           &i);
-        if (ret) {
-            oyster *t = ret->it;
-            ret->it = value;
-            incref(value);
-            decref(t);
-        } else {
-            table_put(symbol->in->symbol_id, value, symbol->bindings);
-        }
+        table_insert_or_replace(symbol->in->symbol_id, value, symbol->bindings);
     } else {
         oyster *signal = list(2, arg("There is no scope!"), cons);
         toss_signal(make_signal(signal, m), m);

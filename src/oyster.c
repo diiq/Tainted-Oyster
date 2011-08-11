@@ -19,7 +19,7 @@ oyster *make_untyped_oyster()
     ret->in = NEW(inner);
     incref(ret->in);
 
-    ret->in->type = NULL;
+    ret->in->type = -1;
     ret->in->gc_type = 0;
 
     ret->in->value = NULL;
@@ -37,7 +37,7 @@ void inner_free(inner * x)
     if (x->gc_type == 2)
         free(x->value);
     
-    decref(x->type);
+    //    decref(x->type);
     decref(x->info);
     free(x);
 }
@@ -52,23 +52,23 @@ oyster *make_oyster(int type)
 
 int oyster_type(oyster * x)
 {
-    return x->in->type->it->in->symbol_id; // FOOLISH MORTALS
+    return x->in->type;//->it->in->symbol_id; // FOOLISH MORTALS
 }
 
 void oyster_set_type_o(oyster *o, oyster *type)
 {
-    table_entry *e = NEW(table_entry);
-    e->it = type;
-    incref(type);
-    table_put_entry(TYPE, e, o->in->info);
-    o->in->type = e;
-    incref(e);
+    oyster_set_type(o, type->in->symbol_id);
+    /* table_entry *e = NEW(table_entry); */
+    /* e->it = type; */
+    /* incref(type); */
+    /* table_put_entry(TYPE, e, o->in->info); */
+    /* o->in->type = e; */
+    /* incref(e); */
 }
 
 void oyster_set_type(oyster *o, int type)
 {
-    oyster *otype = make_symbol(type);
-    oyster_set_type_o(o, otype);
+    o->in->type = type;
 }
 
 void *oyster_value(oyster * x)
@@ -179,8 +179,8 @@ void oyster_print(oyster * o)
         } else if(type == sym_id_from_string("number")){
             printf("%lf", number_of(o));
 
-        } else if(type == sym_id_from_string("character")){
-            printf("%c", (char)o->in->value);
+            // } else if(type == sym_id_from_string("character")){
+            //printf("%c", (char)o->in->value);
 
             //        } else if(type == sym_id_from_string("c-string")){
             //printf("%s", string_of(o));

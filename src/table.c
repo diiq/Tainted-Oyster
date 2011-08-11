@@ -7,8 +7,10 @@
 #define TABLE
 
 #include "oyster.h"
+#include "table.h"
 #include <glib.h>
 #include <stdlib.h>
+
 
 
 table_entry *make_table_entry(oyster * it)
@@ -96,6 +98,21 @@ int table_empty(table * tab)
 }
 
 
+void table_insert_or_replace(int sym_id, oyster *value, table *table)
+{
+    int i;
+    table_entry *ret = table_get_entry(sym_id, 
+                                       table,
+                                       &i);
+    if (ret) {
+        oyster *t = ret->it;
+        ret->it = value;
+        incref(value);
+        decref(t);
+    } else {
+        table_put(sym_id, value, table);
+    }
+}
 
 // Leaks poke holes in the oyster shells; when a variable is bound to
 // LEAKED in the current scope, the value from the scope *below* is used
