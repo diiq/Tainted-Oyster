@@ -30,8 +30,8 @@ machine *make_machine()
 
     add_builtins(ret);
     add_builtin_numbers(ret);
-    //    add_builtin_strings(ret);
-    //    add_builtin_files(ret);
+    add_builtin_strings(ret);
+    add_builtin_files(ret);
 
     return ret;
 }

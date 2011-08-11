@@ -482,7 +482,7 @@ oyster *parse_symbol(token_stream *stream){
 oyster *parse_character(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == CHARACTER_TOKEN){
-        oyster *ret = nil();//make_character(next->string[0]);
+        oyster *ret = make_character(next->string[0]);
         free_token(next);
         return ret;
     }
@@ -493,7 +493,7 @@ oyster *parse_character(token_stream *stream){
 oyster *parse_string(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == STRING_TOKEN){
-        oyster *ret = nil();//make_string(next->string);
+        oyster *ret = make_string(next->string);
         free_token(next);
         return ret;
     }

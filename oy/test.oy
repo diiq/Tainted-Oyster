@@ -94,8 +94,10 @@ print: quoted Maths quiz
 # look ma, no precedence!
 print: (25 * 50 + 10) == 1500
 
+#--------------------------------------------------------------#
+print: quoted Strings and things
 
 print: is \#a (string-first "ala bama")
 
-foo ← open "afile"
-print: is (get-char foo) \#a
+foo ← file-open "afile"
+print: is (file-get-char foo) \#a
