@@ -80,10 +80,7 @@ oyster *builtin_set_cdr(machine *m){
         toss_signal(make_signal(signal, m), m);
         return NULL;
     }
-    oyster *t = cons->in->cons->cdr;
-    cons->in->cons->cdr = value;
-    incref(value);
-    decref(t);
+    set_cdr(cons, value);
     return value;
 }
 

@@ -5,6 +5,16 @@
 #include <stdlib.h>
 //-------------------------- Cons, car, and cdr --------------------------//
 
+
+struct cons_cell {
+    void (*decref) (cons_cell * x);
+    int ref;
+
+    oyster *car;
+    oyster *cdr;
+};
+
+
 oyster *make_cons(oyster * car, oyster * cdr)
 {
     oyster *ret = make_oyster(CONS);
@@ -39,6 +49,23 @@ oyster *cheap_cdr(oyster * cons)
     decref(cons);
     return ret;
 }
+
+void set_car(oyster *cons, oyster *value)
+{
+    oyster * t = cons->in->cons->car;
+    cons->in->cons->car = value;
+    incref(value);
+    decref(t);
+}
+
+void set_cdr(oyster *cons, oyster *value)
+{
+    oyster * t = cons->in->cons->cdr;
+    cons->in->cons->cdr = value;
+    incref(value);
+    decref(t);
+}
+
 
 oyster *cons(oyster * car, oyster * cdr)
 {

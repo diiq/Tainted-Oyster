@@ -130,5 +130,24 @@ void table_free(table * x)
     free(x);
 }
 
+//-------------------- Printin -----------------------//
+
+
+void table_print(table * x)
+{
+    if (!x) {
+        printf("NONE\n");
+        return;
+    }
+    int key;
+    table_entry *value;
+    table_loop(key, value, x->it) {
+        printf("    %s : ", string_from_sym_id(key));
+        oyster_print(value->it);
+        printf("\n");
+    } table_end_loop;
+    printf("\n");
+}
+
 
 #endif

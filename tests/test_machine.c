@@ -110,7 +110,7 @@ _test(argument_chain_link_elipsis)
 
     assert(m->current_frame->flag == EVALUATE, "flag");
     assert(oyster_type(m->current_frame->instruction) == CONS, "fcall");
-    assert(m->current_frame->instruction->in->cons->car->in->symbol_id ==
+    assert(cheap_car(m->current_frame->instruction)->in->symbol_id ==
            5, "function");
 
     assert(m->current_frame->below->flag == ELIPSIS_ARGUMENT, "flag2");

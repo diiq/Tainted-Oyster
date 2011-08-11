@@ -82,13 +82,15 @@ int frame_flag(frame *f);
 void frame_free(frame *f);
 
 //------------------------ lists and how to use them -------------------------//
+
 oyster *make_cons(oyster * car, oyster * cdr);
 oyster *cheap_car(oyster * cons);
 oyster *cheap_cdr(oyster * cons);
+void set_car(oyster *cons, oyster *value);
+void set_cdr(oyster *cons, oyster *value);
 oyster *cons(oyster * car, oyster * cdr);
 oyster *car(oyster * cons);
 oyster *cdr(oyster * cons);
-
 
 oyster *nil();
 int nilp(oyster * x);
@@ -107,13 +109,6 @@ void cons_cell_free(cons_cell *c);
 // Inside the shell is the inner in, the pearl, the goodie bag, the
 // bilbo bagginses. This allows the same hobbit to have a different binding 
 // in different circumstances -- the clothes fit the occasion.
-struct cons_cell {
-    void (*decref) (cons_cell * x);
-    int ref;
-
-    oyster *car;
-    oyster *cdr;
-};
 
 struct inner {
     void (*decref) (inner * x);

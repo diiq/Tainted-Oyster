@@ -34,9 +34,10 @@ _test(make_symbol)
 _test(make_cons)
 {
     oyster *c = make_cons(make_symbol(5), make_symbol(2));
+    incref(c);
     assert(oyster_type(c) == CONS);
-    assert(c->in->cons->car->in->symbol_id == 5);
-    assert(c->in->cons->cdr->in->symbol_id == 2);
+    assert(cheap_car(c)->in->symbol_id == 5);
+    assert(cheap_cdr(c)->in->symbol_id == 2);
     decref(c);
 } _tset;
 
