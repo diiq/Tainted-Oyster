@@ -17,13 +17,13 @@ _test(table_put_get)
     int i = 0;
     oyster *j = table_get(2, tab, &i);
     assert(i);
-    assert(j->in->symbol_id == 4);
+    assert(symbol_id(j) == 4);
 
     table_put(2, make_symbol(3), tab);
     i = 0;
     j = table_get(2, tab, &i);
     assert(i);
-    assert(j->in->symbol_id == 3);
+    assert(symbol_id(j) == 3);
 
     decref(tab);
 } _tset;
@@ -46,8 +46,8 @@ _test(table_loop)
     table_entry *entry;
     int key;
     table_loop(key, entry, tab->it) {
-        assert((entry->it->in->symbol_id == 5 && key == 1) ||
-               (entry->it->in->symbol_id == 4 && key == 4));
+        assert((symbol_id(entry->it) == 5 && key == 1) ||
+               (symbol_id(entry->it) == 4 && key == 4));
         i++;
     } table_end_loop;
     assert(i == 2);

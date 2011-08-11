@@ -37,10 +37,10 @@ _test(argument_chain_link_boring)
     argument_chain_link(lambda_list, arg_list, m);
 
     assert(m->current_frame->flag == EVALUATE);
-    assert(m->current_frame->instruction->in->symbol_id == 30);
+    assert(symbol_id(m->current_frame->instruction) == 30);
 
     assert(m->current_frame->below->flag == ARGUMENT);
-    assert(m->current_frame->below->instruction->in->symbol_id == 10);
+    assert(symbol_id(m->current_frame->below->instruction) == 10);
 
     assert(m->current_frame->below->below->flag == CONTINUE);
 
@@ -63,7 +63,7 @@ _test(argument_chain_link_atpend)
     argument_chain_link(lambda_list, arg_list, m);
 
     assert(m->current_frame->flag == EVALUATE);
-    assert(m->current_frame->instruction->in->symbol_id == 60);
+    assert(symbol_id(m->current_frame->instruction) == 60);
 
     assert(m->current_frame->below->flag == ATPEND_CONTINUE);
     assert(oyster_type(m->current_frame->below->instruction) == CONS);
@@ -86,7 +86,7 @@ _test(argument_chain_link_asterpend)
     argument_chain_link(lambda_list, arg_list, m);
 
     assert(m->current_frame->flag == EVALUATE);
-    assert(m->current_frame->instruction->in->symbol_id == 30);
+    assert(symbol_id(m->current_frame->instruction) == 30);
 
     assert(m->current_frame->below->flag == ASTERPEND_CONTINUE);
     assert(oyster_type(m->current_frame->below->instruction) == CONS);
@@ -110,7 +110,7 @@ _test(argument_chain_link_elipsis)
 
     assert(m->current_frame->flag == EVALUATE, "flag");
     assert(oyster_type(m->current_frame->instruction) == CONS, "fcall");
-    assert(cheap_car(m->current_frame->instruction)->in->symbol_id ==
+    assert(symbol_id(cheap_car(m->current_frame->instruction)) ==
            5, "function");
 
     assert(m->current_frame->below->flag == ELIPSIS_ARGUMENT, "flag2");
@@ -141,8 +141,8 @@ _test(basic_step)
     }
     assert(m->accumulator, "no answer");
     assert(oyster_type(m->accumulator) == SYMBOL, "Wrong answer type");
-    assert(m->accumulator->in->symbol_id == BUILT_IN_FUNCTION,
-           "Wrong answer, %d", m->accumulator->in->symbol_id);
+    assert(symbol_id(m->accumulator) == BUILT_IN_FUNCTION,
+           "Wrong answer, %d", symbol_id(m->accumulator));
 
     decref(m);
 
@@ -180,7 +180,7 @@ _test(frame_stack)
     oyster *ret = evaluate_string("(((clear ((foo) (clear ((quiz) quiz))))"
                                   "    (clear bar)) (clear baz))");
     assert(oyster_type(ret) == SYMBOL &&
-           ret->in->symbol_id == sym_id_from_string("baz"));
+           symbol_id(ret) == sym_id_from_string("baz"));
     decref(ret);
 }
 
@@ -190,7 +190,7 @@ _test(fun_arg)
 {
     oyster *ret = evaluate_string("((clear (((clear foo)) foo)) bar)");
     assert(oyster_type(ret) == SYMBOL &&
-           ret->in->symbol_id == sym_id_from_string("bar"));
+           symbol_id(ret) == sym_id_from_string("bar"));
     decref(ret);
 }
 
@@ -200,7 +200,7 @@ _test(no_arg)
 {
     oyster *ret = evaluate_string("((clear (() (clear foo))))");
     assert(oyster_type(ret) == SYMBOL &&
-           ret->in->symbol_id == sym_id_from_string("foo"));
+           symbol_id(ret) == sym_id_from_string("foo"));
     decref(ret);
 }
 

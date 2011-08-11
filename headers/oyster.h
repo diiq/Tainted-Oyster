@@ -113,7 +113,6 @@ void cons_cell_free(cons_cell *c);
 // bilbo bagginses. This allows the same hobbit to have a different binding 
 // in different circumstances -- the clothes fit the occasion.
 
-
 // type/symbols:
 enum {
     TYPE,
@@ -258,7 +257,6 @@ void oyster_print(oyster * o);
 void no_signal_handler(oyster * signal);
 oyster *make_signal(oyster * message, machine * m);
 void toss_signal(oyster * signal, machine * m);
-
 
 
 //------------------------------- Numbers ------------------------------//

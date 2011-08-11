@@ -9,9 +9,9 @@ _test(builtin_cons)
     oyster *ret = evaluate_string("(cons (clear shi) (clear it))");
     assert(oyster_type(ret) == CONS);
     oyster *c = car(ret);
-    assert(c->in->symbol_id == sym_id_from_string("shi"));
+    assert(symbol_id(c) == sym_id_from_string("shi"));
     oyster *d = cdr(ret);
-    assert(d->in->symbol_id == sym_id_from_string("it"));
+    assert(symbol_id(d) == sym_id_from_string("it"));
 
     decref(ret);
     decref(c);
@@ -24,7 +24,7 @@ _test(builtin_car)
 {
     oyster *ret = evaluate_string("(car (cons (clear shi) (clear it)))");
     assert(oyster_type(ret) == SYMBOL);
-    assert(ret->in->symbol_id == sym_id_from_string("shi"));
+    assert(symbol_id(ret) == sym_id_from_string("shi"));
     decref(ret);
 }
 
@@ -34,7 +34,7 @@ _test(builtin_cdr)
 {
     oyster *ret = evaluate_string("(cdr (cons (clear shi) (clear it)))");
     assert(oyster_type(ret) == SYMBOL);
-    assert(ret->in->symbol_id == sym_id_from_string("it"));
+    assert(symbol_id(ret) == sym_id_from_string("it"));
     decref(ret);
 }
 
@@ -45,7 +45,7 @@ _test(builtin_set)
 {
     oyster *ret = evaluate_string("(set a (clear b))\n"
                                   "a");
-    assert(ret->in->symbol_id == sym_id_from_string("b"));
+    assert(symbol_id(ret) == sym_id_from_string("b"));
     decref(ret);
 }
 
@@ -56,7 +56,7 @@ _test(builtin_current_scope)
     oyster *ret = evaluate_string("(current-scope)");
     assert(oyster_type(ret) == sym_id_from_string("table"));
     int i;
-    table_get(CONS, ret->in->value, &i);
+    table_get(CONS, oyster_value(ret), &i);
     assert(i);
     decref(ret);
 } _tset;
@@ -65,7 +65,7 @@ _test(builtin_table_get)
 {
     oyster *ret = evaluate_string("(table-get cons (current-scope))");
     oyster *m = car(car(ret));
-    assert(m->in->symbol_id == sym_id_from_string("car"));
+    assert(symbol_id(m) == sym_id_from_string("car"));
     decref(m);
     decref(ret);
 } _tset;

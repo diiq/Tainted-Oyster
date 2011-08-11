@@ -15,7 +15,7 @@ _test(look_up)
     table_put(2, make_symbol(2), m->base_frame->scope);
     oyster *ret = look_up(2, m->current_frame);
     assert(ret, "There was no return.");
-    assert(ret->in->symbol_id == 2, "It was the wrong symbol.");
+    assert(symbol_id(ret) == 2, "It was the wrong symbol.");
 
     decref(m->current_frame->scope);
     m->current_frame->scope = make_table();
@@ -24,7 +24,7 @@ _test(look_up)
     table_put(2, make_symbol(3), m->current_frame->scope);
     ret = look_up(2, m->current_frame);
     assert(ret, "There was no second return.");
-    assert(ret->in->symbol_id == 3,
+    assert(symbol_id(ret) == 3,
            "The second return was the wrong symbol.");
 
     decref(m);
@@ -42,17 +42,17 @@ _test(set)
     set(2, make_symbol(2), m->current_frame);
     oyster *ret = look_up(2, m->current_frame);
     assert(ret, "Not present");
-    assert(ret->in->symbol_id == 2, "Not 2.");
+    assert(symbol_id(ret) == 2, "Not 2.");
 
     table_put(2, make_symbol(1), m->current_frame->scope);
     ret = look_up(2, m->current_frame);
     assert(ret, "Not present 1a.");
-    assert(ret->in->symbol_id == 1, "Not 1. %d", ret->in->symbol_id);
+    assert(symbol_id(ret) == 1, "Not 1. %d", symbol_id(ret));
 
     set(2, make_symbol(3), m->current_frame);
     ret = look_up(2, m->current_frame);
     assert(ret, "Not present 2.");
-    assert(ret->in->symbol_id == 3, "Not 3. %d", ret->in->symbol_id);
+    assert(symbol_id(ret) == 3, "Not 3. %d", symbol_id(ret));
 
     decref(m);
 } _tset;

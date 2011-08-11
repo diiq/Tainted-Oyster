@@ -25,7 +25,7 @@ _test(make_symbol)
 {
     oyster *f = make_symbol(5);
     assert(oyster_type(f) == SYMBOL);
-    assert(f->in->symbol_id == 5);
+    assert(symbol_id(f) == 5);
 
     decref(f);
 
@@ -36,8 +36,8 @@ _test(make_cons)
     oyster *c = make_cons(make_symbol(5), make_symbol(2));
     incref(c);
     assert(oyster_type(c) == CONS);
-    assert(cheap_car(c)->in->symbol_id == 5);
-    assert(cheap_cdr(c)->in->symbol_id == 2);
+    assert(symbol_id(cheap_car(c)) == 5);
+    assert(symbol_id(cheap_cdr(c)) == 2);
     decref(c);
 } _tset;
 
@@ -51,8 +51,8 @@ _test(cons_car_cdr)
     oyster *y = car(c);
 
     assert(oyster_type(y) == SYMBOL);
-    assert(y->in->symbol_id == 55);
-    assert(x->in->symbol_id == 22);
+    assert(symbol_id(y) == 55);
+    assert(symbol_id(x) == 22);
 
     decref(c);
     decref(x);
