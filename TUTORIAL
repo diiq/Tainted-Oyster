@@ -1,0 +1,112 @@
+I'm designing a programming language. It is, for the moment, called Tainted Oyster, and the code for the interpreter can be pulled from here.
+
+It's far too much fun, but today I'd like to pry myself away from further modifications in order to write up a little tutorial.
+
+Oyster takes inspiration from lisp, javascript, python, haskell, and eight (my previous attempt at language design) --- but there's a number of ideas that I feel are novel and interesting. My hope is to explain enough of Oyster that you can understand these two procedures:
+
+set ← λ('thing value):
+    if (not: atom thing):
+        then:
+            call ← ,(first thing)
+            if call.set: 
+                call.set *(rest thing) value
+                signal: list 'no-known-setter-for thing
+        else:
+            leak (really thing)
+            set! (really thing) value
+
+
+class ← λ('name 'inheritance ... 'members):
+    leak: really name
+    init ← find-if (λx: first x <<is>> 'init) members
+    init-args ← if init (second init) ()
+
+    it ← really name ← λ(really init-args):
+        self ← '(really name)
+        it.subclass self
+        if init: self.init *(leak-all: init-args)
+        self
+
+    it.subclass ← λself:
+        map (λ(,class): class.subclass self) inheritance
+        map:
+            λm: set self.(really: first m): 
+                leak: 
+                    self
+                    λ(really: second m): *(rest: rest m)
+                    self
+            members
+        self
+
+Though I will start with the very basics, I will progress to advanced topics at high speed. Feel free to skip ahead.
+
+* Atomic Types:
+
+Procedures written in Oyster makes use of symbols, like these:
+
+love war circles-around-a-drop-of-water did-\-see-the-day-par$ing?
+
+Symbols begin with a letter, and continue with any character that is not a space, period, >, or parenthesis. 
+
+Oyster also makes use of numbers:
+
+2 3 284
+
+[Note: Beware that what I've said here will change as other atomic types, like strings, are added.]
+
+ * Binding Symbols
+
+Symbols can be used as atoms to manipulate. They can also be bound to values:
+
+fleet-the-fair-hart ← 25
+25
+
+To refer to a symbol as itself, place a ' before it:
+
+'fleet-the-fair-hart
+fleet-the-fair-hart
+
+To refer to the value of that symbol, leave the symbol as-is:
+
+fleet-the-fair-hart
+25
+
+* Simple Instructions:
+
+A simple instruction in Oyster is written as a series of atoms:
+
+list 4 2 'freedom
+4 2 freedom
+
+The first symbol, list, identifies the procedure to take. The remaining atoms are the arguments to perform the procedure upon. In this case, the procedure 'list' returns a list of its arguments.
+
+* Compound Procedures:
+
+There are several ways to construct more complex instructions. By surrounding a simple instruction with parentheses, its result can be used as an element in another instruction:
+
+list (list 'war 'destruction) 3 'terracotta-pot
+(war destruction) 3 terracotta-pot
+
+A colon followed by an instruction will work the same way, but only as the final argument to the procedure:
+
+list 'bronze 'silver: list 'crepe 'piss
+bronze silver (crepe piss)
+
+A colon followed be a new, indented block of instructions uses the result of each of those instructions as an argument:
+
+list:
+    list 'green 'grass
+    list 'red 'blood
+    list 'blueblack 'snake
+(green grass) (red blood) (blueblack snake)
+
+* Prefixes
+A non-alphabetic character followed by a symbol is a prefix operation. The result is most easily shown by example:
+
+*swimming
+
+is just shorthand for 
+
+(unary-* swimming)
+
+* Info Tables

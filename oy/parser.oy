@@ -1,0 +1,227 @@
+join ← cons
+first ← car
+rest ← cdr
+
+quoted ← '((... 'args) args)
+
+list ← '((... args) args)
+
+unary-λ ← quoted:
+    ('args)
+    oif (atom args):
+        args ← list args
+    quoted:
+        (... 'code)
+        set-bindings args (bindings code)    
+        list args @code
+           
+unary-\ ← unary-λ
+
+def ← λ('name 'args ... 'code):
+    leak: really name
+    really name ← λ(really args): *code
+
+def do (... 'code):
+    ((λ(): *code))
+
+def eval (code):
+    do: really code
+
+unary-, ← eval
+
+then ← do
+else ← do
+if ← oif
+
+def not x: if x () 't
+unary-! ← not
+
+def and (... 'xs):
+    if !xs:
+        't
+        if ,(car xs):
+            and *(cdr xs)
+
+def first x:
+    if x.first:
+        x.first x
+        if (x.type && (clear x.type).first): 
+            (clear x.type).first x
+            if !(atom x):
+                car x
+                signal: list 'no-way-to-first x
+
+def rest x:
+    if x.rest:
+        x.rest x
+        if (x.type && (clear x.type).first):
+            x.type.rest x
+            if !(atom x):
+                cdr x
+                signal: list 'no-way-to-rest x
+
+
+def map1 (f list):
+    if list:
+        f (first list) :: map1 f: rest list
+
+
+def fold (f list start):
+    if !list:
+        start
+        fold f: 
+            rest list 
+            f (first list) start
+ 
+def map (f ... lists):
+    if (and @lists): 
+        f @(map1 first lists) :: map f @(map1 rest lists)
+        
+def while ('test ... 'code):
+    if ,test: 
+        then:
+            map eval code
+            while (really test) *code
+
+set! ← set
+
+def set ('thing value):
+    if (not: atom thing):
+        then:
+            call ← ,(first thing)
+            if call.set: 
+                call.set *(rest thing) value
+                signal: list 'no-known-setter-for thing
+        else:
+            leak (really thing)
+            set! (really thing) value
+
+table-set:
+    set
+    info-table table-get
+    table-set
+
+def second x: first: rest x
+
+def find-if (f xs):
+    if xs:
+        if (f: first xs):
+            first xs
+            find-if: rest xs
+
+def member (x xs):
+    find-if (λm: m == x) xs
+
+def cond (... 'cases):
+    if cases:
+        then:
+            case ← first cases
+            if ,(first case): 
+                then: *(rest case)
+                else: cond *(rest cases)
+
+unary-- ← λx: 0 - x
+
+def or (test ... 'xs):
+    if test:
+        test
+        or *xs
+
+def make-file-er file:
+    ret ← list (file-get-char file) file
+    ret.first ← λx:
+        set-cdr x: make-file-er: car: cdr x
+        x.first ← ()
+        x.rest ← ()
+        car x
+    ret.rest ← λx:
+        set-cdr x: make-file-er: car: cdr x
+        x.first ← ()
+        x.rest ← ()
+        cdr x
+    ret
+    
+def open filename:
+    make-file-er: file-open filename
+    
+
+
+
+
+#--------- Real parser ----------
+
+def parse-success (value stream):
+    ret ← 'parsed-success
+    ret.stream ← stream
+    ret.value ← value 
+    ret
+
+def thing-match char:
+    λstream:
+        if (first stream == thing):
+            parse-success thing (rest stream)
+
+def and-match (... parsers):
+    λstream:
+        success-stream ← stream
+        def attempt (parser):
+            rec ← parser success-stream
+            if rec:
+                then: 
+                    success-stream ← rec.stream
+                    rec.value
+                signal 'fail
+        with-signal-handler:
+            λx: 
+                if (first x == 'fail): ()
+            parse-success: map attempt parsers
+
+def or-match (... parsers):
+    λstream:
+        def attempt (parser):
+            rec ← parser stream
+            if rec: signal rec
+        with-signal-handler:
+            λx: first x
+            map attempt parsers
+            ()
+
+def many-match (parser):
+    λstream:
+        ret ← ()
+        while (cur ← parser stream):
+            ret ← cur :: ret
+        parse-success: reverse ret
+
+#not-parse
+#list-match
+
+def not-match 
+stream ← open "afile"
+
+parser ← and-match:
+    character-match \#a
+    character-match \#b
+
+parsed ← parser stream
+print parsed.value
+
+# def apply-rule (rule stream recursion-list stack):
+#     head ← first recursion-list
+#     cond:
+#         ((first head == rule) && (second head == stream)):
+#             stream.(really rule)
+
+#         (assoc rule recursion-list == stream):
+#             ,rule stream recusion-list stack
+
+#         (memo ← stream.(really rule)):
+#             if (memo == 'still-active):
+#                 then:
+#                     leak recursion-list recursion-list (copy stack)
+#                     ()
+
+#         't:
+#             stream.(really rule) ← 'still-active
+#             acons rule stream stack
+#             ,rule stream recusion-list stack

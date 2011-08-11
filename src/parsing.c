@@ -65,6 +65,7 @@ void print_token(token *t){
                        "CLOSE_TOKEN",
                        "COLON_TOKEN",
                        "NEWLINE_TOKEN",
+                       "CHARACTER_TOKEN",
                        "NOTHING_TOKEN"};
         printf("%s", conv[t->type]);
     }
@@ -100,6 +101,54 @@ token *read_symbol(FILE *stream){
     strcpy(ret->string, a);
     return ret;
 }
+
+token *read_character(FILE *stream){
+    int c = fgetc(stream);
+    
+    if(c != '\\'){
+        ungetc(c, stream);
+        return NULL;
+    } 
+
+    int d = fgetc(stream);
+    if(d != '#'){
+        ungetc(d, stream);
+        ungetc(c, stream);
+        return NULL;
+    } 
+
+    token *ret = make_token(CHARACTER_TOKEN);
+    ret->string = malloc(sizeof(char));
+    ret->string[0] = fgetc(stream);
+    return ret;
+}
+
+token *read_string(FILE *stream){
+    int c = fgetc(stream);
+    
+    if(c != '"'){
+        ungetc(c, stream);
+        return NULL;
+    } 
+    char a[1000];
+    int i;
+    for(i = 0, c = fgetc(stream); 
+        c != '"' && c < 1000; 
+        i++, c = fgetc(stream)){
+        a[i] = c;
+        if (c == '\\'){
+            i++;
+            c = fgetc(stream);
+            a[i] = c;
+        }
+    }
+    a[i] = '\0';
+    token *ret = make_token(STRING_TOKEN);
+    ret->string = malloc(sizeof(char)*(strlen(a)+1));
+    strcpy(ret->string, a);
+    return ret;
+}
+
 
 token *read_number(FILE *stream){
     int c = fgetc(stream);
@@ -266,8 +315,9 @@ int read_replace(FILE *stream){
         ">", "<<binary-greater>>",
         "<", "<<binary-less>>",
         "%", "<<binary-%>>",
+        "&&", "<<and>>",
     };
-    int replace_len = 11;
+    int replace_len = 12;
     char a[1000];
     read_word(stream, a);
     int i;
@@ -323,6 +373,12 @@ token *next_token(FILE *stream)
         i += read_comment(stream);
         i += read_replace(stream);
     }
+
+    ret = read_string(stream);
+    if (ret) return ret;
+
+    ret = read_character(stream);
+    if (ret) return ret;
 
     ret = read_newline(stream);
     if (ret) return ret;
@@ -423,6 +479,28 @@ oyster *parse_symbol(token_stream *stream){
     return NULL;
 }
 
+oyster *parse_character(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == CHARACTER_TOKEN){
+        oyster *ret = make_character(next->string[0]);
+        free_token(next);
+        return ret;
+    }
+    unget_token(next, stream);
+    return NULL;
+}
+
+oyster *parse_string(token_stream *stream){
+    token *next = get_token(stream);
+    if(next->type == STRING_TOKEN){
+        oyster *ret = make_string(next->string);
+        free_token(next);
+        return ret;
+    }
+    unget_token(next, stream);
+    return NULL;
+}
+
 oyster *parse_number(token_stream *stream){
     token *next = get_token(stream);
     if(next->type == NUMBER_TOKEN){
@@ -478,6 +556,8 @@ oyster *parse_one(token_stream *stream)
     else if ((ret = parse_number(stream)));
     else if ((ret = parse_parens(stream)));
     else if ((ret = parse_prefix(stream)));
+    else if ((ret = parse_character(stream)));
+    else if ((ret = parse_string(stream)));
     else ret = NULL;
 
     if(ret && info_access(stream)){
@@ -611,6 +691,7 @@ oyster *read(token_stream *x){
 
     token *t = get_token(x);
     if(t->type != NEWLINE_TOKEN){
+        print_token(t);printf("\n");
         error(314, 0, "Unexpected token.");
     }
     if (nilp(ret) && t->count < 0){

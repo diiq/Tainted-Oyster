@@ -72,6 +72,12 @@ void oyster_print(oyster * o)
         } else if(type == sym_id_from_string("number")){
             printf("%lf", number_of(o));
 
+        } else if(type == sym_id_from_string("character")){
+            printf("%c", (char)o->in->value);
+
+        } else if(type == sym_id_from_string("c-string")){
+            printf("%s", string_of(o));
+
         } else {
             printf("?(%d)", oyster_type(o));
         }

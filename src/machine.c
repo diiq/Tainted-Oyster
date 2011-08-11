@@ -30,6 +30,8 @@ machine *make_machine()
 
     add_builtins(ret);
     add_builtin_numbers(ret);
+    add_builtin_strings(ret);
+    add_builtin_files(ret);
 
     return ret;
 }
@@ -74,11 +76,7 @@ frame *machine_pop_stack(machine * m)
 
 machine *machine_copy(machine * m)
 {
-    machine *ret = make_machine();
-    decref(ret->current_frame);
-    decref(ret->base_frame);
-    decref(ret->now);
-
+    machine *ret = NEW(machine);
     ret->current_frame = m->current_frame;
     incref(ret->current_frame);
 
@@ -91,6 +89,7 @@ machine *machine_copy(machine * m)
     ret->trace= m->trace;
     incref(ret->trace);
 
+    ret->accumulator = m->accumulator;
     return ret;
 }
 

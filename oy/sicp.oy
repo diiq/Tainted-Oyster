@@ -214,4 +214,4 @@ even? ← λx: (x % 2) == 0
 
 
 print 'hello
-print: factorial 10
+print: count-change 40

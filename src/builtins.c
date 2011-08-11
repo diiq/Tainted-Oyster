@@ -27,7 +27,7 @@ oyster *unev(char *name)
 
 oyster *quot(char *name)
 {
-    return list(2, arg("'"), arg(name));
+    return list(2, arg("unary-'"), arg(name));
 }
 
 void add_builtin(char *name,
@@ -70,6 +70,21 @@ oyster *builtin_cdr(machine * m)
         return NULL;
     }
     return cdr(cons);
+}
+
+oyster *builtin_set_cdr(machine *m){
+    ARG(cons);
+    ARG(value);
+    if (oyster_type(cons) != CONS) {
+        oyster *signal = list(2, arg("set-cdr-of-wrong-type"), cons);
+        toss_signal(make_signal(signal, m), m);
+        return NULL;
+    }
+    oyster *t = cons->in->cons->cdr;
+    cons->in->cons->cdr = value;
+    incref(value);
+    decref(t);
+    return value;
 }
 
 oyster *builtin_set(machine * m)
@@ -276,6 +291,8 @@ void add_builtins(machine * m)
     add_builtin("car", list(1, arg("cons")), builtin_car, m);
     add_builtin("cdr", list(1, arg("cons")), builtin_cdr, m);
 
+    add_builtin("set-cdr", list(2, arg("cons"), arg("value")), builtin_set_cdr, m);
+
     add_builtin("set", list(2, quot("symbol"), arg("value")), builtin_set,
                 m);
     add_builtin("leak", list(3, unev("symbol"), arg("closure"), arg("value")),
@@ -288,7 +305,6 @@ void add_builtins(machine * m)
                 builtin_set_bindings, m);
 
 
-    add_builtin("'", list(1, unev("x")), builtin_quote, m);
     add_builtin("unary-'", list(1, unev("x")), builtin_quote, m);
 
     add_builtin("atom", list(1, arg("x")), builtin_atom_p, m);

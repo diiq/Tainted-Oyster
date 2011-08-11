@@ -308,4 +308,17 @@ oyster *make_number(double num);
 double number_of(oyster *o);
 void add_builtin_numbers(machine *m);
 
+//------------------------------- Strings -------------------------------//
+
+oyster *make_character(char c);
+oyster *make_string(char *str);
+char *string_of(oyster * str);
+void add_builtin_strings(machine *m);
+
+//-------------------------------- Files -------------------------------//
+
+oyster *make_file(FILE *in);
+FILE *file_of(oyster *file);
+void add_builtin_files(machine *m);
+
 #endif

@@ -95,3 +95,7 @@ print: quoted Maths quiz
 print: (25 * 50 + 10) == 1500
 
 
+print: is \#a (string-first "ala bama")
+
+foo ← open "afile"
+print: is (get-char foo) \#a
