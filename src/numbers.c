@@ -14,8 +14,8 @@ oyster *make_number(double num)
     oyster *ret = make_oyster(sym_id_from_string("number"));
     double *anum = malloc(sizeof(double));
     *anum = num;
-    oyster_set_value(ret, anum);
-    oyster_set_gc(ret, 2);
+    oyster_assign_value(ret, anum);
+    oyster_assign_gc(ret, 2);
     return ret;
 }
 

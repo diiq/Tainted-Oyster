@@ -135,12 +135,12 @@ table *oyster_info(oyster *o);
 
 oyster * (*oyster_built_in(oyster *o)) (machine * m);
 table *oyster_bindings(oyster * x);
-void oyster_set_bindings(oyster * x, table *value);
+void oyster_assign_bindings(oyster * x, table *value);
 int oyster_type(oyster * x);
-void oyster_set_type(oyster *o, int type);
+void oyster_assign_type(oyster *o, int type);
 void *oyster_value(oyster * x);
-void oyster_set_value(oyster * x, void *value);
-void oyster_set_gc(oyster *o, int type);
+void oyster_assign_value(oyster * x, void *value);
+void oyster_assign_gc(oyster *o, int type);
 oyster *make_symbol(int symbol_id);
 int symbol_id(oyster *sym);
 oyster *oyster_copy(oyster * x, table * new_bindings);

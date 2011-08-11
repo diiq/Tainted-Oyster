@@ -30,7 +30,7 @@ oyster *make_continuation(machine * m)
     oyster *ret = list(2, list(1, arg("value")),
                        make_builtin(call_continuation));
     oyster *cont = make_oyster(sym_id_from_string("continuation"));
-    oyster_set_value(cont, machine_copy(m));
+    oyster_assign_value(cont, machine_copy(m));
     incref(oyster_value(cont));
     oyster_add_to_bindings(sym_id_from_string("continuation"), cont, ret);
     decref(m);

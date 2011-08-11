@@ -68,7 +68,7 @@ void inner_free(inner * x)
 oyster *make_oyster(int type)
 {
     oyster *ret = make_untyped_oyster();
-    oyster_set_type(ret, type);
+    oyster_assign_type(ret, type);
     ret->in->gc_type = 1;
     return ret;
 }
@@ -83,9 +83,9 @@ int oyster_type(oyster * x)
     return x->in->type;//->it->in->symbol_id; // FOOLISH MORTALS
 }
 
-void oyster_set_type_o(oyster *o, oyster *type)
+void oyster_assign_type_o(oyster *o, oyster *type)
 {
-    oyster_set_type(o, type->in->symbol_id);
+    oyster_assign_type(o, type->in->symbol_id);
     /* table_entry *e = NEW(table_entry); */
     /* e->it = type; */
     /* incref(type); */
@@ -94,7 +94,7 @@ void oyster_set_type_o(oyster *o, oyster *type)
     /* incref(e); */
 }
 
-void oyster_set_type(oyster *o, int type)
+void oyster_assign_type(oyster *o, int type)
 {
     o->in->type = type;
 }
@@ -104,7 +104,7 @@ table *oyster_bindings(oyster * x)
     return x->bindings;
 }
 
-void oyster_set_bindings(oyster * x, table *value)
+void oyster_assign_bindings(oyster * x, table *value)
 {
     // fix memory
     x->bindings = value;
@@ -115,12 +115,12 @@ void *oyster_value(oyster * x)
     return x->in->value;
 }
 
-void oyster_set_gc(oyster *o, int type)
+void oyster_assign_gc(oyster *o, int type)
 {
     o->in->gc_type = type;
 }
 
-void oyster_set_value(oyster * x, void *value)
+void oyster_assign_value(oyster * x, void *value)
 {
     // fix memory
     x->in->value = value;
@@ -143,7 +143,7 @@ oyster* symbol_type_symbol(){
     if (!ret){
         ret = make_untyped_oyster();
         ret->in->symbol_id = SYMBOL;
-        oyster_set_type_o(ret, ret);
+        oyster_assign_type_o(ret, ret);
         incref(ret);
     }
     return ret;
@@ -152,7 +152,7 @@ oyster* symbol_type_symbol(){
 oyster *make_symbol(int symbol_id)
 {
     oyster *ret = make_untyped_oyster();
-    oyster_set_type_o(ret, symbol_type_symbol());
+    oyster_assign_type_o(ret, symbol_type_symbol());
     ret->in->symbol_id = symbol_id;
     ret->in->gc_type = 0;
     return ret;

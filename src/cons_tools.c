@@ -19,7 +19,7 @@ oyster *make_cons(oyster * car, oyster * cdr)
 {
     oyster *ret = make_oyster(CONS);
     cons_cell *in = NEW(cons_cell);
-    oyster_set_value(ret, in);
+    oyster_assign_value(ret, in);
     incref(in);
 
     in->car = car;
@@ -83,7 +83,7 @@ oyster *cons(oyster * car, oyster * cdr)
         ret = make_cons(nil(), new_cdr);
 
         decref(oyster_bindings(ret));
-        oyster_set_bindings(ret, oyster_bindings(cdr));
+        oyster_assign_bindings(ret, oyster_bindings(cdr));
         incref(oyster_bindings(ret));
 
     } else if (nilp(cdr)) {
@@ -91,7 +91,7 @@ oyster *cons(oyster * car, oyster * cdr)
         ret = make_cons(new_car, nil());
 
         decref(oyster_bindings(ret));
-        oyster_set_bindings(ret, oyster_bindings(car));
+        oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
 
     } else if (oyster_bindings(car) == oyster_bindings(cdr)) {
@@ -101,7 +101,7 @@ oyster *cons(oyster * car, oyster * cdr)
         ret = make_cons(new_car, new_cdr);
 
         decref(oyster_bindings(ret));
-        oyster_set_bindings(ret, oyster_bindings(car));
+        oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
     } else {
         // I do believe that this copy-on-write buisness works;
@@ -157,7 +157,7 @@ oyster *cdr(oyster * cons)
 oyster *nil()
 {
     oyster *ret = make_oyster(NIL);
-    oyster_set_gc(ret, 0);
+    oyster_assign_gc(ret, 0);
     return ret;
 }
 

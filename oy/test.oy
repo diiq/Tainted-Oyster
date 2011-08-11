@@ -80,7 +80,7 @@ print: quoted Info table tests
 alice ← 'foo
 print: not alice.betty
 
-table-set:
+table-assign:
     betty
     info-table alice
     't

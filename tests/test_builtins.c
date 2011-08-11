@@ -41,7 +41,7 @@ _test(builtin_cdr)
 _tset;
 
 
-_test(builtin_set)
+_test(builtin_assign)
 {
     oyster *ret = evaluate_string("(assign a (clear b))\n"
                                   "a");
@@ -76,7 +76,7 @@ _test(builtins)
     run_test(builtin_cons);
     run_test(builtin_car);
     run_test(builtin_cdr);
-    run_test(builtin_set);
+    run_test(builtin_assign);
     run_test(builtin_current_scope);
     run_test(builtin_table_get);
 } _tset;

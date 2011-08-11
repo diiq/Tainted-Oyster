@@ -12,7 +12,7 @@ unary-λ ← quoted:
         args ← list args
     quoted:
         (... 'code)
-        set-bindings args (bindings code)    
+        assign-bindings args (bindings code)    
         list args @code
            
 unary-\ ← unary-λ
@@ -91,15 +91,15 @@ def assign ('thing value):
             call ← ,(first thing)
             if call.assign: 
                 call.assign *(rest thing) value
-                signal: list 'no-known-setter-for thing
+                signal: list 'no-known-assignter-for thing
         else:
             leak (really thing)
             assign! (really thing) value
 
-table-set:
+table-assign:
     assign
     info-table table-get
-    table-set
+    table-assign
 
 def second x: first: rest x
 
@@ -130,12 +130,12 @@ def or (test ... 'xs):
 def make-file-er file:
     ret ← list (file-get-char file) file
     ret.first ← λx:
-        set-cdr x: make-file-er: car: cdr x
+        assign-cdr x: make-file-er: car: cdr x
         x.first ← ()
         x.rest ← ()
         car x
     ret.rest ← λx:
-        set-cdr x: make-file-er: car: cdr x
+        assign-cdr x: make-file-er: car: cdr x
         x.first ← ()
         x.rest ← ()
         cdr x

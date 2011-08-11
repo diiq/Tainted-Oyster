@@ -14,7 +14,7 @@ unary-λ ← quoted:
         args ← list args
     quoted:
         (... 'code)
-        set-bindings args (bindings code)    
+        assign-bindings args (bindings code)    
         list args @code
 
 do ← λ(... 'code):

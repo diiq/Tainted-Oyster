@@ -10,8 +10,8 @@
 oyster *make_builtin(oyster * (*func) (machine * m))
 {
     oyster *ret = make_oyster(BUILT_IN_FUNCTION);
-    oyster_set_value(ret, func);
-    oyster_set_gc(ret, 0);
+    oyster_assign_value(ret, func);
+    oyster_assign_gc(ret, 0);
     return ret;
 }
 
@@ -72,7 +72,7 @@ oyster *builtin_cdr(machine * m)
     return cdr(cons);
 }
 
-oyster *builtin_set_cdr(machine *m){
+oyster *builtin_assign_cdr(machine *m){
     ARG(cons);
     ARG(value);
     if (oyster_type(cons) != CONS) {
@@ -121,7 +121,7 @@ oyster *builtin_leak(machine * m)
 
     } else if (nilp(value)){
         if (!oyster_bindings(closure)) {
-            oyster_set_bindings(closure, make_table());
+            oyster_assign_bindings(closure, make_table());
             incref(oyster_bindings(closure));
         }
         leak(id, oyster_bindings(closure));
@@ -144,16 +144,16 @@ oyster *builtin_bindings(machine *m)
 {
     ARG(obj);
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    oyster_set_value(ret, oyster_bindings(obj));
+    oyster_assign_value(ret, oyster_bindings(obj));
     incref(oyster_bindings(obj));
     return ret;
 }
 
-oyster *builtin_set_bindings(machine *m)
+oyster *builtin_assign_bindings(machine *m)
 {
     ARG(obj);
     ARG(bindings);
-    oyster_set_bindings(obj, oyster_value(bindings));
+    oyster_assign_bindings(obj, oyster_value(bindings));
     incref(oyster_bindings(obj));
     return obj;
 }
@@ -236,7 +236,7 @@ oyster *builtin_with_signal_handler(machine * m)
 oyster *builtin_current_scope(machine * m)
 {
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    oyster_set_value(ret, frame_scope(m->current_frame));
+    oyster_assign_value(ret, frame_scope(m->current_frame));
     incref(oyster_value(ret));
     return ret;
 }
@@ -245,7 +245,7 @@ oyster *builtin_info_table(machine * m)
 {
     ARG(obj);
     oyster *ret = make_oyster(sym_id_from_string("table"));
-    oyster_set_value(ret, oyster_info(obj));
+    oyster_assign_value(ret, oyster_info(obj));
     incref(oyster_value(ret));
     return ret;
 }
@@ -261,7 +261,7 @@ oyster *builtin_table_get(machine * m)
     return ret;
 }
 
-oyster *builtin_table_set(machine * m)
+oyster *builtin_table_assign(machine * m)
 {
     ARG(symbol);
     ARG(value);
@@ -276,7 +276,7 @@ void add_builtins(machine * m)
     add_builtin("car", list(1, arg("cons")), builtin_car, m);
     add_builtin("cdr", list(1, arg("cons")), builtin_cdr, m);
 
-    add_builtin("set-cdr", list(2, arg("cons"), arg("value")), builtin_set_cdr, m);
+    add_builtin("assign-cdr", list(2, arg("cons"), arg("value")), builtin_assign_cdr, m);
 
     add_builtin("assign", list(2, quot("symbol"), arg("value")), builtin_assign,
                 m);
@@ -286,8 +286,8 @@ void add_builtins(machine * m)
                 builtin_leak_all, m);
     add_builtin("bindings", list(1, arg("obj")),
                 builtin_bindings, m);
-    add_builtin("set-bindings", list(2, arg("obj"), arg("bindings")),
-                builtin_set_bindings, m);
+    add_builtin("assign-bindings", list(2, arg("obj"), arg("bindings")),
+                builtin_assign_bindings, m);
 
 
     add_builtin("unary-'", list(1, unev("x")), builtin_quote, m);
@@ -311,8 +311,8 @@ void add_builtins(machine * m)
     add_builtin("table-get", list(2, quot("symbol"), arg("table")),
                 builtin_table_get, m);
 
-    add_builtin("table-set", list(3, quot("symbol"), arg("table"), arg("value")),
-                builtin_table_set, m);
+    add_builtin("table-assign", list(3, quot("symbol"), arg("table"), arg("value")),
+                builtin_table_assign, m);
 
 }
 
