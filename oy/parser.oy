@@ -256,7 +256,11 @@ def apply-rule (rule stream state):
             ret ← ,rule stream: make-parse-state:
                 state.recursion-list
                 acons rule stream: state.stack
-            if (stream.(really rule) == 'recursed):
+            didrec ← stream.(really rule)
+            
+            stream.(really rule) ← rec
+
+            if ( == 'recursed):
                 then:
                     astream ← stream
                     while (ret && !(ret.stream == astream)):
