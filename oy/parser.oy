@@ -29,6 +29,7 @@ def eval (code):
 
 unary-, ← eval
 
+
 then ← do
 else ← do
 if ← oif
@@ -151,28 +152,44 @@ def reverse xs:
             accum
     in xs ()
 
+def assoc (name list):
+    ()
+
+def acons (name value alist):
+    list name value :: alist
 
 #--------- Real parser ----------
 
-def parse-success (value stream state):
+def make-parse-state (recursion-list stack):
+    ret ← 'foo
+    #    print ret.stack
+    ret.stack ← list recursion-list stack
+    ret
+
+
+
+def stack-of (state):
+    second state.stack
+
+def parse-success (value stream):
     ret ← 'parsed-success
     ret.stream ← stream
     ret.value ← value 
     ret
 
 def thing-match thing:
-    λstream:
+    λ(stream state):
         if (first stream == thing):
             parse-success thing (rest stream)
 
-def and-match (... parsers):
-    λstream:
+def and-match (... 'parsers):
+    λ(stream state):
         success-stream ← stream
         def attempt (parser):
-            rec ← parser success-stream
+            rec ← apply-rule parser success-stream state
             if rec:
                 then: 
-                    success-stream ← rec.stream
+                    success-stream ← rec.stream 
                     rec.value
                 signal 'fail
         with-signal-handler:
@@ -182,68 +199,88 @@ def and-match (... parsers):
                 map attempt parsers
                 success-stream
 
-def or-match (... parsers):
-    λstream:
+def or-match (... 'parsers):
+    λ(stream state):
         def attempt (parser):
-            rec ← parser stream
+            rec ← apply-rule parser stream state
             if rec: signal rec
         with-signal-handler:
             λx: first x
             map attempt parsers
             ()
 
-def many-match parser:
-    λstream:
+def many-match ('parser):
+    λ(stream state):
         ret ← ()
         cur ← ()
-        while (cur ← parser stream):
+        #print "many match stack:" state.stack
+        while (cur ← apply-rule parser stream state):
+            #print "many match stack:" state.stack
             stream ← cur.stream
             ret ← cur.value :: ret
         parse-success: 
             reverse ret
             stream
 
-def anything stream:
+def anything (stream state):
     parse-success:
         first stream
         rest stream
 
-def not-match parser:
-    λstream:
-        if (parser stream):
+def not-match ('parser):
+    λ(stream state):
+        if (apply-rule parser stream state):
             ()
             anything stream
     
-def list-match parser:
-    λstream:
-        parser: first stream
+def list-match ('parser):
+    λ(stream state):
+        apply-rule parser (first stream) state
+
+def apply-rule (rule stream state):
+    #print "Rule:" rule "STACK:" (stack-of state)
+    stream.(really rule) ← 'still-active
+    ,rule stream: make-parse-state:
+        state.recursion-list
+        acons rule stream: stack-of state
+ 
+
 
 
 stream ← open "afile"
 
-parser ← many-match: and-match:
+lots-of-abs ← many-match: and-match:
     thing-match \#a
     anything
 
-parsed ← parser (list \#a \#b \#a \#c \#a \#d \#a \#e)
+parsed ← apply-rule 'lots-of-abs (list \#a \#b \#a \#c): make-parse-state () ()
 print parsed.value
 
-# def apply-rule (rule stream recursion-list stack):
-#     head ← first recursion-list
-#     cond:
-#         ((first head == rule) && (second head == stream)):
-#             stream.(really rule)
 
-#         (assoc rule recursion-list == stream):
-#             ,rule stream recusion-list stack
 
-#         (memo ← stream.(really rule)):
-#             if (memo == 'still-active):
-#                 then:
-#                     leak recursion-list recursion-list (copy stack)
-#                     ()
+ 
+    #recur ← state.recursion-list
+    #head ← ()
+    #if recur: head ← first recur
+    # cond:
+    #     # these first two options are wholly concerned with 
+    #     # what happens AFTER a recursion has been detected, so ignore them mostly.
+    #     (and: 
+    #         head
+    #         first head == rule
+    #         second head == stream):
+    #             stream.(really rule)
+                
+    #     (assoc rule recur == stream):
+    #         ,rule stream state
+                    
+    #     # If there's already a memor, return that!
+    #     (memo ← stream.(really rule)):
+    #         if (memo == 'still-active):
+    #             then:
+    #                 leak recursion-list recursion-list (copy stack)
+    #                 ()
+    #             else:
+    #                 memo
 
-#         't:
-#             stream.(really rule) ← 'still-active
-#             acons rule stream stack
-#             ,rule stream recusion-list stack
+    #     't:#
