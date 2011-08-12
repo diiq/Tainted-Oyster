@@ -161,18 +161,16 @@ def acons (name value alist):
 #--------- Real parser ----------
 
 def make-parse-state (recursion-list stack):
-    ret ← 'foo
-    #    print ret.stack
-    ret.stack ← list recursion-list stack
+    ret ← new 'foo
+    ret.stack ← stack
+    ret.recursion-list ← recursion-list
     ret
-
-
 
 def stack-of (state):
     second state.stack
 
 def parse-success (value stream):
-    ret ← 'parsed-success
+    ret ← new 'parsed-success
     ret.stream ← stream
     ret.value ← value 
     ret
@@ -238,22 +236,48 @@ def list-match ('parser):
         apply-rule parser (first stream) state
 
 def apply-rule (rule stream state):
-    #print "Rule:" rule "STACK:" (stack-of state)
-    stream.(really rule) ← 'still-active
-    ,rule stream: make-parse-state:
-        state.recursion-list
-        acons rule stream: stack-of state
- 
+    cond:
+        !stream:
+            ()
 
+        !(atom rule):
+            ,rule stream state
+
+        (stream.(really rule) == 'still-active):
+            stream.(really rule) ← 'recursed
+            ()
+
+        stream.(really rule):
+            stream.(really rule)
+
+        't:
+            stream.(really rule) ← 'still-active
+            print "HEYO" stream.(really rule)
+            ret ← ,rule stream: make-parse-state:
+                state.recursion-list
+                acons rule stream: state.stack
+            if (stream.(really rule) == 'recursed):
+                then:
+                    astream ← stream
+                    while (ret && !(ret.stream == astream)):
+                        stream.(really rule) ← ret
+                        astream ← ret.stream
+                        ret ← ,rule stream: make-parse-state:
+                            state.recursion-list
+                            acons rule stream: state.stack
+
+            ret
 
 
 stream ← open "afile"
 
-lots-of-abs ← many-match: and-match:
+lots-of-abs ← or-match:
+    and-match:
+        lots-of-abs
+        thing-match \#b
     thing-match \#a
-    anything
 
-parsed ← apply-rule 'lots-of-abs (list \#a \#b \#a \#c): make-parse-state () ()
+parsed ← apply-rule 'lots-of-abs (list \#a \#b \#b \#c): make-parse-state () ()
 print parsed.value
 
 

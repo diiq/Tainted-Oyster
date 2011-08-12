@@ -270,6 +270,14 @@ oyster *builtin_table_assign(machine * m)
     return value;
 }
 
+oyster *builtin_new(machine *m)
+{
+    ARG(obj);
+    oyster *ret = make_oyster(oyster_type(obj));
+    oyster_assign_value(ret, oyster_value(obj));
+    return ret;
+}
+
 void add_builtins(machine * m)
 {
     add_builtin("cons", list(2, arg("car"), arg("cdr")), builtin_cons, m);
@@ -313,6 +321,8 @@ void add_builtins(machine * m)
 
     add_builtin("table-assign", list(3, quot("symbol"), arg("table"), arg("value")),
                 builtin_table_assign, m);
+
+    add_builtin("new", list(1, arg("obj")), builtin_new, m);
 
 }
 
