@@ -84,6 +84,14 @@ table *oyster_info(oyster *o)
     return o->in->info;
 }
 
+void oyster_assign_info(oyster *o, table *t)
+{
+    incref(t);
+    decref(o->in->info);
+    o->in->info = t;
+    
+}
+
 inline int oyster_type(oyster * x)
 {
     return x->in->type;//->it->in->symbol_id; // FOOLISH MORTALS

@@ -223,6 +223,13 @@ oyster *builtin_signal(machine * m)
     return NULL;
 }
 
+oyster *builtin_unhandle_signal(machine * m)
+{
+    ARG(signal);
+    toss_signal(signal, m);
+    return NULL;
+}
+
 oyster *builtin_with_signal_handler(machine * m)
 {
     ARG(handler);
@@ -273,8 +280,8 @@ oyster *builtin_table_assign(machine * m)
 oyster *builtin_new(machine *m)
 {
     ARG(obj);
-    oyster *ret = make_oyster(oyster_type(obj));
-    oyster_assign_value(ret, oyster_value(obj));
+    oyster *ret = oyster_copy(obj, NULL);
+    oyster_assign_info(ret, make_table());
     return ret;
 }
 
@@ -308,6 +315,7 @@ void add_builtins(machine * m)
     add_builtin("print", list(2, arg("..."), arg("xs")), builtin_print, m);
 
     add_builtin("signal", list(1, arg("message")), builtin_signal, m);
+    add_builtin("unhandle-signal", list(1, arg("signal")), builtin_unhandle_signal, m);
     add_builtin("with-signal-handler",
                 list(2, quot("handler"),
                      quot("code")), builtin_with_signal_handler, m);

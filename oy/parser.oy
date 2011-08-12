@@ -118,7 +118,9 @@ def cond (... 'cases):
         then:
             case ← first cases
             if ,(first case): 
-                then: *(rest case)
+                then: 
+                    do: *(rest case)
+                    print "done": rest case
                 else: cond *(rest cases)
 
 unary-- ← λx: 0 - x
@@ -153,7 +155,13 @@ def reverse xs:
     in xs ()
 
 def assoc (name list):
-    ()
+    cond:
+        !list: ()
+
+        ((first: first list) == name):
+            second: first list
+
+        't: assoc name: rest list
 
 def acons (name value alist):
     list name value :: alist
@@ -192,7 +200,9 @@ def and-match (... 'parsers):
                 signal 'fail
         with-signal-handler:
             λx: 
-                if (first x == 'fail): ()
+                if (first x == 'fail): 
+                    ()
+                    unhandle-signal x
             parse-success: 
                 map attempt parsers
                 success-stream
@@ -203,7 +213,9 @@ def or-match (... 'parsers):
             rec ← apply-rule parser stream state
             if rec: signal rec
         with-signal-handler:
-            λx: first x
+            λx: if (first x == 'parsed-success): 
+                first x
+                unhandle-signal x
             map attempt parsers
             ()
 
@@ -238,14 +250,26 @@ def list-match ('parser):
 def apply-rule (rule stream state):
     cond:
         !stream:
+            print "a"
             ()
 
         !(atom rule):
             ,rule stream state
 
+        (assoc rule state.recursion-list == stream):
+            print "OMGS RECURSION THING" rule stream
+            ,rule stream: make-parse-state:
+                state.recursion-list
+                acons rule stream: state.stack
+
         (stream.(really rule) == 'still-active):
-            stream.(really rule) ← 'recursed
-            ()
+            do:
+                foo ← 5
+                print "BOOTM  OF RECSUNN"
+                print "hi" foo "there"
+                stream.(really rule) ← "hall"
+                print "stuffs:" rule stream stream.(really rule)
+                ()
 
         stream.(really rule):
             stream.(really rule)
@@ -256,21 +280,27 @@ def apply-rule (rule stream state):
             ret ← ,rule stream: make-parse-state:
                 state.recursion-list
                 acons rule stream: state.stack
+
+            print "HEYO" stream.(really rule)
             didrec ← stream.(really rule)
             
-            stream.(really rule) ← rec
+            stream.(really rule) ← ret
 
-            if ( == 'recursed):
-                then:
-                    astream ← stream
-                    while (ret && !(ret.stream == astream)):
-                        stream.(really rule) ← ret
-                        astream ← ret.stream
-                        ret ← ,rule stream: make-parse-state:
-                            state.recursion-list
-                            acons rule stream: state.stack
+            if (didrec == 'recursed):
+                print "OMG RECURSED"
 
             ret
+
+            #     then:
+            #         astream ← stream
+            #         while (ret && !(ret.stream == astream)):
+            #             stream.(really rule) ← ret
+            #             astream ← ret.stream
+            #             ret ← ,rule stream: make-parse-state:
+            #                 state.recursion-list
+            #                 acons rule stream: state.stack
+
+            # ret
 
 
 stream ← open "afile"

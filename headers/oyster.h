@@ -132,6 +132,7 @@ enum {
 oyster *make_untyped_oyster();
 oyster *make_oyster(int type);
 table *oyster_info(oyster *o);
+void oyster_assign_info(oyster *o, table *t);
 
 oyster * (*oyster_built_in(oyster *o)) (machine * m);
 table *oyster_bindings(oyster * x);
