@@ -2,7 +2,12 @@ join ← cons
 first ← car
 rest ← cdr
 
-quoted ← '((... 'args) args)
+quoted ← '((... 'args):
+    print:
+        car args 
+        "bindings"
+        bindings: car args
+    args)
 
 list ← '((... args) args)
 
@@ -12,11 +17,10 @@ unary-λ ← quoted:
         args ← list args
     quoted:
         (... 'code)
+        assign-bindings args (bindings code)    
         list args @code
-
+    
 unary-\ ← unary-λ
-
-print: (current-scope)
 
 not ← λx: oif x () 't
 

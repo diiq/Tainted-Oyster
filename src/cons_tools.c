@@ -100,6 +100,11 @@ oyster *cons(oyster * car, oyster * cdr)
         oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
 
+    } else {
+        oyster_assign_bindings(new_car, oyster_bindings(car));
+        incref(oyster_bindings(new_car));
+        oyster_assign_bindings(new_cdr, oyster_bindings(cdr));
+        incref(oyster_bindings(new_cdr));
     }
 
     decref(car);

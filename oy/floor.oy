@@ -45,7 +45,7 @@ and ← λ(... 'xs):
 first ← λx:
     if x.first:
         x.first x
-        if (x.type <<and>> (clear x.type).first): 
+        if (x.type && (clear x.type).first): 
             (x.type).first x
             if !(atom x):
                 car x
@@ -54,7 +54,7 @@ first ← λx:
 rest ← λx:
     if x.rest:
         x.rest x
-        if (x.type <<and>> (clear x.type).first):
+        if (x.type && (clear x.type).first):
             x.type.rest x
             if !(atom x):
                 cdr x
