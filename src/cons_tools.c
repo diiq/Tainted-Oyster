@@ -77,36 +77,29 @@ oyster *cons(oyster * car, oyster * cdr)
     // There are many optimizations to be made here; but clarity, clarity.
     incref(car);
     incref(cdr);
-    oyster *ret;
-    if (nilp(car)) {
-        oyster *new_cdr = oyster_copy(cdr, make_table());
-        ret = make_cons(nil(), new_cdr);
+
+    oyster *new_car = oyster_copy(car, NULL);
+    oyster *new_cdr = oyster_copy(cdr, NULL);
+    oyster *ret = make_cons(new_car, new_cdr);
+    
+    if (!oyster_bindings(car) || table_empty(oyster_bindings(car))) {
 
         decref(oyster_bindings(ret));
         oyster_assign_bindings(ret, oyster_bindings(cdr));
         incref(oyster_bindings(ret));
 
-    } else if (nilp(cdr)) {
-        oyster *new_car = oyster_copy(car, make_table());
-        ret = make_cons(new_car, nil());
+    } else if (!oyster_bindings(cdr) || table_empty(oyster_bindings(cdr))) {
 
         decref(oyster_bindings(ret));
         oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
 
     } else if (oyster_bindings(car) == oyster_bindings(cdr)) {
-        oyster *new_car = oyster_copy(car, make_table());
-        oyster *new_cdr = oyster_copy(cdr, make_table());
-
-        ret = make_cons(new_car, new_cdr);
 
         decref(oyster_bindings(ret));
         oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
-    } else {
-        // I do believe that this copy-on-write buisness works;
-        // but not copying car and cdr is a culprit in future snafu
-        ret = make_cons(car, cdr);
+
     }
 
     decref(car);
@@ -116,38 +109,42 @@ oyster *cons(oyster * car, oyster * cdr)
 
 oyster *car(oyster * cons)
 {
-    incref(cons);
     oyster *ret;
+    incref(cons);
 
     if (nilp(cons)) {
-        ret = nil();
-    } else {
-        oyster *c = cheap_car(cons);
-        if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
-            return oyster_copy(c, oyster_bindings(c));
-        } else {
-            ret = oyster_copy(c, oyster_bindings(cons));
-        }
+        ret = oyster_copy(cons, oyster_bindings(cons));
     }
+
+
+    oyster *c = cheap_car(cons);
+    if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
+        ret = oyster_copy(c, oyster_bindings(c));
+    } else {
+        ret = oyster_copy(c, oyster_bindings(cons));
+    }
+
     decref(cons);
     return ret;
 }
 
+
 oyster *cdr(oyster * cons)
 {
-    incref(cons);
     oyster *ret;
+    incref(cons);
 
     if (nilp(cons)) {
-        ret = nil();
-    } else {
-        oyster *c = cheap_cdr(cons);
-        if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
-            return oyster_copy(c, oyster_bindings(c));
-        } else {
-            ret = oyster_copy(c, oyster_bindings(cons));
-        }
+        ret = oyster_copy(cons, oyster_bindings(cons));
     }
+
+    oyster *c = cheap_cdr(cons);
+    if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
+        ret = oyster_copy(c, oyster_bindings(c));
+    } else {
+        ret = oyster_copy(c, oyster_bindings(cons));
+    }
+
     decref(cons);
     return ret;
 }

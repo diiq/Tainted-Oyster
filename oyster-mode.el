@@ -3,7 +3,10 @@
 (define-generic-mode 
     'oyster-mode                      ;; name of the mode
   '("#")                            ;; comments start with '#'
-  '("\:\:" "<-" "..." "clear")        ;; some keywords
+  '("::" "<-" "..." 
+    "clear" "←" "λ" 
+    "\\"  "==" "&&" "||" 
+    "+" "-" "/" "*")        ;; some keywords
   '((";" . 'font-lock-operator))    ;; ';' is a a built-in 
   '("\\.oy$")                       ;; files for which to activate this mode 
   (list 'oyster-mode-setup)         ;; other functions to call

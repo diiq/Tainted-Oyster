@@ -80,7 +80,7 @@ void step_machine(machine * m)
                                 car(cdr(instruct->instruction))),
                          car(instruct->instruction),
                          car(cdr(cdr(instruct->instruction))),
-                         m); //unweildy!
+                         m); //unweildier!
         break;
 
     case ELIPSIS_ASTERPEND_CONTINUE:
@@ -88,7 +88,7 @@ void step_machine(machine * m)
                                 car(cdr(instruct->instruction))),
                          car(instruct->instruction),
                          car(cdr(cdr(instruct->instruction))),
-                         m); //unweildy!
+                         m); //unweildest!
         break;
 
 

@@ -3,6 +3,7 @@
 
 void no_signal_handler(oyster * signal)
 {
+    incref(signal);
     int i = 0;
     oyster *ma = table_get(sym_id_from_string("continuation"),
                            oyster_bindings(car(cdr(signal))),
@@ -19,6 +20,7 @@ void no_signal_handler(oyster * signal)
     printf("\n\n\n");
     error(314, 0, "Exited with unhandled signal.");
     //    m->paused = 1;
+    decref(signal);
 }
 
 oyster *make_signal(oyster * message, machine * m)

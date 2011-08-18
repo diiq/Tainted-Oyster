@@ -16,6 +16,8 @@ unary-λ ← quoted:
 
 unary-\ ← unary-λ
 
+print: (current-scope)
+
 not ← λx: oif x () 't
 
 or ← λ(test ... 'xs):

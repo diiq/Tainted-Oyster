@@ -120,7 +120,6 @@ def cond (... 'cases):
             if ,(first case): 
                 then: 
                     do: *(rest case)
-                    print "done": rest case
                 else: cond *(rest cases)
 
 unary-- ← λx: 0 - x
@@ -250,42 +249,40 @@ def list-match ('parser):
 def apply-rule (rule stream state):
     cond:
         !stream:
-            print "a"
             ()
 
+        # if the rule is anonymous, don't worry about recusion.
         !(atom rule):
             ,rule stream state
 
+        # if the rule is in the recursion-list, apply the rule no matter what 
         (assoc rule state.recursion-list == stream):
-            print "OMGS RECURSION THING" rule stream
             ,rule stream: make-parse-state:
                 state.recursion-list
                 acons rule stream: state.stack
 
+        # if the rule is the recusion-head, encountered for the first time,
+        # do some stuff.
         (stream.(really rule) == 'still-active):
-            do:
-                foo ← 5
-                print "BOOTM  OF RECSUNN"
-                print "hi" foo "there"
-                stream.(really rule) ← "hall"
-                print "stuffs:" rule stream stream.(really rule)
-                ()
+            fret ← 'recursed
+            proo ← fret
 
+        # Otherwise, if there's a memoized answer, return that.
         stream.(really rule):
             stream.(really rule)
 
+        # If nothing else, apply the rule and memoize...
         't:
             stream.(really rule) ← 'still-active
-            print "HEYO" stream.(really rule)
             ret ← ,rule stream: make-parse-state:
                 state.recursion-list
                 acons rule stream: state.stack
 
-            print "HEYO" stream.(really rule)
             didrec ← stream.(really rule)
             
             stream.(really rule) ← ret
 
+            #then check for recursion.
             if (didrec == 'recursed):
                 print "OMG RECURSED"
 
@@ -302,6 +299,7 @@ def apply-rule (rule stream state):
 
             # ret
 
+print apply-rule
 
 stream ← open "afile"
 
