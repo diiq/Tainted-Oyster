@@ -32,6 +32,7 @@ oyster *make_continuation(machine * m)
     oyster *cont = make_oyster(sym_id_from_string("continuation"));
     oyster_assign_value(cont, machine_copy(m));
     incref(oyster_value(cont));
+    oyster_assign_gc(cont, 1);
     oyster_add_to_bindings(sym_id_from_string("continuation"), cont, ret);
     decref(m);
     return ret;

@@ -39,7 +39,7 @@ oyster *cheap_car(oyster * cons)
 {
     incref(cons);
     if (nilp(cons))
-        return cons;
+        return oyster_copy(cons, oyster_bindings(cons));
     oyster *ret = cons_of(cons)->car;
     decref(cons);
     return ret;
@@ -49,7 +49,7 @@ oyster *cheap_cdr(oyster * cons)
 {
     incref(cons);
     if (nilp(cons))
-        return cons;
+        return oyster_copy(cons, oyster_bindings(cons));
     oyster *ret = cons_of(cons)->cdr;
     decref(cons);
     return ret;
@@ -82,27 +82,26 @@ oyster *cons(oyster * car, oyster * cdr)
     oyster *new_cdr = oyster_copy(cdr, NULL);
     oyster *ret = make_cons(new_car, new_cdr);
     
-    if (!oyster_bindings(car) || table_empty(oyster_bindings(car))) {
+    if (!oyster_bindings(car)) {
 
-        decref(oyster_bindings(ret));
         oyster_assign_bindings(ret, oyster_bindings(cdr));
         incref(oyster_bindings(ret));
 
-    } else if (!oyster_bindings(cdr) || table_empty(oyster_bindings(cdr))) {
+    } else if (!oyster_bindings(cdr)) {
 
-        decref(oyster_bindings(ret));
         oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
 
     } else if (oyster_bindings(car) == oyster_bindings(cdr)) {
 
-        decref(oyster_bindings(ret));
         oyster_assign_bindings(ret, oyster_bindings(car));
         incref(oyster_bindings(ret));
 
     } else {
+
         oyster_assign_bindings(new_car, oyster_bindings(car));
         incref(oyster_bindings(new_car));
+
         oyster_assign_bindings(new_cdr, oyster_bindings(cdr));
         incref(oyster_bindings(new_cdr));
     }
@@ -116,13 +115,8 @@ oyster *car(oyster * cons)
 {
     oyster *ret;
     incref(cons);
-
-    if (nilp(cons)) {
-        ret = oyster_copy(cons, oyster_bindings(cons));
-    }
-
-
     oyster *c = cheap_car(cons);
+
     if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
         ret = oyster_copy(c, oyster_bindings(c));
     } else {
@@ -138,12 +132,8 @@ oyster *cdr(oyster * cons)
 {
     oyster *ret;
     incref(cons);
-
-    if (nilp(cons)) {
-        ret = oyster_copy(cons, oyster_bindings(cons));
-    }
-
     oyster *c = cheap_cdr(cons);
+
     if (oyster_bindings(c) && !table_empty(oyster_bindings(c))) {
         ret = oyster_copy(c, oyster_bindings(c));
     } else {
@@ -170,6 +160,7 @@ int nilp(oyster * x)
 
 oyster *list(int count, ...)
 {
+    // todo fix this mess
     int i;
     oyster **els = malloc(sizeof(oyster *) * count);
     va_list xs;

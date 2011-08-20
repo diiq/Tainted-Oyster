@@ -44,7 +44,5 @@ void toss_signal(oyster * signal, machine * m)
 
     oyster *eval = list(2, frame_instruction(now), 
                         list(2, make_symbol(CLEAR), signal));
-    incref(eval);
     push_new_instruction(m, eval, EVALUATE);
-    decref(eval);
 }

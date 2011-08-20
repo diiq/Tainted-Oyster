@@ -172,6 +172,7 @@ enum {
 
 table *make_table();
 table *table_copy(table * t);
+table *table_duplicate(table * t);
 void table_put_entry(int key, table_entry * entry, table * tab);
 table_entry *table_get_entry(int key, table * tab, int *flag);
 void table_put(int key, oyster * entry, table * tab);

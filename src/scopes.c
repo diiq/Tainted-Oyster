@@ -17,6 +17,7 @@ oyster *look_up(int sym, frame * cur)
     table_entry *e = look_up_entry(sym, cur);
     if (e)
         return e->it;
+    printf("failed lookup of %s in:", string_from_sym_id(sym));table_print(cur->scope);
     return NULL;
 }
 
@@ -40,6 +41,7 @@ table *reify_scope(table * t, frame * f)
     table_entry *entry;
     int k;
     table_loop(k, entry, t->leaked) {
+        printf("leaked: ");oyster_print(entry->it);printf("\n");
         table_entry *real = look_up_entry(k, f);
         if (real) {
             table_put_entry(k, real, ret);

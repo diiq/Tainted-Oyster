@@ -32,13 +32,13 @@ void step_machine(machine * m)
             table *t = m->now->scope_to_be;
             // eventually this must become copy-on-write
             m->now->scope_to_be = (oyster_bindings(m->accumulator) ?
-                                   table_copy(oyster_bindings(m->accumulator)) :
+                                   table_copy(oyster_bindings(m->accumulator)):
                                    make_table());
             incref(m->now->scope_to_be);
             decref(t);
         }
 
-            set_accumulator(m, oyster_copy(m->accumulator, make_table()));
+            set_accumulator(m, oyster_copy(m->accumulator, NULL));
             
             push_new_instruction(m, cdr(m->accumulator), APPLY_FUNCTION);
             argument_chain_link(car(m->accumulator), instruct->instruction, m);
@@ -104,8 +104,17 @@ void evaluate_oyster(frame * instruct, machine * m)
 {
     oyster *object = instruct->instruction;
     incref(object);
+    if (oyster_type(object) == CONS){
+        if (car_is_sym(object, CLEAR)) {
+            set_accumulator(m, car(cdr(object)));
+        } else {
+            if(TRACE)
+                push_stack_trace(car(object), m->current_frame, m);
+            push_new_instruction(m, cdr(object), PREPARE_ARGUMENTS);
+            push_new_instruction(m, car(object), EVALUATE);
+        }
 
-    if (oyster_bindings(object) && !table_empty(oyster_bindings(object))) {
+    } else if (oyster_bindings(object)) {
         push_bindings_to_scope(m, object);
 
     } else {
@@ -124,21 +133,6 @@ void evaluate_oyster(frame * instruct, machine * m)
                                                   ("Lookup-fail-error")),
                                       object);
                 toss_signal(make_signal(signal, m), m);
-            }
-            break;
-
-        case CONS:
-            if (car_is_sym(object, CLEAR)) {
-                set_accumulator(m, car(cdr(object)));
-                //while(car_is_sym(m->accumulator, CLEAR)){
-                //    set_accumulator(m, car(cdr(m->accumulator)));
-                //}
-
-            } else {
-                if(TRACE)
-                    push_stack_trace(car(object), m->current_frame, m);
-                push_new_instruction(m, cdr(object), PREPARE_ARGUMENTS);
-                push_new_instruction(m, car(object), EVALUATE);
             }
             break;
 
@@ -251,7 +245,6 @@ void elipsis_argument(oyster *arg_list, oyster * lambda,
 void push_normal_argument(oyster * arg, oyster * lambda_list,
                           oyster * arg_list, machine * m)
 {
-
     oyster *lambda = car(lambda_list);
     oyster *name, *func;
     
@@ -357,9 +350,9 @@ oyster *unevaluate_list(oyster * xs)
 void push_bindings_to_scope(machine * m, oyster * o)
 {
     frame *t = m->current_frame;
-    oyster *next = oyster_copy(o, make_table());
+    oyster *next = oyster_copy(o, NULL);
     m->current_frame = make_frame(t,
-                                  reify_scope(oyster_bindings(o), m->now),
+                                  oyster_bindings(o),
                                   m->now->scope_to_be,
                                   m->now->scope, next, EVALUATE);
     decref(t);

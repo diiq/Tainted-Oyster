@@ -207,8 +207,8 @@ void list_print(oyster * o)
 {
     incref(o);
     oyster *t;
-    for(; !nilp(o); t = cheap_cdr(o), decref(o), o = t, incref(o)){
-        oyster *c = cheap_car(o);
+    for(; !nilp(o); t = cdr(o), decref(o), o = t, incref(o)){
+        oyster *c = car(o);
         incref(c);
         if (oyster_type(c) == CONS){
             printf("(");
@@ -217,7 +217,7 @@ void list_print(oyster * o)
         } else {
             oyster_print(c);
         }
-        if (oyster_type(cheap_cdr(o)) == CONS) //unacceptable!
+        if (oyster_type(cdr(o)) == CONS) //unacceptable!
             printf(" ");
 
         decref(c);

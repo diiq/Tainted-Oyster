@@ -127,6 +127,7 @@ oyster *builtin_leak(machine * m)
         leak(id, oyster_bindings(closure));
 
     } else {
+        closure = oyster_copy(closure, table_copy(oyster_bindings(closure)));
         table_put(symbol_id(symbol), value, oyster_bindings(closure));
     }
 
@@ -161,7 +162,7 @@ oyster *builtin_assign_bindings(machine *m)
 oyster *builtin_quote(machine * m)
 {
     ARG(x);
-    if(!oyster_bindings(x) || table_empty(oyster_bindings(x)))
+    if(!oyster_bindings(x))
         return oyster_copy(x, frame_scope_below(machine_active_frame(m)));
     return oyster_copy(x, oyster_bindings(x));
 }
@@ -246,7 +247,7 @@ oyster *builtin_current_scope(machine * m)
     oyster_assign_value(ret, frame_scope(m->current_frame));
     incref(oyster_value(ret));
     return ret;
-}
+} 
 
 oyster *builtin_info_table(machine * m)
 {
@@ -265,6 +266,10 @@ oyster *builtin_table_get(machine * m)
     oyster *ret = table_get(symbol_id(symbol), oyster_value(tab), &i);
     if (!i)
         return nil();
+
+    if (i == TABLE_ENTRY_LEAKED)
+        return arg("LEAKED");
+
     return ret;
 }
 

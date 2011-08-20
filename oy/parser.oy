@@ -66,6 +66,10 @@ def map1 (f list):
     if list:
         f (first list) :: map1 f: rest list
 
+# This will go away when strings are complete.
+def string-map1 (f string):
+    if string:
+        f (string-first string) :: string-map1 f: string-rest string
 
 def fold (f list start):
     if !list:
@@ -185,7 +189,9 @@ def parse-success (value stream):
 def thing-match thing:
     λ(stream state):
         if (first stream == thing):
-            parse-success thing (rest stream)
+            then:
+                print "MATCHED!"
+                parse-success thing (rest stream)
 
 def and-match (... 'parsers):
     λ(stream state):
@@ -246,26 +252,37 @@ def list-match ('parser):
     λ(stream state):
         apply-rule parser (first stream) state
 
+def string-match (string):
+    and-match:
+        *(string-map1 thing-match string)
+
 def apply-rule (rule stream state):
+    head ← if state.recursion-list: first state.recursion-list
     cond:
         !stream:
             ()
 
-        # if the rule is anonymous, don't worry about recusion.
-        !(atom rule):
-            ,rule stream state
+        # if the rule is the recursion-head,
+        (and head (first head == rule) (second head == stream)):
+            val ← stream.(really rule)
+            stream.(really rule)
 
         # if the rule is in the recursion-list, apply the rule no matter what 
         (assoc rule state.recursion-list == stream):
-            ,rule stream: make-parse-state:
+            ret ← ,rule stream: make-parse-state:
                 state.recursion-list
                 acons rule stream: state.stack
+            if (stream.(really rule) && !ret):
+                stream.(really rule)
+                ret
 
-        # if the rule is the recusion-head, encountered for the first time,
+        # if the rule is the recusion-head encountered for the first time,
         # do some stuff.
         (stream.(really rule) == 'still-active):
-            fret ← 'recursed
-            proo ← fret
+            ret ← new 'recursed
+            ret.recursion-list ← state.stack
+            stream.(really rule) ← ret
+            ()
 
         # Otherwise, if there's a memoized answer, return that.
         stream.(really rule):
@@ -281,62 +298,41 @@ def apply-rule (rule stream state):
             didrec ← stream.(really rule)
             
             stream.(really rule) ← ret
-
             #then check for recursion.
             if (didrec == 'recursed):
-                print "OMG RECURSED"
-
+                then:
+                    prev ← ()
+                    pvalue ← ()
+                    while !(pvalue == ret.stream):
+                        stream.(really rule) ← ret
+                        prev ← parse-success ret.value ret.stream
+                        pvalue ← prev.stream
+                        ret ← ,rule stream: make-parse-state:
+                            acons rule stream didrec.recursion-list
+                            acons rule stream state.stack
+                        
             ret
 
-            #     then:
-            #         astream ← stream
-            #         while (ret && !(ret.stream == astream)):
-            #             stream.(really rule) ← ret
-            #             astream ← ret.stream
-            #             ret ← ,rule stream: make-parse-state:
-            #                 state.recursion-list
-            #                 acons rule stream: state.stack
+def parse ('rule file):
+    ret ← apply-rule rule file: make-parse-state () ()
+    ret.value
 
-            # ret
+aspace ← thing-match \# 
+comment ← and-match:
+    string-match "/*"
+    not-match: string-match "*/"
+    string-match "*/"
 
-print apply-rule
+file ← open "parse-test"
+print: parse comment file
 
-stream ← open "afile"
+#lots-of-abs ← or-match:
+#    and-match:
+#        lots-of-abs
+#        thing-match \#b
+#    thing-match \#a
 
-lots-of-abs ← or-match:
-    and-match:
-        lots-of-abs
-        thing-match \#b
-    thing-match \#a
-
-parsed ← apply-rule 'lots-of-abs (list \#a \#b \#b \#c): make-parse-state () ()
-print parsed.value
+#parsed ← apply-rule 'lots-of-abs (list \#a \#b \#b \#a \#b \#c): make-parse-state () ()
+#print parsed.value
 
 
-
- 
-    #recur ← state.recursion-list
-    #head ← ()
-    #if recur: head ← first recur
-    # cond:
-    #     # these first two options are wholly concerned with 
-    #     # what happens AFTER a recursion has been detected, so ignore them mostly.
-    #     (and: 
-    #         head
-    #         first head == rule
-    #         second head == stream):
-    #             stream.(really rule)
-                
-    #     (assoc rule recur == stream):
-    #         ,rule stream state
-                    
-    #     # If there's already a memor, return that!
-    #     (memo ← stream.(really rule)):
-    #         if (memo == 'still-active):
-    #             then:
-    #                 leak recursion-list recursion-list (copy stack)
-    #                 ()
-    #             else:
-    #                 memo
-
-    #     't:#

@@ -1,13 +1,9 @@
+print: bindings ()
 join ← cons
 first ← car
 rest ← cdr
 
-quoted ← '((... 'args):
-    print:
-        car args 
-        "bindings"
-        bindings: car args
-    args)
+quoted ← '((... 'args): args)
 
 list ← '((... args) args)
 
@@ -59,7 +55,14 @@ print: (λ('b) b): really a
 b ← 'b
 print: (λb b) 't
 
-print: *((λa: leak a 'a) 'b :: ())
+((λa: 
+    leak f
+    f ← a) 't)
+print f 
+
+print ((λf: table-get f: bindings: leak f 'poo 't) 'h) 
+
+print ((λf: table-get f: bindings: leak f 'poo) 'h) 
 
 #--------------------------------------------------------------#
 print: quoted oif tests
@@ -77,7 +80,7 @@ print: car: car: (λ(... 'b) b): really: 't :: 'a :: ()
 print: quoted Signal handling tests
 
 print: with-signal-handler:
-    \x: car x
+    λx: car x
     signal 't
 
 #--------------------------------------------------------------#

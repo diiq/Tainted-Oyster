@@ -23,8 +23,8 @@ machine *make_machine()
     ret->paused = 0;
 
     ret->trace = make_stack_trace(arg("bottom-of-the-barrel"),
-                                        NULL, 
-                                        NULL);
+                                  NULL, 
+                                  NULL);
     incref(ret->trace);
 
 
@@ -90,6 +90,8 @@ machine *machine_copy(machine * m)
     incref(ret->trace);
 
     ret->accumulator = m->accumulator;
+    incref(ret->accumulator);
+
     return ret;
 }
 

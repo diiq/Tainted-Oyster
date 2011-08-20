@@ -32,11 +32,11 @@ oyster * builtin_string_first(machine *m){
 
 oyster *builtin_string_rest(machine *m){
     // SUPER DUPER UBER INNEFFICIENT! WOWZA!
-    ARG(stra);
-    char *str = string_of(stra);
-    if (*(str+1) == '\0')
+    ARG(str);
+    char *stra = string_of(str);
+    if (*(stra+1) == '\0')
         return nil();
-    return make_string(str+1);
+    return make_string(stra+1);
 }
 
 void add_builtin_strings(machine *m)

@@ -26,7 +26,6 @@ table *make_table()
     table *ret = NEW(table);
     ret->it = g_hash_table_new_full(g_direct_hash,
                                     g_direct_equal, NULL, decref);
-
     ret->leaked = g_hash_table_new_full(g_direct_hash,
                                          g_direct_equal, NULL, NULL);
     return ret;
@@ -40,6 +39,16 @@ table *table_copy(table * t)
     table_loop(k, entry, t->it) {
         table_put_entry(k, entry, ret);
     } table_end_loop;
+    return ret;
+}
+
+table *table_duplicate(table * t)
+{
+    table *ret = NEW(table);
+    ret->it = t->it;
+    g_hash_table_ref(ret->it);
+    ret->leaked = g_hash_table_new_full(g_direct_hash,
+                                         g_direct_equal, NULL, NULL);
     return ret;
 }
 
