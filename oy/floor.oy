@@ -76,6 +76,10 @@ map1 ← λ(f list):
     if list:
         f (first list) :: map1 f: rest list
 
+# This will go away when strings are complete.
+def string-map1 (f string):
+    if string:
+        f (string-first string) :: string-map1 f: string-rest string
 
 fold ← λ(f list start):
     if !list:
@@ -118,37 +122,23 @@ find-if ← λ(f xs):
     if xs:
         if (f: first xs):
             first xs
-            find-if: rest xs
-
-
-class ← λ('name 'inheritance ... 'members):
-    leak: really name
-    init ← find-if (λx: first x == 'init) members
-    init-args ← if init (second init) ()
-
-    it ← really name ← λ(really init-args):
-        self ← '(really name)
-        it.subclass self
-        if init: self.init *(leak-all: init-args)
-        self
-
-    it.subclass ← λself:
-        map (λ(,class): class.subclass self) inheritance
-        map:
-            λm: assign self.(really: first m): 
-                leak: 
-                    self
-                    λ(really: second m): *(rest: rest m)
-                    self
-            members
-        self
-         
+            find-if: rest xs         
 
 table-assign:
     assign
     info-table table-get
     table-assign
 
+def second x: first: rest x
+
+def find-if (f xs):
+    if xs:
+        if (f: first xs):
+            first xs
+            find-if: rest xs
+
+def member (x xs):
+    find-if (λm: m == x) xs
 
 cond ← λ(... 'cases):
     if cases:
@@ -160,10 +150,6 @@ cond ← λ(... 'cases):
 
 unary-- ← λx: 0 - x
 
-or ← λ(test ... 'xs):
-    if test:
-        test
-        or *xs
 
 #-------------------------------------------------------------#
 # Playground
