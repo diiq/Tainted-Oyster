@@ -276,7 +276,7 @@ def apply-rule (rule stream state):
                 stream.(really rule)
                 ret
 
-        # if the rule is the recusion-head encountered for the first time,
+                # if the rule is the recusion-head encountered for the first time,
         # do some stuff.
         (stream.(really rule) == 'still-active):
             ret ← new 'recursed
@@ -290,6 +290,7 @@ def apply-rule (rule stream state):
 
         # If nothing else, apply the rule and memoize...
         't:
+            print rule
             stream.(really rule) ← 'still-active
             ret ← ,rule stream: make-parse-state:
                 state.recursion-list
@@ -319,12 +320,14 @@ def parse ('rule file):
 
 aspace ← thing-match \# 
 comment ← and-match:
-    string-match "/*"
-    not-match: string-match "*/"
-    string-match "*/"
+    thing-match \#*
+    many-match: not-match: thing-match \#*
+    thing-match \#*
 
+poo ← string-match "* h"
 file ← open "parse-test"
-print: parse comment file
+#print: parse comment file
+print: parse poo file
 
 #lots-of-abs ← or-match:
 #    and-match:

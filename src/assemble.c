@@ -35,6 +35,18 @@ void clean_up_oyster()          // And can clean_up come with you?
     free_symbol_table();
 }
 
+void evaluate_one(machine *m, oyster *func){
+    incref(func);
+    push_new_instruction(m, func, EVALUATE);
+    
+    while (!machine_paused(m)) {
+        step_machine(m);
+    }
+
+    machine_unpause(m);
+    decref(func);    
+}
+
 oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
 {
     token_stream *in = make_token_stream(inf);
@@ -42,16 +54,7 @@ oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
     machine *m = make_machine();
     incref(m);
     while (func) {
-        // oyster_print(func);printf("\n");
-
-        push_new_instruction(m, func, EVALUATE);
-
-        while (!machine_paused(m)) {
-            step_machine(m);
-        }
-        machine_unpause(m);
-
-        decref(func);
+        evaluate_one(m, func);
         func = read(in);
     }
     oyster *ret = machine_accumulator(m);

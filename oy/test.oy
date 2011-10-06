@@ -1,4 +1,3 @@
-print: bindings ()
 join ← cons
 first ← car
 rest ← cdr
