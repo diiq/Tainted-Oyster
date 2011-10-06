@@ -4,6 +4,7 @@
 #include "oyster.h"
 #include "parsing.h"
 #include "machine.h"
+#include "errno.h"
 
 // ------------------ The Apparatus -------------------//
 
@@ -37,7 +38,6 @@ void add_builtin(char *name,
     oyster *ofunc = list(2, lambda_list, make_builtin(func));
     set(sym_id_from_string(name), ofunc, m->base_frame);
 }
-
 
 
 // ------------------ The Functions -------------------//
@@ -100,7 +100,10 @@ oyster *builtin_assign(machine * m)
 
 oyster *builtin_leak(machine * m)
 {
-    // Gross.
+    // There are three ways to apply leak.
+    // With only a synbol, leak leaks that symbol from the current scope,
+    // allowing getting and setting of the symbol's binding from one scope above.
+    // Given a symbol and a closure, the symbol i
     ARG(symbol);
     ARG(closure);
     ARG(value);
@@ -290,6 +293,31 @@ oyster *builtin_new(machine *m)
     return ret;
 }
 
+#include "frame.h"
+
+oyster *builtin_include(machine *m)
+{
+    ARG(file);
+
+    char *fname = string_of(file);
+    errno = 0;
+    FILE *f = fopen(fname, "r");
+    if (errno){
+        oyster *signal = list(2, arg("file-open-pooper"), file);
+        toss_signal(make_signal(signal, m), m);
+        return nil();
+    }
+    token_stream *inc = make_token_stream(f);
+    oyster *lis = nil();
+    oyster *cur;
+    while((cur = read(inc))){
+        lis = cons(cur, lis);
+    }
+    lis = reverse(lis);
+    push_instruction_list(m, lis,  m->now->scope_below, m->now->scope_below);
+    return nil();
+}
+
 void add_builtins(machine * m)
 {
     add_builtin("cons", list(2, arg("car"), arg("cdr")), builtin_cons, m);
@@ -336,6 +364,6 @@ void add_builtins(machine * m)
                 builtin_table_assign, m);
 
     add_builtin("new", list(1, arg("obj")), builtin_new, m);
-
+    add_builtin("include", list(1, arg("file")), builtin_include, m);
 }
 

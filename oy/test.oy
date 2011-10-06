@@ -109,3 +109,9 @@ print: is \#a (string-first "ala bama")
 
 foo ← file-open "afile"
 print: is (file-get-char foo) \#a
+
+#--------------------------------------------------------------#
+print: quoted Include testes
+
+include "boodef.oy"
+print boo

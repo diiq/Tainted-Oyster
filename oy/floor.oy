@@ -36,6 +36,17 @@ if ← oif
 not ← λx: if x () 't
 unary-! ← not
 
+or ← λ(test ... 'xs):
+    oif test:
+        test
+        oif xs: or *xs
+
+is_old ← is
+is ← λ(a b):
+    or:
+        a <<is_old>> b
+        a <<binary-number-=>> b
+ 
 and ← λ(... 'xs):
     if !xs:
         't
@@ -156,17 +167,3 @@ or ← λ(test ... 'xs):
 
 #-------------------------------------------------------------#
 # Playground
-
-#foreach q '(a b c d e f):
-#     print q
-
-# print 'this 'far
-
-
-a ← '(a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i a b c d e f g h i)
-
-while a: 
-    print a
-    q ← \p: (a p)
-    a ← cdr a
-

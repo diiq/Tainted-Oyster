@@ -51,11 +51,11 @@ oyster *evaluate_one(machine *m, oyster *func){
 oyster *evaluate_file(FILE * inf, int print) // o god, it's a miscellaneous file
 {
     token_stream *in = make_token_stream(inf);
-    oyster *func;
-    oyster *ret;
+    oyster *func = NULL;
+    oyster *ret = NULL;
     machine *m = make_machine();
     incref(m);
-    while (func = read(in)) {
+    while ((func = read(in))) {
         ret = evaluate_one(m, func);
     }
 
