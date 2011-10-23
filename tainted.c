@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <error.h>
 
 #include "oyster.h"
 
@@ -16,6 +18,9 @@ int main(int argc, char *argv[])
     } else {
         file = fopen(argv[1], "r");
         print = 0;
+    }
+    if (errno) {
+        error(errno, errno, "File error");
     }
 
     /// g'damn g_scanner won't return a token until EOF is reached.
