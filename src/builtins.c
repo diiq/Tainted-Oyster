@@ -84,6 +84,18 @@ oyster *builtin_assign_cdr(machine *m){
     return value;
 }
 
+oyster *builtin_assign_car(machine *m){
+    ARG(cons);
+    ARG(value);
+    if (oyster_type(cons) != CONS) {
+        oyster *signal = list(2, arg("set-cdr-of-wrong-type"), cons);
+        toss_signal(make_signal(signal, m), m);
+        return NULL;
+    }
+    set_car(cons, value);
+    return value;
+}
+
 oyster *builtin_assign(machine * m)
 {
     ARG(symbol);
@@ -136,6 +148,25 @@ oyster *builtin_leak(machine * m)
 
     return closure;
 
+}
+
+oyster *builtin_leak_list(machine *m){
+    ARG(symbols);
+    ARG(closures);
+    oyster *sym;
+    for (sym = symbols; !nilp(sym); sym = cheap_cdr(sym)){
+        oyster *s = car(sym);
+        oyster *cur;
+        for (cur = closures; !nilp(cur); cur = cheap_cdr(cur)){
+            oyster * leaky = cheap_car(cur);
+            if (!oyster_bindings(leaky)) {
+                oyster_assign_bindings(leaky, make_table());
+                incref(oyster_bindings(leaky));
+            }
+            leak(symbol_id(s), oyster_bindings(leaky));
+        }
+    }
+    return closures;
 }
 
 oyster *builtin_leak_all(machine *m)
@@ -324,12 +355,16 @@ void add_builtins(machine * m)
     add_builtin("car", list(1, arg("cons")), builtin_car, m);
     add_builtin("cdr", list(1, arg("cons")), builtin_cdr, m);
 
+    add_builtin("assign-car", list(2, arg("cons"), arg("value")), builtin_assign_car, m);
     add_builtin("assign-cdr", list(2, arg("cons"), arg("value")), builtin_assign_cdr, m);
 
     add_builtin("assign", list(2, quot("symbol"), arg("value")), builtin_assign,
                 m);
     add_builtin("leak", list(3, unev("symbol"), arg("closure"), arg("value")),
                 builtin_leak, m);
+
+    add_builtin("leak-list", list(2, arg("symbols"), arg("closures")),
+                builtin_leak_list, m);
     add_builtin("leak-all", list(1, arg("obj")),
                 builtin_leak_all, m);
     add_builtin("bindings", list(1, arg("obj")),

@@ -12,8 +12,8 @@ unary-λ ← quoted:
         args ← list args
     quoted:
         (... 'code)
-        assign-bindings args (bindings code)    
-        list args @code
+        #        assign-bindings args (bindings code)    
+        leak-list args: list args @code
            
 unary-\ ← unary-λ
 
@@ -149,6 +149,40 @@ cond ← λ(... 'cases):
                 else: cond *(rest cases)
 
 unary-- ← λx: 0 - x
+
+def length xs:
+    if xs:
+        1 + length (rest xs)
+        0
+
+def nth (n xs):
+    if (n == 0):
+        first xs
+        nth (n - 1) (rest xs)
+
+def assign-nth (n xs value):
+   if (n == 0):
+       first xs ← value
+       assign-nth (n - 1) (cdr xs) value
+
+nth.assign ← assign-nth
+
+# def test-nth ():
+#     print: is:
+#         nth 3 (quoted a b c d e)
+#         'd
+
+# def test-assign-nth ():
+#     a ← quoted a b c d e
+#     nth 3 a ← 'q
+#     print: is:
+#         nth 3 a 
+#         'q
+
+
+
+# This won't work forever, but for now:
+first.assign ← assign-car
 
 
 #-------------------------------------------------------------#
